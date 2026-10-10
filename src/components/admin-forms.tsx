@@ -1,0 +1,93 @@
+"use client";
+
+import { useActionState } from "react";
+import { createUserAction, updateLessonAction, type AdminState } from "@/app/actions/admin";
+import { Callout, buttonClass, inputClass } from "./ui";
+
+export function CreateUserForm() {
+  const [state, action, pending] = useActionState<AdminState, FormData>(createUserAction, {});
+  return (
+    <form action={action} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <label className="sr-only" htmlFor="nu-name">
+        Name
+      </label>
+      <input id="nu-name" name="name" placeholder="Full name" className={inputClass} required />
+      <label className="sr-only" htmlFor="nu-email">
+        Email
+      </label>
+      <input id="nu-email" name="email" type="email" placeholder="Email" className={inputClass} required />
+      <label className="sr-only" htmlFor="nu-password">
+        Initial password
+      </label>
+      <input id="nu-password" name="password" type="password" placeholder="Initial password (10+ chars)" className={inputClass} required autoComplete="new-password" />
+      <label className="sr-only" htmlFor="nu-role">
+        Role
+      </label>
+      <select id="nu-role" name="role" className={inputClass} defaultValue="student">
+        <option value="student">Student</option>
+        <option value="trainer">Trainer</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button disabled={pending} className={buttonClass("primary")}>
+        {pending ? "Creating…" : "Create user"}
+      </button>
+      {(state.error || state.ok) && (
+        <div className="sm:col-span-2 lg:col-span-5">
+          <Callout tone={state.error ? "danger" : "success"}>{state.error ?? state.ok}</Callout>
+        </div>
+      )}
+    </form>
+  );
+}
+
+const SCOPES = ["standard", "configuration", "enterprise", "customization", "third-party"] as const;
+
+export function LessonEditor({ lesson }: { lesson: { id: string; title: string; durationMin: number; odooVersions: string | null; scope: string[]; body: string } }) {
+  const [state, action, pending] = useActionState<AdminState, FormData>(updateLessonAction, {});
+  return (
+    <form action={action} className="space-y-4">
+      <input type="hidden" name="lessonId" value={lesson.id} />
+      {(state.error || state.ok) && <Callout tone={state.error ? "danger" : "success"}>{state.error ?? state.ok}</Callout>}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="sm:col-span-2">
+          <label htmlFor="le-title" className="mb-1 block text-sm font-medium text-fg">
+            Title
+          </label>
+          <input id="le-title" name="title" defaultValue={lesson.title} className={inputClass} required />
+        </div>
+        <div>
+          <label htmlFor="le-duration" className="mb-1 block text-sm font-medium text-fg">
+            Duration (min)
+          </label>
+          <input id="le-duration" name="durationMin" type="number" min={1} defaultValue={lesson.durationMin} className={inputClass} />
+        </div>
+        <div className="sm:col-span-2">
+          <label htmlFor="le-versions" className="mb-1 block text-sm font-medium text-fg">
+            Applicable Odoo version(s)
+          </label>
+          <input id="le-versions" name="odooVersions" defaultValue={lesson.odooVersions ?? ""} className={inputClass} placeholder="Odoo 17.0 / 18.0 or Version-independent" />
+        </div>
+      </div>
+      <fieldset>
+        <legend className="mb-1 text-sm font-medium text-fg">Feature scope labels</legend>
+        <div className="flex flex-wrap gap-3">
+          {SCOPES.map((s) => (
+            <label key={s} className="flex items-center gap-1.5 text-sm text-fg">
+              <input type="checkbox" name="scope" value={s} defaultChecked={lesson.scope.includes(s)} className="accent-[var(--primary)]" />
+              {s}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <div>
+        <label htmlFor="le-body" className="mb-1 block text-sm font-medium text-fg">
+          Body (Markdown, GitHub-flavoured; raw HTML is not rendered)
+        </label>
+        <textarea id="le-body" name="body" defaultValue={lesson.body} rows={28} className={`${inputClass} font-mono text-xs`} spellCheck={false} />
+      </div>
+      <button disabled={pending} className={buttonClass("primary")}>
+        {pending ? "Saving…" : "Save lesson"}
+      </button>
+    </form>
+  );
+}
