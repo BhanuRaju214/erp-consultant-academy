@@ -86,35 +86,101 @@ Throughout this course we work with our fictional client:
 
 The standard **Procure-to-Stock-to-Ship** flow for Northwind, using one-step routes:
 
-\`\`\`text
- Purchase Order (Purchase app)
-        │  confirm
-        ▼
- Receipt WH/IN/xxxxx   Vendors ──► WH/Stock         (stock IN, valuation layer +)
-        │  validate
-        ▼
- On-hand stock (quants in WH/Stock, optionally putaway to WH/Stock/Shelf A)
-        │
-        ▼
- Sales Order (Sales app)
-        │  confirm
-        ▼
- Delivery WH/OUT/xxxxx  WH/Stock ──► Customers      (stock OUT, valuation layer −)
-        │  validate
-        ▼
- Customer invoice (Accounting) ── COGS recognised (automated valuation)
+\`\`\`visual-flow
+{
+  "title": "Procure-to-Stock-to-Ship (one-step routes)",
+  "caption": "Select a step to see the stock move and its valuation effect.",
+  "steps": [
+    {
+      "title": "Purchase order confirmed",
+      "icon": "cart",
+      "app": "Purchase"
+    },
+    {
+      "title": "Receipt validated",
+      "icon": "package",
+      "app": "Inventory",
+      "document": "WH/IN/xxxxx",
+      "impact": "Vendors → WH/Stock: stock IN, valuation layer +"
+    },
+    {
+      "title": "On-hand stock",
+      "icon": "warehouse",
+      "app": "Inventory",
+      "detail": "Quants in WH/Stock, optionally put away to WH/Stock/Shelf A."
+    },
+    {
+      "title": "Sales order confirmed",
+      "icon": "check",
+      "app": "Sales"
+    },
+    {
+      "title": "Delivery validated",
+      "icon": "truck",
+      "app": "Inventory",
+      "document": "WH/OUT/xxxxx",
+      "impact": "WH/Stock → Customers: stock OUT, valuation layer −"
+    },
+    {
+      "title": "Customer invoice",
+      "icon": "invoice",
+      "app": "Accounting",
+      "impact": "COGS recognised (automated valuation)"
+    }
+  ]
+}
 \`\`\`
 
 With **3-step delivery** the outbound side becomes:
 
-\`\`\`text
- WH/Stock ──Pick──► WH/Packing Zone ──Pack──► WH/Output ──Ship──► Partners/Customers
+\`\`\`visual-flow
+{
+  "title": "3-step delivery",
+  "steps": [
+    {
+      "title": "WH/Stock",
+      "icon": "warehouse"
+    },
+    {
+      "title": "Pick → WH/Packing Zone",
+      "icon": "package"
+    },
+    {
+      "title": "Pack → WH/Output",
+      "icon": "box"
+    },
+    {
+      "title": "Ship → Partners/Customers",
+      "icon": "truck"
+    }
+  ]
+}
 \`\`\`
 
 With **3-step receipt**:
 
-\`\`\`text
- Partners/Vendors ──Receive──► WH/Input ──Quality──► WH/Quality Control ──Store──► WH/Stock
+\`\`\`visual-flow
+{
+  "title": "3-step receipt",
+  "steps": [
+    {
+      "title": "Partners/Vendors",
+      "icon": "building"
+    },
+    {
+      "title": "Receive → WH/Input",
+      "icon": "package"
+    },
+    {
+      "title": "Quality → WH/Quality Control",
+      "icon": "search"
+    },
+    {
+      "title": "Store → WH/Stock",
+      "icon": "warehouse"
+    }
+  ]
+}
 \`\`\`
 
 Side flows that also generate stock moves:

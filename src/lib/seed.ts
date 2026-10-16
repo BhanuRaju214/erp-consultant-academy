@@ -26,7 +26,7 @@ import {
   docLibrary,
   learningPathSeeds,
   platforms,
-  tradingProject,
+  allProjects,
 } from "@/content";
 import type { AssessmentContent, CourseContent } from "@/content/types";
 import { hashPassword } from "@/lib/auth/password";
@@ -194,7 +194,10 @@ function demoPassword(envName: string, fallback: string): string {
   return fallback;
 }
 
-export async function seedAll(db: Db, opts: { force?: boolean; skipUsers?: boolean; refresh?: string[] } = {}): Promise<string[]> {
+export async function seedAll(
+  db: Db,
+  opts: { force?: boolean; skipUsers?: boolean; refresh?: string[]; refreshProjectData?: boolean } = {},
+): Promise<string[]> {
   const log: string[] = [];
   const force = opts.force ?? false;
   const refresh = new Set(opts.refresh ?? []);
@@ -249,7 +252,17 @@ export async function seedAll(db: Db, opts: { force?: boolean; skipUsers?: boole
   // ---- Business processes ---------------------------------------------------
   for (const [i, p] of businessProcesses.entries()) {
     const existing = await db.query.businessProcesses.findFirst({ where: eq(processesTable.slug, p.slug) });
-    if (existing && !force) continue;
+    if (existing && !force) {
+      // Refresh the page content only; the quiz and its attempts stay untouched.
+      if (opts.refreshProjectData) {
+        const { quiz: _quiz, ...data } = p;
+        await db
+          .update(processesTable)
+          .set({ title: p.title, shortName: p.shortName, category: p.category, summary: p.summary, data })
+          .where(eq(processesTable.id, existing.id));
+      }
+      continue;
+    }
     await db.transaction(async (tx) => {
       if (existing) await tx.delete(processesTable).where(eq(processesTable.id, existing.id));
       if (p.quiz) await tx.delete(assessments).where(eq(assessments.slug, p.quiz.slug));
@@ -302,9 +315,19 @@ export async function seedAll(db: Db, opts: { force?: boolean; skipUsers?: boole
   log.push(`✓ ${configScenarios.length} configuration scenarios`);
 
   // ---- Projects --------------------------------------------------------------
-  for (const p of [tradingProject]) {
+  for (const p of allProjects) {
     const existing = await db.query.projects.findFirst({ where: eq(projects.slug, p.slug) });
-    if (existing && !force) continue;
+    if (existing && !force) {
+      // Non-destructive refresh: update the project document (requirements, data files, test cases…)
+      // but keep the task rows so learners' task progress is preserved.
+      if (opts.refreshProjectData) {
+        await db
+          .update(projects)
+          .set({ code: p.code, title: p.title, industry: p.industry, level: p.level, summary: p.summary, odooVersion: p.odooVersion, data: p })
+          .where(eq(projects.id, existing.id));
+      }
+      continue;
+    }
     await db.transaction(async (tx) => {
       if (existing) await tx.delete(projects).where(eq(projects.id, existing.id));
       const [proj] = await tx
@@ -327,7 +350,7 @@ export async function seedAll(db: Db, opts: { force?: boolean; skipUsers?: boole
       });
     });
   }
-  log.push("✓ projects");
+  log.push(`✓ ${allProjects.length} projects`);
 
   // ---- Documentation -----------------------------------------------------------
   for (const d of docLibrary) {

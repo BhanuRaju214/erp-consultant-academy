@@ -4,7 +4,7 @@ import { eq } from "drizzle-orm";
 import { Download } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { assignments } from "@/lib/db/schema";
+import { assignments, exercises } from "@/lib/db/schema";
 import { getProject } from "@/lib/services/practice";
 import type { ProjectContent } from "@/content/types";
 import { Markdown } from "@/components/markdown";
@@ -37,6 +37,9 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
   const path = `/projects/${slug}`;
   const done = project.tasks.filter((t) => status.get(t.id) === "done").length;
   const finalAssignment = await db.query.assignments.findFirst({ where: eq(assignments.projectId, project.id) });
+  // Project A predates the configScenario field in stored project documents.
+  const scenarioSlug = p.configScenario ?? (p.code === "A" ? "trading-company" : undefined);
+  const scenario = scenarioSlug ? await db.query.exercises.findFirst({ where: eq(exercises.slug, scenarioSlug), columns: { slug: true, title: true } }) : undefined;
   const phases = Array.from(new Map(project.tasks.map((t) => [t.phase, t.phaseTitle])).entries());
 
   return (
@@ -181,11 +184,24 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
       <section id="plan" className="scroll-mt-28 space-y-4">
         <h2 className="text-lg font-semibold text-fg">Implementation plan & configuration checklist</h2>
         <Callout>
-          Track your own progress per task. The configuration tasks map to the{" "}
-          <Link href="/config-lab/trading-company" className="underline">
-            trading company configuration lab
-          </Link>
-          .
+          Track your own progress per task.{" "}
+          {scenario ? (
+            <>
+              The configuration tasks map to the{" "}
+              <Link href={`/config-lab/${scenario.slug}`} className="underline">
+                {scenario.title}
+              </Link>{" "}
+              lab — practise them there step by step.
+            </>
+          ) : (
+            <>
+              Validate every migration file in the{" "}
+              <Link href="/import-lab" className="underline">
+                Data Migration & Import Lab
+              </Link>{" "}
+              before loading it into your training database.
+            </>
+          )}
         </Callout>
         {phases.map(([phase, title]) => (
           <Card key={phase} className="p-0">

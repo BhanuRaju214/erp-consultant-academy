@@ -85,33 +85,85 @@ Throughout this course we work with our fictional client:
 
 The standard **Plan-to-Produce** flow for Timbercraft, using 1-step manufacturing:
 
-\`\`\`text
- Demand: Sales Order (MTO) / reordering rule / MPS / manual MO
-        │
-        ▼
- Manufacturing Order  WH/MO/xxxxx   [Draft]
-        │  Confirm  → components reserved where available
-        ▼
- [Confirmed] ── components missing? ──► Purchase RFQ (Buy route) or child MO
-        │  start first work order / record production
-        ▼
- [In Progress]  Work orders: Cutting ──► Assembly ──► Finishing
-        │  quantities produced and consumed are filled in
-        ▼
- [To Close] ── Mark as Done (partial → backorder MO)
-        ▼
- [Done]  Stock moves:
-         WH/Stock ──components──► Virtual Locations/Production   (value out)
-         Virtual Locations/Production ──finished──► WH/Stock     (value in)
-        │
-        ▼
- Delivery to customer (Inventory) → invoice (Accounting)
+\`\`\`visual-flow
+{
+  "title": "Plan-to-Produce (1-step manufacturing)",
+  "caption": "Select a step for details. Done MOs move value: components out of WH/Stock, finished goods back in.",
+  "steps": [
+    {
+      "title": "Demand",
+      "icon": "target",
+      "detail": "Sales order (MTO), reordering rule, MPS or a manual MO."
+    },
+    {
+      "title": "Manufacturing order",
+      "icon": "file",
+      "app": "Draft",
+      "document": "WH/MO/xxxxx"
+    },
+    {
+      "title": "Confirmed",
+      "icon": "check",
+      "detail": "Components are reserved where available.",
+      "branch": {
+        "when": "Components missing",
+        "result": "Purchase RFQ (Buy route) or a child MO",
+        "tone": "warning"
+      }
+    },
+    {
+      "title": "In progress",
+      "icon": "factory",
+      "detail": "Start the first work order or record production. Work orders: Cutting → Assembly → Finishing; produced and consumed quantities are filled in."
+    },
+    {
+      "title": "To close",
+      "icon": "clipboard",
+      "detail": "Mark as Done.",
+      "branch": {
+        "when": "Partial quantity",
+        "result": "Backorder MO created",
+        "tone": "info"
+      }
+    },
+    {
+      "title": "Done",
+      "icon": "warehouse",
+      "impact": "WH/Stock → Virtual Locations/Production: components (value out). Virtual Locations/Production → WH/Stock: finished goods (value in)."
+    },
+    {
+      "title": "Deliver & invoice",
+      "icon": "truck",
+      "app": "Inventory → Accounting"
+    }
+  ]
+}
 \`\`\`
 
 With **3-step manufacturing** (warehouse setting) the flow gains two internal transfers:
 
-\`\`\`text
- WH/Stock ──Pick Components──► WH/Pre-Production ──MO──► WH/Post-Production ──Store──► WH/Stock
+\`\`\`visual-flow
+{
+  "title": "3-step manufacturing",
+  "steps": [
+    {
+      "title": "WH/Stock",
+      "icon": "warehouse"
+    },
+    {
+      "title": "Pick Components → WH/Pre-Production",
+      "icon": "package"
+    },
+    {
+      "title": "MO → WH/Post-Production",
+      "icon": "factory"
+    },
+    {
+      "title": "Store → WH/Stock",
+      "icon": "warehouse"
+    }
+  ]
+}
 \`\`\`
 
 (Location names are Odoo defaults; verify in your training instance.)

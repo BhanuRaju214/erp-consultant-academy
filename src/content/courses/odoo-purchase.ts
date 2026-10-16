@@ -77,28 +77,68 @@ Technical model: **purchase.order** and **purchase.order.line**. Vendor prices a
 
 ## 3. Process flow
 
-\`\`\`text
- Need identified
- (manual / reordering rule / MTO from sales order)
-        |
-        v
-      RFQ  --(Send by Email)-->  RFQ SENT  --(vendor replies, update prices)
-        |
-        |  Confirm Order
-        v
-   amount > approval threshold and user not manager?
-        |-- yes --> TO APPROVE --(manager: Approve Order)--+
-        |-- no  -----------------------------------------> PURCHASE ORDER
-                                                              |
-                                  +---------------------------+------------------+
-                                  v                                              v
-                          RECEIPT (Inventory)                          VENDOR BILL (Accounting)
-                          validate received qty                        per bill control policy
-                                  |                                              |
-                                  +---------> 3-way match: PO / Receipt / Bill <-+
-                                                              |
-                                                              v
-                                                       PAYMENT to vendor
+\`\`\`visual-flow
+{
+  "title": "Procure-to-Pay in Purchase",
+  "steps": [
+    {
+      "title": "Need identified",
+      "icon": "target",
+      "detail": "Manual, reordering rule, or MTO from a sales order."
+    },
+    {
+      "title": "RFQ",
+      "icon": "file"
+    },
+    {
+      "title": "RFQ sent",
+      "icon": "mail",
+      "detail": "Sent by email; update prices when the vendor replies."
+    },
+    {
+      "title": "Confirm order",
+      "icon": "check",
+      "branch": {
+        "when": "Amount > threshold and user not a manager",
+        "result": "To Approve → manager clicks Approve Order",
+        "tone": "warning"
+      }
+    },
+    {
+      "title": "Purchase order",
+      "icon": "cart",
+      "app": "Purchase"
+    },
+    {
+      "title": "Receive & bill",
+      "icon": "workflow",
+      "parallel": [
+        {
+          "title": "Receipt",
+          "app": "Inventory",
+          "icon": "package",
+          "detail": "Validate received quantities."
+        },
+        {
+          "title": "Vendor bill",
+          "app": "Accounting",
+          "icon": "receipt",
+          "detail": "Per the bill control policy."
+        }
+      ]
+    },
+    {
+      "title": "3-way match",
+      "icon": "scale",
+      "detail": "PO, receipt and bill agree."
+    },
+    {
+      "title": "Pay the vendor",
+      "icon": "payment",
+      "app": "Accounting"
+    }
+  ]
+}
 \`\`\`
 
 ## 4. Dependencies on other apps

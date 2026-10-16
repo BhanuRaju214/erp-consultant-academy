@@ -94,31 +94,128 @@ Feature availability shifts between versions — always **verify in your trainin
 
 ### Order-to-Cash
 
-\`\`\`text
- Sales Order ──► Delivery ──► Customer Invoice (Draft) ──Confirm──► Posted (AR ↑, Revenue ↑, Tax payable ↑)
-                                                                         │
-                                       Register Payment ◄────────────────┘
-                                              │   (AR ↓, Outstanding Receipts ↑)
-                                              ▼
-                               Bank statement line ──Reconcile──► Bank ↑, Outstanding Receipts ↓
+\`\`\`visual-flow
+{
+  "title": "Order-to-Cash",
+  "caption": "Select a step to see what it does to the accounts.",
+  "steps": [
+    {
+      "title": "Sales order",
+      "icon": "cart",
+      "app": "Sales"
+    },
+    {
+      "title": "Delivery",
+      "icon": "truck",
+      "app": "Inventory"
+    },
+    {
+      "title": "Customer invoice (draft)",
+      "icon": "invoice",
+      "app": "Accounting"
+    },
+    {
+      "title": "Confirm → posted",
+      "icon": "check",
+      "app": "Accounting",
+      "impact": "AR ↑, Revenue ↑, Tax payable ↑"
+    },
+    {
+      "title": "Register payment",
+      "icon": "payment",
+      "app": "Accounting",
+      "impact": "AR ↓, Outstanding Receipts ↑"
+    },
+    {
+      "title": "Reconcile bank statement line",
+      "icon": "bank",
+      "app": "Accounting",
+      "impact": "Bank ↑, Outstanding Receipts ↓"
+    }
+  ]
+}
 \`\`\`
 
 ### Procure-to-Pay
 
-\`\`\`text
- Purchase Order ──► Receipt ──► Vendor Bill (Draft) ──Confirm──► Posted (Expense/Stock interim ↑, Tax receivable ↑, AP ↑)
-                                                                     │
-                                       Register Payment ◄────────────┘
-                                              │   (AP ↓, Outstanding Payments ↑)
-                                              ▼
-                               Bank statement line ──Reconcile──► Bank ↓, Outstanding Payments ↓
+\`\`\`visual-flow
+{
+  "title": "Procure-to-Pay",
+  "caption": "Select a step to see what it does to the accounts.",
+  "steps": [
+    {
+      "title": "Purchase order",
+      "icon": "cart",
+      "app": "Purchase"
+    },
+    {
+      "title": "Receipt",
+      "icon": "package",
+      "app": "Inventory"
+    },
+    {
+      "title": "Vendor bill (draft)",
+      "icon": "receipt",
+      "app": "Accounting"
+    },
+    {
+      "title": "Confirm → posted",
+      "icon": "check",
+      "app": "Accounting",
+      "impact": "Expense / stock interim ↑, Tax receivable ↑, AP ↑"
+    },
+    {
+      "title": "Register payment",
+      "icon": "payment",
+      "app": "Accounting",
+      "impact": "AP ↓, Outstanding Payments ↑"
+    },
+    {
+      "title": "Reconcile bank statement line",
+      "icon": "bank",
+      "app": "Accounting",
+      "impact": "Bank ↓, Outstanding Payments ↓"
+    }
+  ]
+}
 \`\`\`
 
 ### Record-to-Report
 
-\`\`\`text
- Daily postings ─► Bank reconciliation ─► Accruals / Misc entries ─► Review Trial Balance
-     ─► Lock date ─► Balance Sheet / P&L / Tax report ─► Year-end closing
+\`\`\`visual-flow
+{
+  "title": "Record-to-Report",
+  "steps": [
+    {
+      "title": "Daily postings",
+      "icon": "invoice"
+    },
+    {
+      "title": "Bank reconciliation",
+      "icon": "bank"
+    },
+    {
+      "title": "Accruals / misc. entries",
+      "icon": "file"
+    },
+    {
+      "title": "Review trial balance",
+      "icon": "scale"
+    },
+    {
+      "title": "Lock date",
+      "icon": "lock"
+    },
+    {
+      "title": "Balance sheet / P&L / tax report",
+      "icon": "chart"
+    },
+    {
+      "title": "Year-end closing",
+      "icon": "calendar"
+    }
+  ]
+}
 \`\`\`
 
 > **Consultant tip:** Accountants think in entries, operations people think in documents. In workshops, show both side by side: open the invoice, then click the **Journal Items** tab. That single habit removes most fear of "the system posting things behind our back".

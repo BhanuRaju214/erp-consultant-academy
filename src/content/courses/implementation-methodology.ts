@@ -50,8 +50,34 @@ Two fictional clients sign ERP contracts in the same week. **Atlas Precision Eng
 
 Phases follow one another; each finishes with a sign-off before the next starts.
 
-\`\`\`text
- Discovery -> Requirements -> Design -> Build/Config -> Test -> Go-live -> Support
+\`\`\`visual-flow
+{
+  "compact": true,
+  "title": "Waterfall phases",
+  "steps": [
+    {
+      "title": "Discovery"
+    },
+    {
+      "title": "Requirements"
+    },
+    {
+      "title": "Design"
+    },
+    {
+      "title": "Build / config"
+    },
+    {
+      "title": "Test"
+    },
+    {
+      "title": "Go-live"
+    },
+    {
+      "title": "Support"
+    }
+  ]
+}
 \`\`\`
 
 **Strengths:** clear contracts and budgets; strong documentation; suits regulated industries and fixed-price deals.
@@ -393,21 +419,65 @@ Crescent's draft RTM had 112 requirements, 70% marked Must. In a prioritisation 
 
 ### Example — TO-BE quote-to-install flow
 
-\`\`\`text
- [Designer] Quotation (Sales) --> [Owner] approves if discount > 10%
-        |
-        v
- Customer confirms --> Sales order confirmed --> Advance invoice (Accounting)
-        |
-        v
- Purchase orders per vendor (Purchase) --> Receipts (Inventory)
-        |
-        v
- Delivery to site (Inventory) --> Installation tasks (Project / Field Service*)
-        |
-        v
- Final invoice (Accounting) --> Payment & reconciliation
- * Field Service is an Enterprise app; Project tasks are an alternative.
+\`\`\`visual-flow
+{
+  "title": "TO-BE quote-to-install flow",
+  "caption": "* Field Service is an Enterprise app; Project tasks are an alternative.",
+  "steps": [
+    {
+      "title": "Quotation",
+      "icon": "file",
+      "app": "Sales",
+      "actor": "Designer",
+      "branch": {
+        "when": "Discount > 10%",
+        "result": "Owner approves",
+        "tone": "warning"
+      }
+    },
+    {
+      "title": "Sales order confirmed",
+      "icon": "check",
+      "app": "Sales",
+      "actor": "Customer confirms"
+    },
+    {
+      "title": "Advance invoice",
+      "icon": "invoice",
+      "app": "Accounting"
+    },
+    {
+      "title": "Purchase orders per vendor",
+      "icon": "cart",
+      "app": "Purchase"
+    },
+    {
+      "title": "Receipts",
+      "icon": "package",
+      "app": "Inventory"
+    },
+    {
+      "title": "Delivery to site",
+      "icon": "truck",
+      "app": "Inventory"
+    },
+    {
+      "title": "Installation tasks",
+      "icon": "wrench",
+      "app": "Project / Field Service*"
+    },
+    {
+      "title": "Final invoice",
+      "icon": "invoice",
+      "app": "Accounting"
+    },
+    {
+      "title": "Payment & reconciliation",
+      "icon": "bank",
+      "app": "Accounting"
+    }
+  ]
+}
 \`\`\`
 
 ## Mapping to Odoo apps
@@ -528,18 +598,45 @@ Maple Leaf initially wanted three approval levels for every quotation. In a conf
 
 ## Recommended configuration order
 
-\`\`\`text
- 1 Company & localisation  ->  2 Users & access  ->  3 Accounting foundations
- (company data, currency,       (groups, record        (chart of accounts, taxes,
-  fiscal localisation)           rules, companies)       journals, payment terms)
-          |
-          v
- 4 Inventory structure  ->  5 Products & UoM  ->  6 Sales / Purchase settings
- (warehouses, locations,      (categories, units,     (pricelists, approvals,
-  routes, operation types)     tracking)                terms & conditions)
-          |
-          v
- 7 Sequences & documents -> 8 Automation & approvals -> 9 Reports & dashboards
+\`\`\`visual-steps
+{
+  "title": "Recommended configuration order",
+  "steps": [
+    {
+      "title": "Company & localisation",
+      "body": "Company data, currency, fiscal localisation."
+    },
+    {
+      "title": "Users & access",
+      "body": "Groups, record rules, companies."
+    },
+    {
+      "title": "Accounting foundations",
+      "body": "Chart of accounts, taxes, journals, payment terms."
+    },
+    {
+      "title": "Inventory structure",
+      "body": "Warehouses, locations, routes, operation types."
+    },
+    {
+      "title": "Products & units of measure",
+      "body": "Categories, units, tracking."
+    },
+    {
+      "title": "Sales / purchase settings",
+      "body": "Pricelists, approvals, terms & conditions."
+    },
+    {
+      "title": "Sequences & documents"
+    },
+    {
+      "title": "Automation & approvals"
+    },
+    {
+      "title": "Reports & dashboards"
+    }
+  ]
+}
 \`\`\`
 
 ## Key configuration areas
@@ -640,11 +737,37 @@ At Riverbend, the consultant initially set up branches as separate companies. Du
 
 ## The migration process
 
-\`\`\`text
- EXTRACT -> CLEANSE -> TRANSFORM/MAP -> VALIDATE -> LOAD (trial) -> RECONCILE
-                                                       ^              |
-                                                       +---- repeat --+
-                                                     (2-3 trial loads, then final)
+\`\`\`visual-flow
+{
+  "title": "The migration process",
+  "loop": "Validate → trial load → reconcile, **2–3 trial loads**, then the final load.",
+  "steps": [
+    {
+      "title": "Extract",
+      "icon": "database"
+    },
+    {
+      "title": "Cleanse",
+      "icon": "filter"
+    },
+    {
+      "title": "Transform / map",
+      "icon": "workflow"
+    },
+    {
+      "title": "Validate",
+      "icon": "check"
+    },
+    {
+      "title": "Load (trial)",
+      "icon": "package"
+    },
+    {
+      "title": "Reconcile",
+      "icon": "scale"
+    }
+  ]
+}
 \`\`\`
 
 ### 1. Extract
@@ -774,17 +897,60 @@ Summit's first trial load rejected 900 products because category codes in the it
 
 ## From requirement to delivered customization
 
-\`\`\`text
- Approved gap (RTM / fit-gap)
-        |
-        v
- Functional spec (what & why) --> Technical spec (how) --> Estimate & approval
-        |
-        v
- Build in DEV (version control) --> Unit tests --> Code review
-        |
-        v
- Deploy to TEST --> Functional + integration test --> Fix defects --> STAGING
+\`\`\`visual-flow
+{
+  "title": "From requirement to delivered customization",
+  "steps": [
+    {
+      "title": "Approved gap",
+      "icon": "flag",
+      "app": "RTM / fit-gap"
+    },
+    {
+      "title": "Functional spec",
+      "icon": "file",
+      "detail": "What and why."
+    },
+    {
+      "title": "Technical spec",
+      "icon": "code",
+      "detail": "How."
+    },
+    {
+      "title": "Estimate & approval",
+      "icon": "signature"
+    },
+    {
+      "title": "Build in DEV",
+      "icon": "code",
+      "app": "Version control"
+    },
+    {
+      "title": "Unit tests",
+      "icon": "check"
+    },
+    {
+      "title": "Code review",
+      "icon": "search"
+    },
+    {
+      "title": "Deploy to TEST",
+      "icon": "server"
+    },
+    {
+      "title": "Functional + integration test",
+      "icon": "clipboard"
+    },
+    {
+      "title": "Fix defects",
+      "icon": "wrench"
+    },
+    {
+      "title": "Promote to STAGING",
+      "icon": "rocket"
+    }
+  ]
+}
 \`\`\`
 
 ## Customization requirements
@@ -1175,11 +1341,47 @@ Three months after go-live, **Orchid Event Rentals** (fictional) has a growing p
 
 ## Ticket lifecycle
 
-\`\`\`text
- Logged -> Triaged (category, priority) -> Assigned -> Investigating
-    -> Resolved (fix/workaround) -> User confirms -> Closed
-                          |
-                          +--> Escalated to developer / vendor (code defect)
+\`\`\`visual-flow
+{
+  "title": "Ticket lifecycle",
+  "steps": [
+    {
+      "title": "Logged",
+      "icon": "mail"
+    },
+    {
+      "title": "Triaged",
+      "icon": "filter",
+      "detail": "Category and priority set."
+    },
+    {
+      "title": "Assigned",
+      "icon": "user"
+    },
+    {
+      "title": "Investigating",
+      "icon": "search",
+      "branch": {
+        "when": "Code defect",
+        "result": "Escalated to developer / vendor",
+        "tone": "warning"
+      }
+    },
+    {
+      "title": "Resolved",
+      "icon": "wrench",
+      "detail": "Fix or workaround."
+    },
+    {
+      "title": "User confirms",
+      "icon": "check"
+    },
+    {
+      "title": "Closed",
+      "icon": "flag"
+    }
+  ]
+}
 \`\`\`
 
 ## Logging and categorisation
@@ -1246,9 +1448,43 @@ Ask **"why"** until you reach something you can fix permanently (the "5 Whys"):
 
 ## Escalation path
 
-\`\`\`text
- End user -> Key user (L1) -> Consultant / partner support (L2)
-          -> Developer (L3, customization) or Vendor support (standard product)
+\`\`\`visual-flow
+{
+  "title": "Escalation path",
+  "steps": [
+    {
+      "title": "End user",
+      "icon": "user"
+    },
+    {
+      "title": "Key user",
+      "icon": "users",
+      "app": "L1"
+    },
+    {
+      "title": "Consultant / partner support",
+      "icon": "handshake",
+      "app": "L2"
+    },
+    {
+      "title": "Final escalation",
+      "icon": "wrench",
+      "parallel": [
+        {
+          "title": "Developer",
+          "app": "L3",
+          "icon": "code",
+          "detail": "Customization defects"
+        },
+        {
+          "title": "Vendor support",
+          "icon": "building",
+          "detail": "Standard product issues"
+        }
+      ]
+    }
+  ]
+}
 \`\`\`
 
 ## Knowledge base

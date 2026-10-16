@@ -76,6 +76,27 @@ export async function updateLessonAction(_: AdminState, formData: FormData): Pro
   return { ok: "Lesson saved. Changes are live for all trainees." };
 }
 
+/**
+ * Re-syncs one course from its content files (src/content/**) in place: lessons are
+ * matched by slug, so learner progress, notes and bookmarks are kept. Overwrites admin
+ * edits made to that course in the lesson editor.
+ */
+export async function refreshCourseFromSource(formData: FormData) {
+  await requirePermission("admin:content");
+  const slug = z.string().regex(/^[a-z0-9-]+$/).parse(formData.get("slug"));
+  const { seedAll } = await import("@/lib/seed");
+  await seedAll(await getDb(), { refresh: [slug], skipUsers: true });
+  revalidatePath("/", "layout");
+}
+
+/** Inserts any new content from the source files (new courses, projects, processes, docs) and refreshes project documents. Non-destructive. */
+export async function syncNewContent() {
+  await requirePermission("admin:content");
+  const { seedAll } = await import("@/lib/seed");
+  await seedAll(await getDb(), { skipUsers: true, refreshProjectData: true });
+  revalidatePath("/", "layout");
+}
+
 export async function purgeExpiredAiConversations() {
   await requirePermission("admin:content");
   await (await getDb()).delete(aiConversations).where(lt(aiConversations.expiresAt, new Date()));

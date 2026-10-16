@@ -1,4 +1,6 @@
 import type { CourseContent } from "../types";
+import { salesTroubleshootingBody } from "../visual-lessons/sales-troubleshooting";
+import { salesMasterDataTransactionsBody } from "../visual-lessons/sales-master-data-transactions";
 
 /**
  * Odoo Sales application training (16-point application template).
@@ -76,22 +78,61 @@ Technical model: **sale.order** (header) and **sale.order.line** (lines).
 
 ## 3. Process flow
 
-\`\`\`text
- CRM Opportunity --(New Quotation)--> QUOTATION --(Send by Email)--> QUOTATION SENT
-                                                                       |
-                                     customer signs/pays online or     |
-                                     salesperson clicks Confirm        v
-                                                                 SALES ORDER
-                                                       |                          |
-                                (storable products)    v                          v
-                                            DELIVERY ORDER (Inventory)     CREATE INVOICE
-                                                       |                    (per invoicing policy)
-                                                       v                          |
-                                                 Goods shipped                    v
-                                                                         CUSTOMER INVOICE (Accounting)
-                                                                                  |
-                                                                                  v
-                                                                         PAYMENT / RECONCILIATION
+\`\`\`visual-flow
+{
+  "title": "Quote-to-Cash in Sales",
+  "steps": [
+    {
+      "title": "CRM opportunity",
+      "icon": "target",
+      "app": "CRM"
+    },
+    {
+      "title": "Quotation",
+      "icon": "file",
+      "app": "Sales"
+    },
+    {
+      "title": "Quotation sent",
+      "icon": "mail",
+      "app": "Sales"
+    },
+    {
+      "title": "Sales order",
+      "icon": "check",
+      "app": "Sales",
+      "detail": "The customer signs or pays online, or the salesperson clicks Confirm."
+    },
+    {
+      "title": "Fulfil & invoice",
+      "icon": "workflow",
+      "parallel": [
+        {
+          "title": "Delivery order",
+          "app": "Inventory",
+          "icon": "truck",
+          "detail": "Storable products; goods shipped."
+        },
+        {
+          "title": "Create invoice",
+          "app": "Accounting",
+          "icon": "invoice",
+          "detail": "Per the invoicing policy."
+        }
+      ]
+    },
+    {
+      "title": "Customer invoice",
+      "icon": "invoice",
+      "app": "Accounting"
+    },
+    {
+      "title": "Payment / reconciliation",
+      "icon": "bank",
+      "app": "Accounting"
+    }
+  ]
+}
 \`\`\`
 
 ## 4. Dependencies on other apps
@@ -250,91 +291,7 @@ The setting defines the default for **new** products only. Each product has its 
           durationMin: 45,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard", "configuration"],
-          body: `## 7. Master data
-
-| Master data | Key fields | Northwind example | Template |
-|---|---|---|---|
-| Product categories | Income/expense accounts, costing method | Paper, Toner, Furniture, Services | /api/templates/product-categories |
-| Products | Name, product type, sales price, cost, UoM, taxes, invoicing policy | A4 Paper 75 GSM — INR 285/ream | /api/templates/products |
-| Product variants | Attributes and values | Executive Chair — Black / Grey | — |
-| Units of measure | UoM category, ratio | Ream; Box of 5 reams (5× bigger) | — |
-| Customers | Address, GSTIN/VAT, payment terms, pricelist, salesperson | Greenfield International School | /api/templates/customers |
-| Pricelists | Rules, currency | Education −8% | — |
-| Payment terms | Lines with percentage and delay | 30 Days | — |
-
-### Product type — version note
-
-| Odoo 17.0 | Odoo 18.0 |
-|---|---|
-| Storable Product (requires Inventory) | Goods with **Track Inventory** checkbox ticked |
-| Consumable | Goods without Track Inventory |
-| Service | Service |
-| — | Combo (bundled choice products) |
-
-Verify the exact field labels in your training instance when you switch versions.
-
-> **Consultant tip:** Choosing the wrong product type is the most expensive master-data mistake. A consumable cannot be valued in stock; changing type after transactions exist is restricted or messy.
-
-## 8. Transactions — step-by-step walkthroughs
-
-### Walkthrough A — Create and send a quotation
-
-1. Go to **Sales ▸ Orders ▸ Quotations** and click **New**.
-2. **Customer**: Greenfield International School. The pricelist (Education) and payment terms (30 Days) fill in automatically.
-3. **Quotation Template**: School Annual Supply — lines and optional products are loaded.
-4. Adjust quantity of A4 paper to 600 reams. Check the unit price reflects the Education pricelist (285 − 8% = INR 262.20).
-5. Add a line **Installation service** if needed.
-6. Click **Send by Email**. Status becomes **Quotation Sent**.
-
-### Walkthrough B — Customer signs online
-
-1. The customer opens the portal link from the email.
-2. They can add optional products (e.g. Document trays).
-3. They click **Sign & Pay** or **Accept & Sign** (label depends on whether payment is required).
-4. On signature (and payment, if required) the quotation is confirmed automatically.
-
-### Walkthrough C — Confirm manually and deliver
-
-1. Alternatively click **Confirm**. Status becomes **Sales Order**.
-2. A **Delivery** smart button appears (Inventory installed and goods product).
-3. The warehouse validates the delivery for the quantities shipped (e.g. 400 of 600 reams; a backorder is created for 200).
-4. On the order line the **Delivered** column shows 400.
-
-### Walkthrough D — Invoice according to policy
-
-| Policy | Ordered | Delivered | Invoiceable now |
-|---|---|---|---|
-| Ordered quantities | 600 | 400 | 600 |
-| Delivered quantities | 600 | 400 | 400 |
-
-1. Click **Create Invoice**.
-2. Choose **Regular invoice**.
-3. Odoo creates a draft invoice for the invoiceable quantity. Accounting posts it (**Confirm**).
-4. The order's **Invoice Status** shows *Fully Invoiced* or *To Invoice*.
-
-> **Consultant tip:** "Nothing to invoice" errors almost always mean the invoicing policy is "Delivered quantities" and the delivery has not been validated.
-
-### Walkthrough E — Down payment
-
-Order: 20 Executive Chairs, INR 4,20,000. Terms: 50% advance.
-
-1. On the confirmed order click **Create Invoice**.
-2. Choose **Down payment (percentage)** and enter 50 — or **Down payment (fixed amount)**.
-3. Create the invoice (INR 2,10,000 + tax as applicable). Customer pays.
-4. After delivery, click **Create Invoice** again → **Regular invoice**. The down payment is deducted automatically as a negative line.
-
-### Walkthrough F — Discounts and margins
-
-1. On a key-account order, enter 5% in the **Disc.%** column.
-2. Check the **Margin** shown at the bottom of the order (needs product cost).
-3. If margin falls below company policy, escalate. A hard approval for discounts is not standard in Sales — it needs Studio/approval customization (Enterprise or custom).
-
-## Key takeaways
-
-- Customer master data (pricelist, payment terms) drives defaults on every order.
-- Product type and invoicing policy determine delivery creation and invoice timing.
-- Down payments are deducted automatically from the final regular invoice.
-- Discounts are standard; discount approvals are customization.`,
+          body: salesMasterDataTransactionsBody,
           resources: [
             { title: "Product import template", kind: "template", url: "/api/templates/products" },
             { title: "Customer import template", kind: "template", url: "/api/templates/customers" },
@@ -428,70 +385,7 @@ Exact accounts depend on the localisation and product category configuration —
           durationMin: 40,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard"],
-          body: `## 13. Common errors and troubleshooting
-
-| Symptom | Likely cause | Resolution |
-|---|---|---|
-| "There is no invoiceable line" when clicking Create Invoice | Invoicing policy = Delivered quantities and nothing delivered yet | Validate the delivery or use a down payment; review policy with finance |
-| No delivery created after confirmation | Product type is Service/Consumable without stock tracking, or Inventory not installed | Check product type (17: Storable; 18: Goods + Track Inventory) |
-| Pricelist price not applied | Pricelist not on customer, rule dates/min. quantity not met, or rule targets another category | Check customer pricelist and rule conditions; click Update Prices on the order (verify button label) |
-| Discount column missing | Discounts setting off | Sales settings ▸ Discounts |
-| Cannot edit confirmed order | Lock Confirmed Sales enabled | Unlock (manager) or create a new order/credit note |
-| Wrong tax on invoice | Product tax or fiscal position on customer | Fix product taxes / fiscal position mapping |
-| Margin shows 0 or 100% | Product cost not set | Set cost on product (or rely on valuation) |
-| Optional products not visible to customer | Template not used or portal not accessed | Use quotation template; check portal access |
-| Down payment not deducted | Final invoice created as down payment again or lines removed | Create Regular invoice; ensure deduct option kept (verify wizard options) |
-| Quotation expired | Validity date passed | Update the expiration date and resend |
-
-> **Consultant tip:** Reproduce the issue in a test database with the user's exact customer, product and quantity before changing configuration. Pricing issues are almost always data, not bugs.
-
-## 14. Practical assignments
-
-### Practice 1 — Configuration
-- [ ] Enable Variants, Units of Measure, Discounts, Pricelists, Margins, Quotation Templates, Online Signature
-- [ ] Create pricelists Standard, Education (−8%) and Key Account (fixed price for toner)
-- [ ] Create payment terms Immediate, 30 Days and 50% Advance / Balance 30 Days
-- [ ] Create the quotation template School Annual Supply with two optional products
-
-### Practice 2 — Master data
-- [ ] Import 10 products using the products template, including one service and one variant product
-- [ ] Set invoicing policy: goods = delivered quantities, installation service = ordered quantities
-- [ ] Import 5 customers with pricelists and payment terms
-
-### Practice 3 — Transactions
-- [ ] Create a quotation from the template, send it, confirm it
-- [ ] Deliver partially, invoice, then deliver the backorder and invoice the remainder
-- [ ] Process a 50% down payment order for chairs end-to-end
-- [ ] Build a Sales Analysis pivot (Product Category × Month) and compare with Invoice Analysis
-
-## 15. Interview questions with model answers
-
-**Q1. Explain invoicing policies and their impact.**
-Ordered quantities lets you invoice as soon as the order is confirmed (good for prepaid goods and fixed-price services). Delivered quantities allows invoicing only what has been delivered (goods shipped, timesheets, milestones). It affects cash flow, revenue recognition timing and the "To Invoice" list.
-
-**Q2. How do you give a school 8% off all products?**
-Enable Pricelists, create an Education pricelist with a rule applying a discount on all products, assign it to the school's contact. No customization required.
-
-**Q3. What is the difference between a quotation template and a pricelist?**
-A template defines *what* is offered (lines, optional products, validity, terms, signature/payment). A pricelist defines *at what price*. They work together.
-
-**Q4. How do down payments work in Odoo?**
-From a confirmed order, Create Invoice → Down payment (percentage or fixed). Odoo uses a down-payment product/account. The final regular invoice deducts the down payment as a negative line.
-
-**Q5. A client wants managers to approve discounts above 10%. Standard?**
-No standard Sales approval exists in 17. Options: train + report on margins, Studio approval rules (Enterprise), or a custom module. Document as a gap with effort estimate.
-
-**Q6. What happens in accounting when a sales order is confirmed?**
-Nothing. Entries are created on delivery (only with automated/perpetual valuation) and on invoice posting.
-
-**Q7. What changed for product types in Odoo 18?**
-Storable product is replaced by type Goods with a Track Inventory checkbox; a Combo type was added. Verify field labels in the instance.
-
-## Key takeaways
-
-- Most Sales issues come from product type, invoicing policy, pricelist rules or taxes.
-- Practise partial delivery + invoicing and down payments until they feel natural.
-- In interviews, always tie a feature to its accounting impact.`,
+          body: salesTroubleshootingBody,
           resources: [
             { title: "Odoo 17 Sales documentation", kind: "link", url: "https://www.odoo.com/documentation/17.0/applications/sales/sales.html" },
             { title: "Product import template", kind: "template", url: "/api/templates/products" },

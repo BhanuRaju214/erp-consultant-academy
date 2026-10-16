@@ -82,21 +82,55 @@ Before Odoo, Northwind tracked enquiries in personal spreadsheets and email inbo
 
 ## 3. Process flow
 
-\`\`\`text
- [Enquiry source]                    [CRM]                                [Sales app]
- Web form / email / fair  -->  LEAD (unqualified)
-                                   |
-                         qualify?  |-- no  --> Lost (reason) / Archive
-                                   v
-                              OPPORTUNITY
-                     New -> Qualified -> Proposition
-                                   |
-                                   |-- New Quotation ------------->  QUOTATION (draft)
-                                   |                                    |
-                                   |                                    v
-                                   |<-------- quotation confirmed --  SALES ORDER
-                                   v
-                           WON  (or LOST + reason)
+\`\`\`visual-flow
+{
+  "title": "Lead to order",
+  "steps": [
+    {
+      "title": "Enquiry",
+      "icon": "mail",
+      "detail": "Web form, email or trade fair."
+    },
+    {
+      "title": "Lead (unqualified)",
+      "icon": "user",
+      "app": "CRM",
+      "branch": {
+        "when": "Not qualified",
+        "result": "Lost (reason) or archived",
+        "tone": "danger"
+      }
+    },
+    {
+      "title": "Opportunity",
+      "icon": "target",
+      "app": "CRM",
+      "detail": "Moves through the pipeline: New → Qualified → Proposition."
+    },
+    {
+      "title": "New quotation",
+      "icon": "file",
+      "app": "Sales",
+      "document": "Quotation (draft)"
+    },
+    {
+      "title": "Sales order",
+      "icon": "check",
+      "app": "Sales",
+      "detail": "Confirming the quotation updates the opportunity."
+    },
+    {
+      "title": "Won",
+      "icon": "flag",
+      "app": "CRM",
+      "branch": {
+        "when": "Customer declines",
+        "result": "Lost + reason",
+        "tone": "danger"
+      }
+    }
+  ]
+}
 \`\`\`
 
 Key points about the flow:

@@ -203,6 +203,8 @@ export interface ProjectContent {
   odooVersion: string;
   summary: string;
   company: { name: string; profile: string; locations: string[]; employees: number; currency: string };
+  /** Slug of the related Business Configuration Lab scenario (src/content/config-scenarios.ts), if any. */
+  configScenario?: string;
   requirements: {
     id: string;
     area: string;

@@ -1,13 +1,17 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, isNull } from "drizzle-orm";
-import { ChevronLeft, ChevronRight, Download, ExternalLink, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock, Download, ExternalLink, Info } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { bookmarks, discussions, lessonProgress, notes, users } from "@/lib/db/schema";
 import { getLesson, markLessonStarted } from "@/lib/services/learning";
 import { SCOPE_LABELS } from "@/lib/nav";
 import { Markdown } from "@/components/markdown";
+import { CourseCover } from "@/components/course-cover";
+import { LessonToc } from "@/components/lesson-toc";
+import { PrintButton } from "@/components/print-button";
+import { extractToc } from "@/lib/visuals/enhance";
 import { AskQuestionForm, Flashcards, LessonActions, LessonNotes } from "@/components/lesson-client";
 import { Badge, Card, CardTitle, ProgressBar } from "@/components/ui";
 
@@ -41,19 +45,27 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
   ]);
   const completed = progress?.status === "completed";
   const versionSensitive = lesson.odooVersions && !/independent/i.test(lesson.odooVersions);
+  const toc = extractToc(lesson.body);
 
   return (
-    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_280px]">
       <article className="min-w-0">
-        <nav className="mb-3 text-sm text-muted" aria-label="Breadcrumb">
-          <Link href={`/courses/${course.slug}`} className="hover:text-primary">
-            {course.title}
-          </Link>{" "}
-          / <span>{moduleTitle}</span>
-        </nav>
-        <h1 className="text-2xl font-semibold tracking-tight text-fg sm:text-3xl">{lesson.title}</h1>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          <Badge>{lesson.durationMin} min</Badge>
+        <header className="mb-6 flex gap-4">
+          <CourseCover slug={course.slug} section={course.section} size="mini" className="hidden sm:flex" />
+          <div className="min-w-0 flex-1">
+            <nav className="text-sm text-muted" aria-label="Breadcrumb">
+              <Link href={`/courses/${course.slug}`} className="hover:text-primary">
+                {course.title}
+              </Link>{" "}
+              / <span>{moduleTitle}</span>
+            </nav>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-fg sm:text-3xl">{lesson.title}</h1>
+          </div>
+        </header>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge>
+            <Clock className="h-3 w-3" aria-hidden /> {lesson.durationMin} min
+          </Badge>
           {lesson.odooVersions && <Badge tone="info">{lesson.odooVersions}</Badge>}
           {lesson.scope.map((s) => (
             <Badge key={s} tone={SCOPE_LABELS[s]?.tone ?? "neutral"}>
@@ -75,7 +87,8 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
         )}
 
         <div className="mt-6">
-          <Markdown>{lesson.body}</Markdown>
+          <LessonToc items={toc} variant="inline" />
+          <Markdown enhance>{lesson.body}</Markdown>
         </div>
 
         {lesson.flashcards.length > 0 && (
@@ -107,6 +120,14 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
       </article>
 
       <aside className="space-y-4 no-print">
+        {toc.length > 1 && (
+          <div className="sticky top-20 z-10 hidden max-h-[calc(100vh-6rem)] overflow-y-auto rounded-xl border border-border bg-surface p-4 shadow-sm xl:block">
+            <LessonToc items={toc} />
+            <div className="mt-4 border-t border-border pt-3">
+              <PrintButton label="Print / save as PDF" />
+            </div>
+          </div>
+        )}
         {lesson.resources.length > 0 && (
           <Card>
             <CardTitle>Resources</CardTitle>

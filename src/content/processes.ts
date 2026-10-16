@@ -301,7 +301,421 @@ Example: sale of goods for 10,000 net + 15% tax (1,500). Cost of the goods: 6,00
 - Odoo 18.0 note: payments can be configured without an outstanding account, so the journal entry appears only at bank reconciliation — confirm the client's preference.`,
   example: {
     company: "Northwind Office Supplies Pvt. Ltd. (fictional distributor of office furniture and stationery)",
-    narrative: `**Northwind Office Supplies** distributes office chairs and stationery to corporate clients. On 3 March a facilities manager at *Bluepeak Consulting* fills in the contact form on Northwind's website asking for 40 ergonomic chairs. The form creates a **lead** in the CRM app assigned to salesperson Priya.
+    narrative: `\`\`\`visual-story
+{
+  "title": "Order to Cash: Northwind sells 40 chairs to Bluepeak",
+  "company": "Northwind Office Supplies · fictional",
+  "pace": 7,
+  "intro": "This animation follows one sale through Odoo, from the first enquiry to the cash in the bank. Each box is a department or system. The moving parcel is the document being handed over, and the number on it shows the order of events.",
+  "legend": "Boxes are departments or systems, not steps. The numbered parcel is the document being handed over; the number is the step.",
+  "stations": [
+    {
+      "id": "customer",
+      "label": "Customer: Bluepeak",
+      "icon": "building",
+      "x": 0,
+      "y": 0,
+      "app": "Outside Northwind",
+      "outside": true
+    },
+    {
+      "id": "crm",
+      "label": "Northwind CRM · Priya",
+      "icon": "target",
+      "app": "CRM",
+      "x": 3,
+      "y": 0
+    },
+    {
+      "id": "sales",
+      "label": "Sales team",
+      "icon": "file",
+      "app": "Sales",
+      "x": 4,
+      "y": 2
+    },
+    {
+      "id": "warehouse",
+      "label": "Warehouse",
+      "icon": "warehouse",
+      "app": "Inventory",
+      "x": 3,
+      "y": 4
+    },
+    {
+      "id": "accounting",
+      "label": "Accounts",
+      "icon": "landmark",
+      "app": "Accounting",
+      "x": 1,
+      "y": 4
+    },
+    {
+      "id": "bank",
+      "label": "Bank",
+      "icon": "bank",
+      "x": 0,
+      "y": 2,
+      "outside": true
+    }
+  ],
+  "scenes": [
+    {
+      "at": "3 Mar",
+      "from": "customer",
+      "to": "crm",
+      "carry": "Enquiry: 40 chairs",
+      "document": "Lead",
+      "title": "Website enquiry becomes a lead",
+      "text": "A facilities manager at Bluepeak fills in the contact form on Northwind's website. The form creates a **lead** in CRM, assigned to salesperson **Priya**.",
+      "say": "A facilities manager at Bluepeak, the customer, fills in the contact form on Northwind's website. The customer and the CRM are separate boxes because the enquiry starts outside the company and lands inside Northwind's CRM as a lead, assigned to Priya. A lead is still unqualified: nobody knows yet whether it is a real deal."
+    },
+    {
+      "at": "4 Mar",
+      "to": "crm",
+      "document": "Opportunity",
+      "title": "Lead qualified into an opportunity",
+      "text": "Priya calls: Bluepeak moves into a new office in April with a budget of about 12,000. She converts the lead into an **opportunity**: expected revenue 11,000 at 60% probability.",
+      "say": "Priya calls Bluepeak and learns they are moving office in April, with a budget of about twelve thousand. The enquiry is now qualified, so she converts the lead into an opportunity, with expected revenue of eleven thousand and a sixty percent probability. That opportunity feeds the sales forecast."
+    },
+    {
+      "at": "Before quoting",
+      "from": "crm",
+      "to": "sales",
+      "carry": "New customer",
+      "title": "Customer master data created",
+      "text": "Sales Operations creates Bluepeak: legal name, GST/VAT number, invoice address, a separate delivery address, payment terms **30 Days** and the **Corporate** pricelist. Finance sets a **credit limit of 15,000**.",
+      "say": "Before quoting, Bluepeak must exist as a customer. Sales Operations creates the record with the tax number, the invoice and delivery addresses, thirty day payment terms and the Corporate pricelist. Finance sets a credit limit of fifteen thousand. Good master data here means every later document fills in correctly."
+    },
+    {
+      "at": "Before 10 Mar",
+      "from": "sales",
+      "to": "customer",
+      "carry": "Quotation S00231",
+      "document": "S00231 (quotation)",
+      "title": "Quotation sent by email",
+      "text": "40 × ErgoMax Chair at 280 = 11,200, less a 5% volume discount = **10,640**, plus 15% tax 1,596 = **12,236**. A 5% discount is within Priya's authority, so no approval is needed.",
+      "say": "Priya prepares the quotation: forty chairs at two hundred and eighty, less a five percent volume discount, is ten thousand six hundred and forty. Adding fifteen percent tax gives twelve thousand two hundred and thirty-six. Five percent is within her authority, so no approval is needed, and she emails the quotation."
+    },
+    {
+      "at": "10 Mar",
+      "from": "customer",
+      "to": "sales",
+      "carry": "Signed online",
+      "document": "S00231 (sales order)",
+      "tone": "success",
+      "title": "Signed online: sales order confirmed",
+      "text": "Bluepeak signs the quotation online and it becomes **sales order S00231**.",
+      "say": "On the tenth of March Bluepeak signs online through the customer portal, and the quotation becomes a sales order. Nothing is posted to the accounts yet. An order is a commitment, not an accounting transaction."
+    },
+    {
+      "at": "10 Mar",
+      "from": "sales",
+      "to": "warehouse",
+      "carry": "Delivery order",
+      "document": "WH/OUT/00412",
+      "tone": "warning",
+      "title": "Delivery created, but only 30 in stock",
+      "text": "Odoo creates delivery **WH/OUT/00412** and reserves the chairs, but only **30 of the 40** are in stock.",
+      "say": "Confirming the order automatically creates the delivery order and reserves stock. But only thirty of the forty chairs are available. This is an exception the warehouse must handle, and the customer should be told."
+    },
+    {
+      "at": "14 Mar",
+      "from": "warehouse",
+      "to": "customer",
+      "carry": "30 chairs",
+      "document": "WH/OUT/00412",
+      "title": "30 chairs delivered, 10 on backorder",
+      "text": "The warehouse validates 30 chairs and Odoo creates a **backorder** for the other 10. At an average cost of 150 per chair, the stock value leaves the warehouse.",
+      "entries": [
+        {
+          "account": "Stock Output",
+          "debit": "4,500"
+        },
+        {
+          "account": "Stock Valuation",
+          "credit": "4,500"
+        }
+      ],
+      "say": "On the fourteenth the warehouse ships thirty chairs, and Odoo creates a backorder for the remaining ten. With automated valuation, stock worth four thousand five hundred, at an average cost of one hundred and fifty each, moves out of Stock Valuation into the Stock Output interim account."
+    },
+    {
+      "at": "After delivery",
+      "from": "warehouse",
+      "to": "accounting",
+      "carry": "Invoice 30 chairs",
+      "document": "INV/2025/0158",
+      "title": "First invoice: only what was delivered",
+      "text": "The invoicing policy is **Delivered quantities**, so the AR accountant invoices 30 chairs: 30 × 266 = 7,980 + tax 1,197 = **9,177**. Posting also moves the cost to COGS.",
+      "entries": [
+        {
+          "account": "Accounts Receivable",
+          "debit": "9,177"
+        },
+        {
+          "account": "Sales",
+          "credit": "7,980"
+        },
+        {
+          "account": "Tax Payable",
+          "credit": "1,197"
+        },
+        {
+          "account": "Cost of Goods Sold",
+          "debit": "4,500"
+        },
+        {
+          "account": "Stock Output",
+          "credit": "4,500"
+        }
+      ],
+      "say": "The chair's invoicing policy is delivered quantities, so the accountant can only invoice what was shipped: thirty chairs, nine thousand one hundred and seventy-seven including tax. Posting the invoice records the receivable, the revenue and the tax, and moves the cost from Stock Output to cost of goods sold."
+    },
+    {
+      "at": "20 Mar",
+      "from": "warehouse",
+      "to": "customer",
+      "carry": "10 chairs",
+      "title": "Backorder delivered",
+      "text": "The remaining 10 chairs arrive from the supplier and are delivered the same day (10 × average cost 150).",
+      "entries": [
+        {
+          "account": "Stock Output",
+          "debit": "1,500"
+        },
+        {
+          "account": "Stock Valuation",
+          "credit": "1,500"
+        }
+      ],
+      "say": "On the twentieth the remaining ten chairs arrive from the supplier and are delivered the same day. Another one thousand five hundred of cost moves into Stock Output."
+    },
+    {
+      "at": "20 Mar",
+      "from": "warehouse",
+      "to": "accounting",
+      "carry": "Invoice 10 chairs",
+      "title": "Second invoice posted",
+      "text": "A second invoice of **3,059** (2,660 + 399 tax) is posted.",
+      "entries": [
+        {
+          "account": "Accounts Receivable",
+          "debit": "3,059"
+        },
+        {
+          "account": "Sales",
+          "credit": "2,660"
+        },
+        {
+          "account": "Tax Payable",
+          "credit": "399"
+        },
+        {
+          "account": "Cost of Goods Sold",
+          "debit": "1,500"
+        },
+        {
+          "account": "Stock Output",
+          "credit": "1,500"
+        }
+      ],
+      "say": "A second invoice for the ten chairs is posted, for three thousand and fifty-nine including tax. Stock Output is cleared again, which proves that everything delivered has been invoiced."
+    },
+    {
+      "at": "12 Apr",
+      "from": "customer",
+      "to": "bank",
+      "carry": "9,177 transfer",
+      "title": "Bluepeak pays the first invoice",
+      "text": "Bluepeak pays 9,177 by bank transfer and the accountant **registers the payment** against INV/2025/0158.",
+      "entries": [
+        {
+          "account": "Outstanding Receipts",
+          "debit": "9,177"
+        },
+        {
+          "account": "Accounts Receivable",
+          "credit": "9,177"
+        }
+      ],
+      "say": "On the twelfth of April Bluepeak pays the first invoice by bank transfer, and the accountant registers the payment. The receivable goes down, and the money waits in Outstanding Receipts until it appears on the bank statement."
+    },
+    {
+      "at": "12 Apr",
+      "from": "bank",
+      "to": "accounting",
+      "carry": "Bank statement",
+      "tone": "success",
+      "title": "Bank line reconciled: invoice Paid",
+      "text": "When the bank statement is imported, the accountant reconciles the line. The first invoice turns **Paid**.",
+      "entries": [
+        {
+          "account": "Bank",
+          "debit": "9,177"
+        },
+        {
+          "account": "Outstanding Receipts",
+          "credit": "9,177"
+        }
+      ],
+      "say": "When the bank statement is imported, the accountant matches the bank line to the payment. The money is now confirmed in the bank account, and the first invoice is marked Paid."
+    },
+    {
+      "at": "Day 31",
+      "from": "accounting",
+      "to": "customer",
+      "carry": "Payment reminder",
+      "tone": "warning",
+      "title": "Second invoice overdue: follow-up sent",
+      "text": "The second invoice is still open. On day 31 it appears in the **Aged Receivable 1–30 days overdue** bucket and a follow-up email is sent.",
+      "say": "The second invoice is still unpaid after its thirty day term. On day thirty-one it appears in the one to thirty days overdue column of the Aged Receivable report, and a follow-up email goes to Bluepeak."
+    },
+    {
+      "at": "After follow-up",
+      "from": "customer",
+      "to": "bank",
+      "carry": "3,049 received",
+      "title": "Short payment: a 10 bank fee",
+      "text": "Bluepeak pays **3,049**, because its bank deducted a 10 fee. The accountant applies a **reconciliation model** that books the 10 to Bank Charges and closes the invoice.",
+      "entries": [
+        {
+          "account": "Bank",
+          "debit": "3,049"
+        },
+        {
+          "account": "Bank Charges",
+          "debit": "10"
+        },
+        {
+          "account": "Accounts Receivable",
+          "credit": "3,059"
+        }
+      ],
+      "say": "Bluepeak pays, but Northwind receives only three thousand and forty-nine, because the bank took a ten fee. Instead of leaving ten open, the accountant applies a reconciliation model that books the difference to Bank Charges, and the invoice closes."
+    },
+    {
+      "at": "Result",
+      "to": "accounting",
+      "tone": "success",
+      "title": "Order to cash complete",
+      "text": "Revenue 10,640, COGS 6,000, gross margin **4,640 (43.6%)**. The Stock Output interim account is back to zero: everything delivered was invoiced. Sales Analysis shows the deal under Priya.",
+      "say": "The sale is complete. Revenue is ten thousand six hundred and forty and cost of goods sold is six thousand, so the gross margin is four thousand six hundred and forty, or about forty-four percent. Stock Output is back to zero, and the deal shows under Priya in the sales analysis."
+    }
+  ],
+  "counters": [
+    {
+      "label": "Order total (incl. tax)",
+      "values": [
+        "—",
+        "11,000 est.",
+        "11,000 est.",
+        "12,236 quoted",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236"
+      ]
+    },
+    {
+      "label": "Chairs delivered",
+      "values": [
+        "0 / 40",
+        "0 / 40",
+        "0 / 40",
+        "0 / 40",
+        "0 / 40",
+        "0 / 40",
+        "30 / 40",
+        "30 / 40",
+        "40 / 40",
+        "40 / 40",
+        "40 / 40",
+        "40 / 40",
+        "40 / 40",
+        "40 / 40",
+        "40 / 40"
+      ]
+    },
+    {
+      "label": "Invoiced",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "9,177",
+        "9,177",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236",
+        "12,236"
+      ]
+    },
+    {
+      "label": "Open receivable",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "9,177",
+        "9,177",
+        "12,236",
+        "3,059",
+        "3,059",
+        "3,059",
+        "0",
+        "0"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "label": "Revenue",
+      "value": "10,640"
+    },
+    {
+      "label": "Cost of goods sold",
+      "value": "6,000"
+    },
+    {
+      "label": "Gross margin",
+      "value": "4,640 (43.6%)"
+    },
+    {
+      "label": "Order-to-cash cycle",
+      "value": "33–44 days"
+    },
+    {
+      "label": "Stock Output balance",
+      "value": "0"
+    },
+    {
+      "label": "Bank charges",
+      "value": "10"
+    }
+  ]
+}
+\`\`\`
+
+#### The full story
+
+**Northwind Office Supplies** distributes office chairs and stationery to corporate clients. On 3 March a facilities manager at *Bluepeak Consulting* fills in the contact form on Northwind's website asking for 40 ergonomic chairs. The form creates a **lead** in the CRM app assigned to salesperson Priya.
 
 Priya calls the next day, confirms Bluepeak is moving into a new office in April with a budget of about 12,000, and converts the lead into an **opportunity** with expected revenue 11,000 and 60% probability.
 
@@ -635,7 +1049,365 @@ No journal entry — a PO is a commitment, not a liability.
 - Reconcile the **Stock Input** account every month end — it is the best indicator of unmatched receipts and bills.`,
   example: {
     company: "Stonebridge Builders Ltd. (fictional mid-size construction contractor)",
-    narrative: `**Stonebridge Builders** is building a 24-unit residential block. On 2 June the site engineer, Rahul, realises the project needs **200 bags of cement** and **5 tonnes of reinforcement steel** for the next pour, required on site by 12 June.
+    narrative: `\`\`\`visual-story
+{
+  "title": "Procure to Pay: Stonebridge buys 200 bags of cement",
+  "company": "Stonebridge Builders · fictional",
+  "layout": "timeline",
+  "pace": 7,
+  "intro": "This animation follows one purchase through Odoo, from the site's need to the payment to the vendor. Each lane is a department or an outside party. The box is the document, and when it moves to another lane, the work has been handed over.",
+  "legend": "Lanes are departments or outside parties. Numbered gates are the events in time order, left to right. The box is the document; a lane change is a handover.",
+  "stations": [
+    {
+      "id": "site",
+      "label": "Site & project",
+      "icon": "building",
+      "app": "Project"
+    },
+    {
+      "id": "purchasing",
+      "label": "Purchasing",
+      "icon": "cart",
+      "app": "Purchase"
+    },
+    {
+      "id": "vendor",
+      "label": "Vendor: CemCo",
+      "icon": "truck",
+      "app": "Outside Stonebridge",
+      "outside": true
+    },
+    {
+      "id": "warehouse",
+      "label": "Site store",
+      "icon": "warehouse",
+      "app": "Inventory"
+    },
+    {
+      "id": "ap",
+      "label": "Accounts payable",
+      "icon": "landmark",
+      "app": "Accounting"
+    },
+    {
+      "id": "bank",
+      "label": "Bank",
+      "icon": "bank",
+      "outside": true
+    }
+  ],
+  "scenes": [
+    {
+      "at": "2 Jun",
+      "to": "site",
+      "carry": "Material need",
+      "title": "Material needed for the next pour",
+      "text": "Site engineer **Rahul** needs **200 bags of cement** and **5 tonnes of reinforcement steel** on site by **12 June**.",
+      "say": "Stonebridge is building a twenty-four unit residential block. Site engineer Rahul sees that the next pour needs two hundred bags of cement and five tonnes of steel, on site by the twelfth of June."
+    },
+    {
+      "at": "2 Jun",
+      "from": "site",
+      "to": "purchasing",
+      "carry": "Purchase request",
+      "document": "Purchase request (Approvals)",
+      "title": "Purchase request approved within budget",
+      "text": "Rahul submits a **purchase request** in the Approvals app, tagged to the project's analytic account. The project manager approves it within the **9,000** budget and Odoo generates draft RFQs.",
+      "say": "Rahul raises a purchase request in the Approvals app and tags it to the project, so the cost will land on the right budget. The project manager approves it within the nine thousand budget, and Odoo creates draft requests for quotation for the buyer."
+    },
+    {
+      "at": "RFQ stage",
+      "from": "purchasing",
+      "to": "vendor",
+      "carry": "3 RFQs",
+      "title": "RFQs sent to three approved vendors",
+      "text": "Buyer **Meera** sends RFQs. CemCo: 34/bag, 4 days. BuildMart: 32/bag, 10 days. Apex Cement: 35/bag, 3 days.",
+      "say": "Buyer Meera sends requests for quotation to three approved vendors. CemCo offers thirty-four a bag with a four day lead time, BuildMart thirty-two with ten days, and Apex Cement thirty-five with three days."
+    },
+    {
+      "at": "RFQ stage",
+      "from": "vendor",
+      "to": "purchasing",
+      "carry": "Quotes back",
+      "tone": "warning",
+      "title": "Cheapest is not best: CemCo selected",
+      "text": "BuildMart is cheapest but cannot deliver by 12 June, so Meera selects **CemCo** (200 × 34 = **6,800**). Steel goes to Ironline at 420/tonne (2,100). Losing RFQs are cancelled with the reason logged in the chatter.",
+      "say": "BuildMart is the cheapest, but ten days is too late for the pour, so Meera chooses CemCo at six thousand eight hundred. The steel goes to Ironline. The losing quotes are cancelled, and the reason is recorded, so the decision can be audited later."
+    },
+    {
+      "at": "PO",
+      "to": "purchasing",
+      "document": "PO · CemCo",
+      "tone": "warning",
+      "carry": "PO to approve",
+      "title": "PO above the approval threshold",
+      "text": "The cement PO is 6,800 + 15% tax = **7,820**. The PO approval threshold is **5,000**, so the PO goes to *To Approve* and the purchasing manager approves it.",
+      "say": "With fifteen percent tax, the cement order is seven thousand eight hundred and twenty. That is above the five thousand approval threshold, so the order waits in To Approve until the purchasing manager approves it."
+    },
+    {
+      "at": "PO",
+      "from": "purchasing",
+      "to": "vendor",
+      "carry": "PO emailed",
+      "document": "WH/IN/00087",
+      "title": "PO sent, receipt expected",
+      "text": "The approved PO is emailed to CemCo, and Odoo creates the expected receipt **WH/IN/00087**.",
+      "say": "The approved order is emailed to CemCo. At the same moment Odoo creates the expected receipt, so the store knows exactly what should arrive."
+    },
+    {
+      "at": "9 Jun",
+      "from": "vendor",
+      "to": "warehouse",
+      "carry": "190 bags",
+      "document": "WH/IN/00087",
+      "tone": "warning",
+      "title": "Short delivery: 190 of 200 bags",
+      "text": "CemCo delivers **190 bags**. The storekeeper validates 190 and Odoo creates a **backorder** for 10.",
+      "entries": [
+        {
+          "account": "Stock Valuation",
+          "debit": "6,460"
+        },
+        {
+          "account": "Stock Input",
+          "credit": "6,460"
+        }
+      ],
+      "say": "On the ninth of June CemCo delivers only one hundred and ninety bags. The storekeeper records what actually arrived, and Odoo keeps a backorder for the missing ten. The stock value goes up, balanced by the Stock Input account until the bill arrives."
+    },
+    {
+      "at": "11 Jun",
+      "from": "vendor",
+      "to": "warehouse",
+      "carry": "10 bags",
+      "title": "Backorder received on time",
+      "text": "The remaining 10 bags arrive on 11 June, one day before the pour.",
+      "entries": [
+        {
+          "account": "Stock Valuation",
+          "debit": "340"
+        },
+        {
+          "account": "Stock Input",
+          "credit": "340"
+        }
+      ],
+      "say": "The last ten bags arrive on the eleventh, one day before the pour. The full two hundred bags are now in stock."
+    },
+    {
+      "at": "Bill received",
+      "from": "vendor",
+      "to": "ap",
+      "carry": "Bill at 35/bag",
+      "tone": "danger",
+      "title": "3-way match fails on price",
+      "text": "CemCo bills 200 bags at **35** = 7,000 + tax 1,050. AP accountant **Joseph** creates the bill from the PO: quantity matches the receipt, but the price differs from the PO (34). He puts the bill **on hold**.",
+      "say": "CemCo's bill arrives at thirty-five a bag instead of thirty-four. Joseph in accounts payable creates the bill from the purchase order. The quantity matches what was received, but the price does not match the order, so he puts the bill on hold."
+    },
+    {
+      "at": "Bill on hold",
+      "from": "ap",
+      "to": "purchasing",
+      "carry": "Price query",
+      "title": "Buyer confirms the agreed price",
+      "text": "Joseph contacts Meera, who confirms the agreed price was **34**. CemCo is asked for a corrected bill.",
+      "say": "Joseph checks with Meera, who negotiated the deal. She confirms the agreed price was thirty-four, so CemCo is asked for a corrected bill."
+    },
+    {
+      "at": "Corrected bill",
+      "from": "vendor",
+      "to": "ap",
+      "carry": "Corrected bill",
+      "tone": "success",
+      "title": "Corrected bill posted",
+      "text": "CemCo issues a corrected bill: 6,800 + 1,020 tax = **7,820**. The Stock Input account for this PO is now zero.",
+      "entries": [
+        {
+          "account": "Stock Input",
+          "debit": "6,800"
+        },
+        {
+          "account": "Tax Receivable",
+          "debit": "1,020"
+        },
+        {
+          "account": "Accounts Payable",
+          "credit": "7,820"
+        }
+      ],
+      "say": "The corrected bill for seven thousand eight hundred and twenty is posted. It clears the Stock Input account for this order, records the tax that can be claimed back, and creates the amount owed to CemCo."
+    },
+    {
+      "at": "Friday payment run",
+      "from": "ap",
+      "to": "bank",
+      "carry": "Batch payment 7,820",
+      "title": "Paid in the weekly payment run",
+      "text": "CemCo's terms are **15 Days**. In the Friday payment run the finance manager selects all bills due next week and registers a **batch payment**; the transfer of 7,820 is released.",
+      "entries": [
+        {
+          "account": "Accounts Payable",
+          "debit": "7,820"
+        },
+        {
+          "account": "Outstanding Payments",
+          "credit": "7,820"
+        }
+      ],
+      "say": "CemCo's terms are fifteen days. In the Friday payment run, the finance manager selects every bill due next week and pays them together as one batch. The amount owed goes to zero, and the money waits in Outstanding Payments until the bank confirms it."
+    },
+    {
+      "at": "Bank statement",
+      "from": "bank",
+      "to": "ap",
+      "carry": "Bank statement",
+      "tone": "success",
+      "title": "Bank line reconciled",
+      "text": "When the bank statement arrives, the line is matched to the payment.",
+      "entries": [
+        {
+          "account": "Outstanding Payments",
+          "debit": "7,820"
+        },
+        {
+          "account": "Bank",
+          "credit": "7,820"
+        }
+      ],
+      "say": "When the bank statement arrives, the payment line is matched. The money has now left the bank account, and the purchase is fully paid."
+    },
+    {
+      "at": "Pour",
+      "from": "warehouse",
+      "to": "site",
+      "carry": "Cement to site",
+      "title": "Cement charged to the project",
+      "text": "The cement is consumed by the project through a stock transfer charged to the project's **analytic account**, so the project cost report shows the real material cost.",
+      "say": "Finally, the cement goes from the store to the site. The transfer is charged to the project, so the project's cost report shows what the material really cost."
+    },
+    {
+      "at": "Outcome",
+      "to": "ap",
+      "tone": "success",
+      "title": "Procure to pay complete",
+      "text": "The 3-way match prevented an overpayment of **200 + tax**. CemCo's delivery: first receipt partial, second on time. Stock Input for the PO is back to zero.",
+      "say": "The purchase is complete. Matching the bill against the order and the receipt stopped an overpayment of two hundred plus tax. CemCo's first delivery was short, the second on time, and that record feeds the vendor's performance rating."
+    }
+  ],
+  "counters": [
+    {
+      "label": "PO value (incl. tax)",
+      "values": [
+        "—",
+        "—",
+        "—",
+        "6,800 + tax",
+        "7,820 · to approve",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820"
+      ]
+    },
+    {
+      "label": "Bags received",
+      "values": [
+        "0 / 200",
+        "0 / 200",
+        "0 / 200",
+        "0 / 200",
+        "0 / 200",
+        "0 / 200",
+        "190 / 200",
+        "200 / 200",
+        "200 / 200",
+        "200 / 200",
+        "200 / 200",
+        "200 / 200",
+        "200 / 200",
+        "200 / 200",
+        "200 / 200"
+      ]
+    },
+    {
+      "label": "Billed",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "8,050 on hold",
+        "8,050 on hold",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820",
+        "7,820"
+      ]
+    },
+    {
+      "label": "Owed to CemCo",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "7,820",
+        "0",
+        "0",
+        "0",
+        "0"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "label": "Cement cost",
+      "value": "6,800 + 1,020 tax"
+    },
+    {
+      "label": "Overpayment prevented",
+      "value": "200 + tax"
+    },
+    {
+      "label": "Stock Input balance",
+      "value": "0"
+    },
+    {
+      "label": "Deliveries",
+      "value": "Partial, then on time"
+    },
+    {
+      "label": "Paid",
+      "value": "7,820 in the Friday run"
+    },
+    {
+      "label": "Approvals",
+      "value": "Request + PO"
+    }
+  ]
+}
+\`\`\`
+
+#### The full story
+
+**Stonebridge Builders** is building a 24-unit residential block. On 2 June the site engineer, Rahul, realises the project needs **200 bags of cement** and **5 tonnes of reinforcement steel** for the next pour, required on site by 12 June.
 
 **Requisition.** Stonebridge uses Odoo Enterprise, so Rahul submits a *Purchase Request* in the Approvals app, tagged to the project's analytic account. The project manager approves it within the budget of 9,000 and Odoo generates draft RFQs.
 
@@ -979,7 +1751,332 @@ FIFO (first in, first out), LIFO, FEFO (first expiry first out), Closest Locatio
 - Use a dedicated **opening balance clearing account** for opening stock and reconcile it to the legacy trial balance.`,
   example: {
     company: "UrbanThread Retail Pvt. Ltd. (fictional fashion retailer with one central warehouse and two stores)",
-    narrative: `**UrbanThread** sells casual clothing through a central warehouse (*CWH*) and two city stores (*Store North*, *Store South*). It goes live on Odoo 17 on 1 April.
+    narrative: `\`\`\`visual-story
+{
+  "title": "Inventory: UrbanThread moves denim jackets",
+  "company": "UrbanThread Retail · fictional",
+  "token": "box",
+  "pace": 7,
+  "intro": "This animation follows one product, the Classic Denim Jacket in size M, through UrbanThread's warehouse and stores. Buildings are locations, parcels are documents, and trucks carry the goods. What happens at each place is shown on the spot.",
+  "legend": "Buildings are locations. Parcels are documents, trucks carry goods. The badge under a building shows the work happening there.",
+  "stations": [
+    {
+      "id": "office",
+      "label": "Head office · data team",
+      "icon": "building",
+      "app": "Inventory settings",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "id": "input",
+      "label": "CWH · Input dock",
+      "icon": "package",
+      "app": "Receipts",
+      "x": 3,
+      "y": 0
+    },
+    {
+      "id": "stock",
+      "label": "CWH · Stock A-01",
+      "icon": "warehouse",
+      "app": "Central warehouse",
+      "x": 4,
+      "y": 2
+    },
+    {
+      "id": "north",
+      "label": "Store North",
+      "icon": "store",
+      "app": "Store warehouse",
+      "x": 3,
+      "y": 4
+    },
+    {
+      "id": "customer",
+      "label": "Online customer",
+      "icon": "user",
+      "app": "Outside UrbanThread",
+      "x": 1,
+      "y": 4,
+      "outside": true
+    },
+    {
+      "id": "vendor",
+      "label": "Vendor",
+      "icon": "factory",
+      "app": "Outside UrbanThread",
+      "x": 0,
+      "y": 2,
+      "outside": true
+    }
+  ],
+  "scenes": [
+    {
+      "at": "Before go-live",
+      "to": "office",
+      "action": "Importing 1,200 products",
+      "document": "Product import",
+      "title": "Products created with the right valuation",
+      "text": "The master data officer imports **1,200 products**. The Classic Denim Jacket has variants S, M and L, each a storable product with a barcode, unit *Units* and category *Apparel / Outerwear* set to **AVCO** and **automated** valuation.",
+      "say": "Before go-live, the master data officer imports twelve hundred products. The denim jacket has three sizes, each with its own barcode. Its category uses average costing with automated valuation, so every stock movement will also post to the accounts."
+    },
+    {
+      "at": "Before go-live",
+      "from": "office",
+      "to": "stock",
+      "carry": "Routes & bins",
+      "action": "Setting up routes and bins",
+      "title": "Warehouse flows configured",
+      "text": "CWH uses **2-step receipts** (Input, then Stock) and 1-step delivery. Each store is its own warehouse, resupplied from CWH. Storage locations such as **CWH/Stock/A-01** are enabled.",
+      "say": "The central warehouse receives goods in two steps: first at the input dock, then into stock. Each store is set up as its own small warehouse that is resupplied from the centre, and the central stock is split into bins such as A zero one."
+    },
+    {
+      "at": "31 Mar",
+      "to": "stock",
+      "action": "Counting 500 jackets",
+      "document": "Inventory adjustment",
+      "title": "Opening stock counted and valued",
+      "text": "The team counts **500 jackets** size M at the legacy cost of 40, so the opening value is **20,000**. The adjustment posts to *Opening Balance Clearing*, which Finance ties back to the legacy balance sheet.",
+      "entries": [
+        {
+          "account": "Stock Valuation",
+          "debit": "20,000"
+        },
+        {
+          "account": "Opening Balance Clearing",
+          "credit": "20,000"
+        }
+      ],
+      "say": "On the thirty-first of March the team counts five hundred jackets at the old cost of forty, which is twenty thousand. The count is posted against an opening balance clearing account, so finance can tie it back to the old system's balance sheet."
+    },
+    {
+      "at": "5 Apr",
+      "from": "vendor",
+      "to": "input",
+      "token": "truck",
+      "carry": "100 jackets",
+      "action": "Unloading 100 jackets",
+      "document": "Receipt · step 1",
+      "title": "Goods arrive at the input dock",
+      "text": "**100 jackets** arrive at 46 each. Validating the first receipt step brings them into the company at the input dock.",
+      "entries": [
+        {
+          "account": "Stock Valuation",
+          "debit": "4,600"
+        },
+        {
+          "account": "Stock Input",
+          "credit": "4,600"
+        }
+      ],
+      "say": "On the fifth of April a truck brings one hundred more jackets at forty-six each. They are unloaded at the input dock. As soon as the receipt is validated, the goods belong to UrbanThread, and their value enters the stock account."
+    },
+    {
+      "at": "5 Apr",
+      "from": "input",
+      "to": "stock",
+      "carry": "Put-away",
+      "action": "Put-away to bin A-01",
+      "document": "Receipt · step 2",
+      "title": "Put away; average cost becomes 41.00",
+      "text": "The second step moves the jackets into stock. The average cost becomes (20,000 + 4,600) ÷ 600 = **41.00**. Moving inside the warehouse posts no journal entry.",
+      "say": "The second step moves the jackets from the dock to their bin. This is just a change of location, so nothing is posted. The average cost is now twenty-four thousand six hundred divided by six hundred, which is forty-one."
+    },
+    {
+      "at": "Store request",
+      "from": "stock",
+      "to": "north",
+      "token": "truck",
+      "carry": "120 jackets",
+      "action": "Unloading at the store",
+      "title": "Resupply truck to Store North",
+      "text": "Store North requests **120 jackets**. The resupply route creates a delivery from CWH and a receipt at the store.",
+      "say": "Store North asks for one hundred and twenty jackets. The resupply route creates two linked documents: a delivery out of the central warehouse, and a receipt at the store. The truck leaves with the goods."
+    },
+    {
+      "at": "Two days later",
+      "to": "north",
+      "action": "Checking in 120 jackets",
+      "tone": "success",
+      "title": "Store validates the arrival",
+      "text": "The store manager validates the receipt two days later. Total company value is unchanged, so there is **no journal entry**.",
+      "say": "Two days later the store manager checks in the delivery. The jackets have only moved between two locations of the same company, so the total stock value does not change, and no journal entry is needed."
+    },
+    {
+      "at": "Online order",
+      "from": "customer",
+      "to": "stock",
+      "carry": "Order: 30 jackets",
+      "action": "Reserving 30 jackets",
+      "title": "Online order reserves stock",
+      "text": "An online order for **30 jackets** reserves units in CWH at confirmation. Free-to-use quantity drops from 480 to **450**, while on hand stays 480.",
+      "say": "An online customer orders thirty jackets. Odoo reserves them in the central warehouse straight away. On hand is still four hundred and eighty, but only four hundred and fifty are now free for other orders."
+    },
+    {
+      "at": "9 Apr",
+      "from": "stock",
+      "to": "customer",
+      "token": "truck",
+      "carry": "30 jackets",
+      "action": "Delivered to the customer",
+      "document": "Delivery order",
+      "title": "30 jackets shipped",
+      "text": "The 30 jackets ship on 9 April at the average cost of 41. COGS of 1,230 is recognised when the order is invoiced.",
+      "entries": [
+        {
+          "account": "Stock Output",
+          "debit": "1,230"
+        },
+        {
+          "account": "Stock Valuation",
+          "credit": "1,230"
+        }
+      ],
+      "say": "On the ninth of April the thirty jackets are picked, packed and shipped. Their cost, thirty times forty-one, leaves the stock account. It becomes cost of goods sold when the order is invoiced."
+    },
+    {
+      "at": "April cycle count",
+      "to": "stock",
+      "action": "Counting zone A",
+      "tone": "warning",
+      "document": "Count · reason Shrinkage",
+      "title": "Cycle count finds 3 missing",
+      "text": "The system shows **450** jackets M in zone A, but the team counts **447**. The controller checks receipts and transfers, finds no error, and applies the adjustment with reason *Shrinkage*.",
+      "entries": [
+        {
+          "account": "Inventory Loss",
+          "debit": "123"
+        },
+        {
+          "account": "Stock Valuation",
+          "credit": "123"
+        }
+      ],
+      "say": "During the April cycle count of zone A, the system says four hundred and fifty, but the team finds four hundred and forty-seven. The controller checks for a missed receipt or transfer, finds none, and records three jackets as shrinkage."
+    },
+    {
+      "at": "Month end",
+      "from": "stock",
+      "to": "office",
+      "carry": "Valuation report",
+      "action": "Reconciling 21,607",
+      "tone": "success",
+      "title": "Stock report matches the balance sheet",
+      "text": "Inventory valuation: 447 at CWH + 120 at Store North − 40 sold in store = **527 jackets × 41 = 21,607**. The Stock Valuation account shows the same 21,607: reconciled.",
+      "say": "At month end the valuation report shows five hundred and twenty-seven jackets at forty-one, which is twenty-one thousand six hundred and seven. The stock account in the balance sheet shows exactly the same, so stock and accounts are reconciled."
+    },
+    {
+      "at": "April KPIs",
+      "to": "office",
+      "tone": "success",
+      "title": "Inventory under control",
+      "text": "Inventory accuracy **96%** (48 of 50 bins exact), shrinkage **0.5%**, turnover on track for **6×** per year.",
+      "say": "The April results: ninety-six percent of bins were exactly right, shrinkage was half a percent, and stock is turning over at a pace of about six times a year."
+    }
+  ],
+  "counters": [
+    {
+      "label": "CWH on hand",
+      "values": [
+        "0",
+        "0",
+        "500",
+        "500 + 100 at dock",
+        "600",
+        "480",
+        "480",
+        "480 (450 free)",
+        "450",
+        "447",
+        "447",
+        "447"
+      ]
+    },
+    {
+      "label": "Store North",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "120 in transit",
+        "120",
+        "120",
+        "120",
+        "120",
+        "80 (40 sold)",
+        "80"
+      ]
+    },
+    {
+      "label": "Average cost",
+      "values": [
+        "—",
+        "—",
+        "40.00",
+        "41.00",
+        "41.00",
+        "41.00",
+        "41.00",
+        "41.00",
+        "41.00",
+        "41.00",
+        "41.00",
+        "41.00"
+      ]
+    },
+    {
+      "label": "Stock value",
+      "values": [
+        "0",
+        "0",
+        "20,000",
+        "24,600",
+        "24,600",
+        "24,600",
+        "24,600",
+        "24,600",
+        "23,370",
+        "23,247",
+        "21,607",
+        "21,607"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "label": "Stock value (reconciled)",
+      "value": "21,607"
+    },
+    {
+      "label": "Average cost",
+      "value": "41.00"
+    },
+    {
+      "label": "Inventory accuracy",
+      "value": "96%"
+    },
+    {
+      "label": "Shrinkage",
+      "value": "0.5%"
+    },
+    {
+      "label": "Turnover",
+      "value": "On track for 6× a year"
+    },
+    {
+      "label": "Journal entry for transfers",
+      "value": "None needed"
+    }
+  ]
+}
+\`\`\`
+
+#### The full story
+
+**UrbanThread** sells casual clothing through a central warehouse (*CWH*) and two city stores (*Store North*, *Store South*). It goes live on Odoo 17 on 1 April.
 
 **Item creation.** The master data officer imports 1,200 products. For the *Classic Denim Jacket* there are size variants S, M, L; each is a Storable Product with a barcode, UoM *Units*, and category *Apparel / Outerwear* configured with **AVCO** and **Automated** valuation (Stock Valuation 1101, Stock Input 2105, Stock Output 1105).
 
@@ -1310,7 +2407,329 @@ Record to Report has no physical stock movements, but inventory is one of the la
 - Agree on a **month-end close checklist** that names the Odoo report used for each reconciliation.`,
   example: {
     company: "Clearview Advisory LLP (fictional 35-person management consulting firm)",
-    narrative: `**Clearview Advisory** provides management consulting and goes live on Odoo 17 Enterprise Accounting on 1 January.
+    narrative: `\`\`\`visual-story
+{
+  "title": "Record to Report: Clearview closes January",
+  "company": "Clearview Advisory · fictional",
+  "layout": "timeline",
+  "pace": 7,
+  "intro": "This animation follows Clearview's first month on Odoo, from setting up the accounts to locking January. Each lane is a role, the gates are the events in date order, and the box is the paperwork moving between people.",
+  "legend": "Lanes are roles. Numbered gates are the events in date order. The box is the paperwork; a lane change is a handover.",
+  "stations": [
+    {
+      "id": "consultant",
+      "label": "Implementation consultant",
+      "icon": "settings",
+      "app": "Configuration"
+    },
+    {
+      "id": "arap",
+      "label": "AR & AP team",
+      "icon": "invoice",
+      "app": "Invoicing"
+    },
+    {
+      "id": "gl",
+      "label": "GL accountant",
+      "icon": "book",
+      "app": "Accounting"
+    },
+    {
+      "id": "bank",
+      "label": "Bank",
+      "icon": "bank",
+      "outside": true
+    },
+    {
+      "id": "tax",
+      "label": "Tax accountant",
+      "icon": "percent",
+      "app": "Tax reports"
+    },
+    {
+      "id": "cfo",
+      "label": "CFO",
+      "icon": "user",
+      "app": "Sign-off"
+    }
+  ],
+  "scenes": [
+    {
+      "at": "Setup",
+      "to": "consultant",
+      "action": "Configuring the chart",
+      "document": "Fiscal localisation",
+      "title": "Lean chart of accounts",
+      "text": "The consultant installs the fiscal localisation and adds only **12 accounts**. Departments (Strategy, Technology, HR Advisory) become analytic accounts instead of separate revenue accounts.",
+      "say": "The consultant starts from the country's standard chart of accounts and adds only twelve new accounts. Departments are tracked with analytic accounts instead of separate revenue accounts, which keeps the chart small and the reports flexible."
+    },
+    {
+      "at": "31 Dec",
+      "from": "consultant",
+      "to": "cfo",
+      "carry": "Opening balances",
+      "action": "Reviewing the clearing account",
+      "tone": "success",
+      "document": "Migration Clearing = 0",
+      "title": "Opening balances signed off",
+      "text": "The 47 open invoices and 19 open bills are imported against *Migration Clearing*, and the remaining balances (bank 145,000, fixed assets 60,000, accruals, equity) are posted by journal entry. Migration Clearing ends at **zero** and the CFO signs off.",
+      "say": "Opening balances come from the old trial balance. Open invoices and bills are imported one by one, so they can be followed up, and everything else is posted as a journal entry. A clearing account that ends at exactly zero proves nothing was missed, and the CFO signs off."
+    },
+    {
+      "at": "January",
+      "to": "arap",
+      "action": "Posting 28 invoices",
+      "title": "January invoicing and bills",
+      "text": "Clearview issues **28 invoices** totalling 320,000 + 15% tax and receives **41 vendor bills** totalling 95,000 + tax 14,250.",
+      "entries": [
+        {
+          "account": "Accounts Receivable",
+          "debit": "368,000"
+        },
+        {
+          "account": "Consulting Fees",
+          "credit": "320,000"
+        },
+        {
+          "account": "Tax Payable",
+          "credit": "48,000"
+        }
+      ],
+      "say": "During January the team sends twenty-eight invoices worth three hundred and twenty thousand plus tax, and records forty-one supplier bills for rent, software and subcontractors."
+    },
+    {
+      "at": "31 Jan",
+      "from": "arap",
+      "to": "gl",
+      "carry": "Late rent bill",
+      "action": "Posting the accrual",
+      "document": "Auto-reverses 1 Feb",
+      "title": "Rent accrued for a late bill",
+      "text": "The office rent bill arrives late, so the GL accountant accrues it. The entry **reverses automatically** on 1 February.",
+      "entries": [
+        {
+          "account": "Rent",
+          "debit": "9,000"
+        },
+        {
+          "account": "Accrued Liabilities",
+          "credit": "9,000"
+        }
+      ],
+      "say": "The rent bill has not arrived yet, but the cost belongs to January. The GL accountant accrues nine thousand, set to reverse automatically on the first of February, when the real bill will be posted."
+    },
+    {
+      "at": "31 Jan",
+      "to": "gl",
+      "action": "Depreciation & unbilled work",
+      "title": "Depreciation and unbilled revenue",
+      "text": "Depreciation comes from the asset board. Work done on a fixed-price project but not yet invoiced is recognised as **unbilled revenue**.",
+      "entries": [
+        {
+          "account": "Depreciation",
+          "debit": "1,250"
+        },
+        {
+          "account": "Unbilled Revenue",
+          "debit": "18,000"
+        },
+        {
+          "account": "Accumulated Depreciation",
+          "credit": "1,250"
+        },
+        {
+          "account": "Consulting Fees",
+          "credit": "18,000"
+        }
+      ],
+      "say": "Two more month-end entries follow. Depreciation of twelve hundred and fifty comes from the asset register. And eighteen thousand of work already done on a fixed-price project is recognised as revenue now, even though it is not invoiced yet."
+    },
+    {
+      "at": "31 Jan",
+      "from": "gl",
+      "to": "arap",
+      "carry": "Ageing review",
+      "action": "Sending reminders",
+      "tone": "warning",
+      "title": "Receivables and payables reviewed",
+      "text": "Aged Receivable: **286,000**, of which 31,000 is over 60 days. Reminders go out and a **4,000 provision** is booked for a disputed invoice. Aged Payable (52,000) equals the AP account.",
+      "entries": [
+        {
+          "account": "Bad Debt Expense",
+          "debit": "4,000"
+        },
+        {
+          "account": "Provision for Doubtful Debts",
+          "credit": "4,000"
+        }
+      ],
+      "say": "Customers owe two hundred and eighty-six thousand, and thirty-one thousand of it is more than sixty days old. Reminders go out, and four thousand is set aside for one disputed invoice. On the supplier side, the aged payable report agrees with the payables account."
+    },
+    {
+      "at": "Early Feb",
+      "from": "bank",
+      "to": "gl",
+      "carry": "214 bank lines",
+      "action": "Matching 214 lines",
+      "tone": "success",
+      "title": "Bank reconciled",
+      "text": "**214** bank lines are synced. Reconciliation models clear **180** automatically (customer payments matching invoice references, bank fees); 34 are matched by hand. Book balance equals the statement: **188,400**.",
+      "say": "Two hundred and fourteen bank lines arrive through the bank feed. Reconciliation rules match one hundred and eighty of them automatically, and the accountant matches the last thirty-four by hand. The bank balance in the books now equals the statement."
+    },
+    {
+      "at": "Early Feb",
+      "from": "gl",
+      "to": "cfo",
+      "carry": "P&L and balance sheet",
+      "action": "Reviewing the statements",
+      "title": "Financial statements ready",
+      "text": "P&L: revenue 338,000, staff costs 190,000, other expenses 109,250, net profit **38,750** (11.5%). Technology earns 61% of revenue. The balance sheet balances.",
+      "say": "The profit and loss shows revenue of three hundred and thirty-eight thousand and a net profit of thirty-eight thousand seven hundred and fifty, an eleven and a half percent margin. Thanks to the analytic accounts, the CFO can also see that Technology brings in sixty-one percent of revenue."
+    },
+    {
+      "at": "6 Feb",
+      "from": "gl",
+      "to": "tax",
+      "carry": "Tax report",
+      "action": "Preparing the tax return",
+      "document": "Tax closing entry",
+      "title": "Tax return prepared",
+      "text": "Output tax 48,000 − input tax 14,250 = **33,750** payable. The tax closing entry clears both tax accounts.",
+      "entries": [
+        {
+          "account": "Tax Payable",
+          "debit": "48,000"
+        },
+        {
+          "account": "Tax Receivable",
+          "credit": "14,250"
+        },
+        {
+          "account": "Tax Authority",
+          "credit": "33,750"
+        }
+      ],
+      "say": "On the sixth of February the tax accountant runs the tax report. Tax collected minus tax paid leaves thirty-three thousand seven hundred and fifty to pay, and the closing entry moves it to the amount owed to the tax authority."
+    },
+    {
+      "at": "6 Feb",
+      "from": "tax",
+      "to": "cfo",
+      "carry": "Lock request",
+      "action": "Setting the lock date",
+      "tone": "success",
+      "document": "Lock date 31 Jan",
+      "title": "January locked",
+      "text": "The CFO sets the lock date to **31 January**, so the closed month cannot be changed.",
+      "say": "Finally the CFO locks January. From now on nobody can post or change entries in a closed month, so the reported figures stay final."
+    },
+    {
+      "at": "Outcome",
+      "to": "cfo",
+      "tone": "success",
+      "title": "Closed in 4 days",
+      "text": "Net profit 38,750 (11.5%), bank reconciled, tax filed, January locked. **Days to close: 4.**",
+      "say": "January is closed in four working days, with reconciled bank and receivables, accrued costs, and tax ready to pay."
+    }
+  ],
+  "counters": [
+    {
+      "label": "Revenue (January)",
+      "values": [
+        "—",
+        "—",
+        "320,000",
+        "320,000",
+        "338,000",
+        "338,000",
+        "338,000",
+        "338,000",
+        "338,000",
+        "338,000",
+        "338,000"
+      ]
+    },
+    {
+      "label": "Net profit",
+      "values": [
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "—",
+        "38,750",
+        "38,750",
+        "38,750",
+        "38,750"
+      ]
+    },
+    {
+      "label": "Bank (book)",
+      "values": [
+        "—",
+        "145,000",
+        "145,000",
+        "145,000",
+        "145,000",
+        "145,000",
+        "188,400",
+        "188,400",
+        "188,400",
+        "188,400",
+        "188,400"
+      ]
+    },
+    {
+      "label": "Close status",
+      "values": [
+        "Setup",
+        "Opening signed",
+        "Posting",
+        "Accruals",
+        "Accruals",
+        "AR/AP checked",
+        "Bank done",
+        "Statements",
+        "Tax 33,750",
+        "Locked",
+        "Closed · 4 days"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "label": "Net profit",
+      "value": "38,750 (11.5%)"
+    },
+    {
+      "label": "Revenue",
+      "value": "338,000"
+    },
+    {
+      "label": "Bank reconciled",
+      "value": "188,400"
+    },
+    {
+      "label": "Auto-matched lines",
+      "value": "180 of 214 (84%)"
+    },
+    {
+      "label": "Tax payable",
+      "value": "33,750"
+    },
+    {
+      "label": "Days to close",
+      "value": "4"
+    }
+  ]
+}
+\`\`\`
+
+#### The full story
+
+**Clearview Advisory** provides management consulting and goes live on Odoo 17 Enterprise Accounting on 1 January.
 
 **Chart of accounts.** The consultant installs the country's fiscal localization and adds only 12 accounts (e.g. *Consulting Fees*, *Subcontractor Costs*, *Unbilled Revenue*). Departments (*Strategy*, *Technology*, *HR Advisory*) are modelled as analytic accounts in a *Department* plan instead of separate revenue accounts.
 
@@ -1631,7 +3050,350 @@ Odoo 18.0 adds options for posting WIP and labour accounting entries for manufac
 - Explain the **WIP / production location account** to finance before go-live.`,
   example: {
     company: "Oakridge Furniture Works Ltd. (fictional furniture manufacturer)",
-    narrative: `**Oakridge Furniture Works** makes solid-oak dining tables. A hotel chain orders 20 *Heritage Dining Tables* for delivery in three weeks.
+    narrative: `\`\`\`visual-story
+{
+  "title": "Plan to Produce: Oakridge builds 20 tables",
+  "company": "Oakridge Furniture Works · fictional",
+  "token": "box",
+  "pace": 7,
+  "intro": "This animation follows a manufacturing order for twenty oak dining tables through Oakridge's factory. Each building is a place on the shop floor, and the work done there is shown on the spot.",
+  "legend": "Buildings are places in the factory. Parcels are documents or parts, trucks carry goods. The badge shows the work happening on the spot.",
+  "stations": [
+    {
+      "id": "customer",
+      "label": "Hotel chain",
+      "icon": "building",
+      "app": "Customer",
+      "x": 0,
+      "y": 0,
+      "outside": true
+    },
+    {
+      "id": "planning",
+      "label": "Planning office",
+      "icon": "calendar",
+      "app": "Manufacturing",
+      "x": 2,
+      "y": 0
+    },
+    {
+      "id": "vendor",
+      "label": "Leg supplier",
+      "icon": "truck",
+      "app": "Vendor",
+      "x": 4,
+      "y": 0,
+      "outside": true
+    },
+    {
+      "id": "stores",
+      "label": "Raw material store",
+      "icon": "warehouse",
+      "app": "Inventory",
+      "x": 4,
+      "y": 2
+    },
+    {
+      "id": "cnc",
+      "label": "CNC Saw",
+      "icon": "settings",
+      "app": "Work center",
+      "x": 4,
+      "y": 4
+    },
+    {
+      "id": "assembly",
+      "label": "Assembly Bench",
+      "icon": "wrench",
+      "app": "Work center",
+      "x": 2,
+      "y": 4
+    },
+    {
+      "id": "spray",
+      "label": "Spray Booth",
+      "icon": "factory",
+      "app": "Work center",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "id": "fg",
+      "label": "Finished goods",
+      "icon": "box",
+      "app": "Inventory",
+      "x": 0,
+      "y": 2
+    }
+  ],
+  "scenes": [
+    {
+      "at": "Day 1",
+      "from": "customer",
+      "to": "planning",
+      "carry": "Order: 20 tables",
+      "action": "Creating MO WH/MO/00118",
+      "document": "WH/MO/00118",
+      "title": "Make-to-order creates the MO",
+      "text": "A hotel chain orders **20 Heritage Dining Tables** for delivery in three weeks. Make-to-Order + Manufacture routes create **MO WH/MO/00118**.",
+      "say": "A hotel chain orders twenty Heritage dining tables, to be delivered in three weeks. Because the product uses make-to-order and manufacture routes, confirming the sale creates a manufacturing order straight away."
+    },
+    {
+      "at": "Day 1",
+      "to": "planning",
+      "action": "Costing the BoM",
+      "title": "Expected cost: 266.50 per table",
+      "text": "Materials: tabletop 120 + 4 legs 60 + 16 screws 4 + 0.5 L varnish 10 = **194**. Operations: Cutting 20 + Assembly 22.50 + Finishing 30 = **72.50**. Expected total **266.50**.",
+      "say": "The bill of materials says each table needs a tabletop, four legs, sixteen screws and half a litre of varnish, a hundred and ninety-four in materials. The routing adds cutting, assembly and finishing time worth seventy-two fifty. So each table should cost two hundred and sixty-six fifty."
+    },
+    {
+      "at": "Day 1",
+      "to": "planning",
+      "action": "Checking components",
+      "tone": "warning",
+      "title": "Short of legs: 60 of 80",
+      "text": "The BoM Overview shows tabletops available, but only **60 legs** in stock against 80 needed. The MO is confirmed with a start date after the legs arrive.",
+      "say": "The planner checks component availability. Tabletops are fine, but there are only sixty legs and the order needs eighty. So the start date is planned for after the missing legs arrive."
+    },
+    {
+      "at": "Day 1",
+      "from": "planning",
+      "to": "vendor",
+      "carry": "PO for legs",
+      "action": "Confirming the PO",
+      "title": "Reordering rule buys the missing legs",
+      "text": "A reordering rule generates a **purchase order for legs**.",
+      "say": "A reordering rule automatically creates a purchase order for legs, so nobody has to remember to buy them."
+    },
+    {
+      "at": "Before start",
+      "from": "vendor",
+      "to": "stores",
+      "token": "truck",
+      "carry": "Legs",
+      "action": "Receiving legs",
+      "title": "Legs received",
+      "text": "The legs arrive at the raw material store, and all components are now available.",
+      "say": "The supplier's truck delivers the legs to the raw material store. Now every component for twenty tables is in stock."
+    },
+    {
+      "at": "Start",
+      "from": "stores",
+      "to": "cnc",
+      "carry": "Components",
+      "action": "Picking components",
+      "document": "Pick Components",
+      "title": "Components picked to pre-production",
+      "text": "2-step manufacturing: the storekeeper validates *Pick Components*, moving 20 tabletops, 80 legs, 320 screws and 10 L varnish to WH/Pre-Production. A location change only, **no journal entry**.",
+      "say": "Oakridge uses two-step manufacturing. The storekeeper picks twenty tabletops, eighty legs, three hundred and twenty screws and ten litres of varnish, and moves them next to the machines. It is only a change of location, so nothing is posted."
+    },
+    {
+      "at": "Cutting",
+      "to": "cnc",
+      "action": "Cutting · 10 h",
+      "tone": "warning",
+      "document": "Scrap order",
+      "title": "Cutting: one tabletop cracks",
+      "text": "Cutting takes **10 h** (expected 10 h) = 400. One tabletop cracks; the operator scraps it from the MO and an extra tabletop is issued.",
+      "entries": [
+        {
+          "account": "Scrap Loss",
+          "debit": "120"
+        },
+        {
+          "account": "Stock Valuation",
+          "credit": "120"
+        }
+      ],
+      "say": "Cutting on the CNC saw takes exactly the planned ten hours. But one tabletop cracks. The operator scraps it from the manufacturing order, which books a loss of one hundred and twenty, and a replacement is issued."
+    },
+    {
+      "at": "Assembly",
+      "from": "cnc",
+      "to": "assembly",
+      "carry": "Cut parts",
+      "action": "Assembling · 18 h",
+      "tone": "warning",
+      "title": "Assembly runs 3 hours over",
+      "text": "Operators log their time on the Shop Floor tablets: **18 h** against 15 expected = 540.",
+      "say": "At the assembly bench the operators log their time on shop floor tablets. Assembly takes eighteen hours instead of fifteen, because a new team member is still learning."
+    },
+    {
+      "at": "Finishing",
+      "from": "assembly",
+      "to": "spray",
+      "carry": "Assembled tables",
+      "action": "Spraying · 21 h",
+      "title": "Finishing in the spray booth",
+      "text": "Finishing takes **21 h** against 20 expected = 630. Actual conversion cost **1,570** vs 1,450 expected.",
+      "say": "In the spray booth, finishing takes twenty-one hours, one more than planned. In total, labour and machine time cost fifteen hundred and seventy, a hundred and twenty more than expected."
+    },
+    {
+      "at": "Complete",
+      "from": "spray",
+      "to": "fg",
+      "token": "truck",
+      "carry": "20 tables",
+      "action": "Completing the MO",
+      "tone": "success",
+      "title": "20 tables into finished goods",
+      "text": "The supervisor completes the MO. Components are consumed and the tables received at an actual unit cost of 5,450 ÷ 20 = **272.50**.",
+      "entries": [
+        {
+          "account": "Work in Progress",
+          "debit": "3,880"
+        },
+        {
+          "account": "Finished Goods",
+          "debit": "5,450"
+        },
+        {
+          "account": "Raw Materials",
+          "credit": "3,880"
+        },
+        {
+          "account": "Work in Progress",
+          "credit": "5,450"
+        }
+      ],
+      "say": "The supervisor completes the order. The components, worth three thousand eight hundred and eighty, are consumed, and the twenty tables enter finished goods at five thousand four hundred and fifty, which is two hundred and seventy-two fifty each."
+    },
+    {
+      "at": "After completion",
+      "from": "fg",
+      "to": "planning",
+      "carry": "Cost analysis",
+      "action": "Analysing variances",
+      "title": "6.00 per table over plan",
+      "text": "Each table cost **6.00 more** (2.3%). Variances: Assembly +90, Finishing +30; the scrapped tabletop (120) is a loss outside product cost. Labour efficiency 45 ÷ 49 = **91.8%**; scrap rate 1 ÷ 21 = 4.8%.",
+      "say": "The cost accountant compares actual with expected. Each table cost six more than planned. Most of the difference is the extra assembly time, plus one extra hour in finishing. The scrapped tabletop is shown separately as a loss. Labour efficiency was nearly ninety-two percent."
+    },
+    {
+      "at": "Week 3",
+      "from": "fg",
+      "to": "customer",
+      "token": "truck",
+      "carry": "20 tables",
+      "action": "Delivered to the hotel",
+      "title": "Tables delivered to the hotel",
+      "text": "The 20 tables go to the hotel chain within the three weeks.",
+      "say": "The twenty finished tables leave for the hotel within the promised three weeks."
+    },
+    {
+      "at": "Outcome",
+      "to": "planning",
+      "tone": "success",
+      "title": "Margin still 47.6%",
+      "text": "Selling price 520 per table gives a gross margin of **47.6%**. Actions: training for the new assembler, a protective fixture at the saw, standard times unchanged for now.",
+      "say": "At five hundred and twenty a table, the gross margin is still a healthy forty-seven point six percent. The supervisor books training for the new assembler, and engineering adds a fixture at the saw to stop tabletops cracking."
+    }
+  ],
+  "counters": [
+    {
+      "label": "Tables made",
+      "values": [
+        "0 / 20",
+        "0 / 20",
+        "0 / 20",
+        "0 / 20",
+        "0 / 20",
+        "0 / 20",
+        "0 / 20",
+        "0 / 20",
+        "0 / 20",
+        "20 / 20",
+        "20 / 20",
+        "20 / 20",
+        "20 / 20"
+      ]
+    },
+    {
+      "label": "Hours booked",
+      "values": [
+        "0 h",
+        "0 h",
+        "0 h",
+        "0 h",
+        "0 h",
+        "0 h",
+        "10 h",
+        "28 h",
+        "49 h",
+        "49 h",
+        "49 h",
+        "49 h",
+        "49 h"
+      ]
+    },
+    {
+      "label": "Conversion cost",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "400",
+        "940",
+        "1,570",
+        "1,570",
+        "1,570",
+        "1,570",
+        "1,570"
+      ]
+    },
+    {
+      "label": "Unit cost",
+      "values": [
+        "266.50 plan",
+        "266.50 plan",
+        "266.50 plan",
+        "266.50 plan",
+        "266.50 plan",
+        "266.50 plan",
+        "266.50 plan",
+        "266.50 plan",
+        "266.50 plan",
+        "272.50",
+        "272.50",
+        "272.50",
+        "272.50"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "label": "Actual unit cost",
+      "value": "272.50 (plan 266.50)"
+    },
+    {
+      "label": "Total variance",
+      "value": "240"
+    },
+    {
+      "label": "Labour efficiency",
+      "value": "91.8%"
+    },
+    {
+      "label": "Scrap rate (tabletops)",
+      "value": "4.8%"
+    },
+    {
+      "label": "Selling price",
+      "value": "520"
+    },
+    {
+      "label": "Gross margin",
+      "value": "47.6%"
+    }
+  ]
+}
+\`\`\`
+
+#### The full story
+
+**Oakridge Furniture Works** makes solid-oak dining tables. A hotel chain orders 20 *Heritage Dining Tables* for delivery in three weeks.
 
 **Bill of Materials.** One table requires: 1 oak tabletop panel (cost 120), 4 legs (15 each = 60), 16 screws (0.25 each = 4) and 0.5 L varnish (20/L = 10). Material cost per table: **194**.
 
@@ -1924,7 +3686,296 @@ Most project businesses carry little stock, but materials still need control:
 - Set realistic **employee costs**; otherwise profitability looks better than reality.`,
   example: {
     company: "Lumen & Loom Interiors (fictional interior design studio)",
-    narrative: `**Lumen & Loom Interiors** wins a contract to design and fit out the 600 m² office of *Harbourline Logistics*. The contract has three parts: a fixed design fee of 12,000 billed in two milestones, site supervision billed at 90 per hour, and furniture supplied at cost plus 20%.
+    narrative: `\`\`\`visual-story
+{
+  "title": "Project to Profit: Lumen & Loom fits out an office",
+  "company": "Lumen & Loom Interiors · fictional",
+  "layout": "timeline",
+  "pace": 7,
+  "intro": "This animation follows a fit-out project from contract to profit. Each lane is a person or party, the gates are the events in order, and the running totals show how the margin builds up.",
+  "legend": "Lanes are people and outside parties. Numbered gates are the events in order. Watch the margin to date change as costs and invoices arrive.",
+  "stations": [
+    {
+      "id": "client",
+      "label": "Client: Harbourline",
+      "icon": "building",
+      "outside": true
+    },
+    {
+      "id": "am",
+      "label": "Account manager",
+      "icon": "handshake",
+      "app": "Sales"
+    },
+    {
+      "id": "pm",
+      "label": "Project manager · Ananya",
+      "icon": "clipboard",
+      "app": "Project"
+    },
+    {
+      "id": "team",
+      "label": "Designers & supervisor",
+      "icon": "users",
+      "app": "Timesheets"
+    },
+    {
+      "id": "purchasing",
+      "label": "Purchasing",
+      "icon": "cart",
+      "app": "Purchase"
+    },
+    {
+      "id": "supplier",
+      "label": "Crestwood Furnishings",
+      "icon": "truck",
+      "outside": true
+    },
+    {
+      "id": "accounts",
+      "label": "Accounts",
+      "icon": "landmark",
+      "app": "Accounting"
+    }
+  ],
+  "scenes": [
+    {
+      "at": "Contract",
+      "from": "client",
+      "to": "am",
+      "carry": "Signed contract",
+      "action": "Building the sales order",
+      "title": "Three ways to bill one project",
+      "text": "Harbourline Logistics signs for a 600 m² office fit-out: a **fixed design fee of 12,000** in two milestones, **site supervision at 90/h**, and **furniture at cost + 20%**.",
+      "say": "Harbourline Logistics hires Lumen and Loom to design and fit out its new office. The contract mixes three billing methods: a fixed design fee in two milestones, site supervision charged by the hour, and furniture charged at cost plus twenty percent."
+    },
+    {
+      "at": "Contract",
+      "from": "am",
+      "to": "pm",
+      "carry": "S00452 confirmed",
+      "action": "Creating the project",
+      "document": "Analytic HL-2025-07",
+      "title": "Order confirmed, project created",
+      "text": "Sales order **S00452** has three lines: design (milestones), supervision (timesheets, est. 60 h) and furniture re-invoicing. Confirming it creates the project and analytic account **HL-2025-07**.",
+      "say": "The account manager enters one sales order with three lines, each with its own invoicing policy. Confirming it creates the project and its analytic account, which will collect every cost and every invoice."
+    },
+    {
+      "at": "Planning",
+      "to": "pm",
+      "action": "Planning tasks & milestones",
+      "title": "Tasks and milestones planned",
+      "text": "Ananya plans space planning, concept, detailed drawings, furniture procurement and site supervision. Milestones: *Concept approved* (50%) and *Drawings handed over* (50%).",
+      "say": "Project manager Ananya plans the tasks and links two milestones to the design fee: half when the concept is approved, and half when the drawings are handed over."
+    },
+    {
+      "at": "Ongoing",
+      "from": "pm",
+      "to": "team",
+      "carry": "Tasks",
+      "action": "Logging 220 hours",
+      "tone": "warning",
+      "title": "Timesheets: design runs over",
+      "text": "Designers log **160 h** (cost 40/h = 6,400), the supervisor **60 h** (45/h = 2,700). Timesheets create analytic cost lines only, **no GL entries**.",
+      "say": "The designers log one hundred and sixty hours, and the site supervisor sixty. Timesheets do not post to the general ledger. They add cost lines to the project, so the project's real cost is visible as the work happens."
+    },
+    {
+      "at": "Procurement",
+      "from": "pm",
+      "to": "purchasing",
+      "carry": "Furniture list",
+      "action": "Raising the PO",
+      "title": "Furniture ordered for the project",
+      "text": "The purchasing officer orders furniture from Crestwood for **18,000**, with the project's analytic distribution.",
+      "say": "Purchasing orders the furniture from Crestwood for eighteen thousand, tagged to the project so the cost lands in the right place."
+    },
+    {
+      "at": "Procurement",
+      "from": "purchasing",
+      "to": "supplier",
+      "carry": "PO 18,000",
+      "action": "Dropship to the client",
+      "title": "Dropshipped straight to Harbourline",
+      "text": "Crestwood delivers the furniture **directly to Harbourline** (dropship). The 18,000 cost is coded to HL-2025-07.",
+      "say": "Crestwood delivers the furniture straight to the client's office, so it never passes through Lumen and Loom's own stock."
+    },
+    {
+      "at": "Procurement",
+      "from": "supplier",
+      "to": "client",
+      "token": "truck",
+      "carry": "Furniture",
+      "action": "Delivered on site",
+      "title": "Furniture on site",
+      "text": "The furniture arrives at the client's office. A painting subcontractor also bills **4,000**, coded to the project but **not re-billable** (included in the design fee).",
+      "say": "The furniture arrives on site. A painting subcontractor also sends a bill for four thousand. It is part of the fixed design fee, so it cannot be charged on to the client."
+    },
+    {
+      "at": "20 May",
+      "from": "accounts",
+      "to": "client",
+      "carry": "Milestone 1",
+      "action": "Invoicing 6,000",
+      "title": "Concept approved: first milestone",
+      "text": "The concept is approved on 20 May, so the first milestone invoice of **6,000** + tax goes out.",
+      "say": "On the twentieth of May the client approves the concept, and the first milestone invoice of six thousand goes out."
+    },
+    {
+      "at": "25 Jun",
+      "from": "accounts",
+      "to": "client",
+      "carry": "Milestone 2",
+      "action": "Invoicing 6,000",
+      "title": "Drawings handed over: second milestone",
+      "text": "Drawings are handed over on 25 June: second milestone invoice of **6,000** + tax.",
+      "say": "On the twenty-fifth of June the drawings are handed over, and the second milestone of six thousand is invoiced."
+    },
+    {
+      "at": "Furniture billing",
+      "from": "accounts",
+      "to": "client",
+      "carry": "Re-invoice 21,600",
+      "action": "Re-invoicing at cost + 20%",
+      "title": "Furniture re-invoiced",
+      "text": "Furniture is re-invoiced at cost + 20% = **21,600** + tax.",
+      "say": "The furniture is re-invoiced to the client at cost plus twenty percent, twenty-one thousand six hundred."
+    },
+    {
+      "at": "Month end",
+      "from": "accounts",
+      "to": "client",
+      "carry": "60 h × 90",
+      "action": "Invoicing timesheets",
+      "title": "Supervision invoiced from timesheets",
+      "text": "60 validated hours × 90 = **5,400** + tax. Total revenue: 12,000 + 21,600 + 5,400 = **39,000**.",
+      "say": "At month end, the sixty validated supervision hours are invoiced at ninety, five thousand four hundred. Total revenue is now thirty-nine thousand."
+    },
+    {
+      "at": "Review",
+      "from": "accounts",
+      "to": "pm",
+      "carry": "Profitability",
+      "action": "Reviewing profitability",
+      "tone": "warning",
+      "title": "20.3% overall, but design earned only 13.3%",
+      "text": "Revenue 39,000, cost 31,100, margin **7,900 (20.3%)**. Design earned only 1,600 (13.3%): **160 h** against 120 planned, after three rounds of concept changes. Supervision earned 50%, furniture 16.7%.",
+      "say": "The project made seven thousand nine hundred, a twenty percent margin. But the breakdown tells a different story. The design part earned only thirteen percent, because three rounds of concept changes pushed the hours from one hundred and twenty to one hundred and sixty."
+    },
+    {
+      "at": "Lessons learned",
+      "to": "am",
+      "tone": "success",
+      "title": "Change the contract, not just the effort",
+      "text": "Next time the fixed fee covers **two concept revisions**; further revisions are billed on timesheets. Designer utilisation was 78%; effective design rate 75/h vs the 90 target.",
+      "say": "The lesson goes into the next contract: the fixed fee will include only two concept revisions, and anything more will be billed by the hour. That protects the design margin."
+    }
+  ],
+  "counters": [
+    {
+      "label": "Revenue invoiced",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "0",
+        "6,000",
+        "12,000",
+        "33,600",
+        "39,000",
+        "39,000",
+        "39,000"
+      ]
+    },
+    {
+      "label": "Cost to date",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "9,100",
+        "9,100",
+        "27,100",
+        "31,100",
+        "31,100",
+        "31,100",
+        "31,100",
+        "31,100",
+        "31,100",
+        "31,100"
+      ]
+    },
+    {
+      "label": "Margin to date",
+      "values": [
+        "0",
+        "0",
+        "0",
+        "−9,100",
+        "−9,100",
+        "−27,100",
+        "−31,100",
+        "−25,100",
+        "−19,100",
+        "2,500",
+        "7,900",
+        "7,900 (20.3%)",
+        "7,900 (20.3%)"
+      ]
+    },
+    {
+      "label": "Design hours",
+      "values": [
+        "0",
+        "0",
+        "0 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan",
+        "160 / 120 plan"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "label": "Revenue",
+      "value": "39,000"
+    },
+    {
+      "label": "Cost",
+      "value": "31,100"
+    },
+    {
+      "label": "Project margin",
+      "value": "7,900 (20.3%)"
+    },
+    {
+      "label": "Design margin",
+      "value": "1,600 (13.3%)"
+    },
+    {
+      "label": "Supervision margin",
+      "value": "50%"
+    },
+    {
+      "label": "Effective design rate",
+      "value": "75/h vs 90 target"
+    }
+  ]
+}
+\`\`\`
+
+#### The full story
+
+**Lumen & Loom Interiors** wins a contract to design and fit out the 600 m² office of *Harbourline Logistics*. The contract has three parts: a fixed design fee of 12,000 billed in two milestones, site supervision billed at 90 per hour, and furniture supplied at cost plus 20%.
 
 **Project creation.** The account manager creates sales order S00452 with three service lines: *Interior Design – Fixed Fee* (Based on Milestones, 12,000), *Site Supervision* (Based on Timesheets, 90/h, estimated 60 h) and a furniture re-invoicing product. Confirming the order creates project **Harbourline Office Fit-out** with tasks and analytic account *HL-2025-07*.
 

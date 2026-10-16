@@ -3,7 +3,7 @@ import { asc, lt, sql } from "drizzle-orm";
 import { requirePermission } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { aiConversations, courses, erpPlatforms, users } from "@/lib/db/schema";
-import { purgeExpiredAiConversations, updateCourseAction, updateUserAction } from "@/app/actions/admin";
+import { purgeExpiredAiConversations, refreshCourseFromSource, syncNewContent, updateCourseAction, updateUserAction } from "@/app/actions/admin";
 import { CreateUserForm } from "@/components/admin-forms";
 import { Badge, Card, CardTitle, PageHeader, buttonClass, inputClass } from "@/components/ui";
 
@@ -82,8 +82,20 @@ export default async function AdminPage() {
       </Card>
 
       <Card>
-        <CardTitle>Courses & content</CardTitle>
-        <p className="mt-1 text-sm text-muted">Unpublished courses are hidden from trainees. The certificate threshold applies to the course&apos;s final assessment.</p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <CardTitle>Courses & content</CardTitle>
+            <p className="mt-1 text-sm text-muted">Unpublished courses are hidden from trainees. The certificate threshold applies to the course&apos;s final assessment.</p>
+          </div>
+          <form action={syncNewContent}>
+            <button
+              className={buttonClass("secondary", "text-xs")}
+              title="Adds new courses, projects, processes and documents from the source files and refreshes project and business-process pages. Existing lessons, edits and learner progress are not touched."
+            >
+              Sync new content
+            </button>
+          </form>
+        </div>
         <div className="mt-3 overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -117,9 +129,20 @@ export default async function AdminPage() {
                     </form>
                   </td>
                   <td className="py-2 text-right">
-                    <Link href={`/admin/courses/${c.slug}`} className="text-primary hover:underline">
-                      Edit lessons
-                    </Link>
+                    <div className="flex items-center justify-end gap-3">
+                      <Link href={`/admin/courses/${c.slug}`} className="text-primary hover:underline">
+                        Edit lessons
+                      </Link>
+                      <form action={refreshCourseFromSource}>
+                        <input type="hidden" name="slug" value={c.slug} />
+                        <button
+                          className="text-xs text-muted underline-offset-2 hover:text-fg hover:underline"
+                          title="Update this course from the content files. Keeps learner progress; overwrites lesson-editor changes to this course."
+                        >
+                          Refresh from source
+                        </button>
+                      </form>
+                    </div>
                   </td>
                 </tr>
               ))}

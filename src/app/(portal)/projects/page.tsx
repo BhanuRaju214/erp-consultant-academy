@@ -38,16 +38,19 @@ export default async function ProjectsPage() {
             </div>
           </Card>
         ))}
-        {plannedProjects.map((p) => (
-          <Card key={p.code} as="article" className="border-dashed opacity-80">
-            <div className="flex items-center gap-2">
-              <Badge>Project {p.code}</Badge>
-              <Badge tone="warning">Planned — next release</Badge>
-            </div>
-            <h2 className="mt-3 text-lg font-semibold text-fg">{p.title}</h2>
-            <p className="mt-1 text-sm text-muted">{p.summary}</p>
-          </Card>
-        ))}
+        {/* Projects listed in the catalogue but not yet loaded into the database. */}
+        {plannedProjects
+          .filter((pp) => !projects.some((p) => p.code === pp.code))
+          .map((p) => (
+            <Card key={p.code} as="article" className="border-dashed opacity-80">
+              <div className="flex items-center gap-2">
+                <Badge>Project {p.code}</Badge>
+                <Badge tone="warning">Content in preparation</Badge>
+              </div>
+              <h2 className="mt-3 text-lg font-semibold text-fg">{p.title}</h2>
+              <p className="mt-1 text-sm text-muted">{p.summary}</p>
+            </Card>
+          ))}
       </div>
     </div>
   );

@@ -75,6 +75,10 @@ For any shared environment, set `SEED_*_PASSWORD` (see `.env.example`). Seeding 
 
 ---
 
+## Visual learning
+
+Lessons can embed interactive visuals (process flows, decision trees, annotated Odoo mockups, comparisons, knowledge checks…) as `visual-*` blocks in their Markdown, and every lesson gets automatic enhancements (takeaway cards, callouts, outline). See [docs/visual-learning/README.md](docs/visual-learning/README.md) for the audit, plan, design system, authoring guide, Napkin AI workflow and rollout steps. Check assets with `npm run visuals:check`.
+
 ## Architecture
 
 ```

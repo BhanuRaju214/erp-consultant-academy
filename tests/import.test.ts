@@ -3,7 +3,7 @@ import { parseCsv, rowsToRecords, toCsv, detectDelimiter } from "@/lib/import/cs
 import { generateDataset } from "@/lib/import/generator";
 import { IMPORT_TEMPLATES, STANDARD_EXTERNAL_IDS, getTemplate } from "@/lib/import/templates";
 import { isEan13Valid, validateImport } from "@/lib/import/validator";
-import { tradingProject } from "@/content/projects/trading-company";
+import { allProjects } from "@/content";
 
 const tpl = (k: string) => getTemplate(k)!;
 const validate = (key: string, csv: string, knownIds = {}) => {
@@ -102,16 +102,25 @@ describe("import validator", () => {
     expect(isEan13Valid("4006381333932")).toBe(false);
   });
 
-  it("validates Project A master data files end to end", () => {
-    const known: Record<string, string[]> = { ...STANDARD_EXTERNAL_IDS } as Record<string, string[]>;
-    for (const t of [...IMPORT_TEMPLATES].sort((a, b) => a.order - b.order)) {
-      const file = tradingProject.masterDataFiles.find((f) => f.templateKey === t.key);
-      if (!file) continue;
-      const header = Object.keys(file.rows[0]);
-      const res = validateImport(t, header, file.rows, { knownIds: known });
-      expect(res.errorCount, `${t.key}: ${JSON.stringify(res.issues.filter((i) => i.severity === "error"))}`).toBe(0);
-      if (res.createdIds.length) known[t.key] = res.createdIds;
+  it.each(allProjects.map((p) => [p.code, p] as const))("validates Project %s master data files end to end", (_code, project) => {
+    const known: Record<string, string[]> = Object.fromEntries(Object.entries(STANDARD_EXTERNAL_IDS).map(([k, v]) => [k, [...(v ?? [])]]));
+    let validated = 0;
+    for (const t of [...IMPORT_TEMPLATES].sort((x, y) => x.order - y.order)) {
+      for (const file of project.masterDataFiles.filter((f) => f.templateKey === t.key)) {
+        const res = validateImport(t, Object.keys(file.rows[0]), file.rows, { knownIds: known });
+        expect(res.errorCount, `${project.code} ${file.name}: ${JSON.stringify(res.issues.filter((i) => i.severity === "error"))}`).toBe(0);
+        known[t.key] = [...(known[t.key] ?? []), ...res.createdIds];
+        validated++;
+      }
     }
+    expect(validated).toBeGreaterThanOrEqual(5);
+  });
+
+  it("projects have unique codes, slugs and test-case ids", () => {
+    expect(new Set(allProjects.map((p) => p.code)).size).toBe(5);
+    expect(new Set(allProjects.map((p) => p.slug)).size).toBe(5);
+    const ids = allProjects.flatMap((p) => p.testCases.map((t) => t.id));
+    expect(new Set(ids).size).toBe(ids.length);
   });
 });
 

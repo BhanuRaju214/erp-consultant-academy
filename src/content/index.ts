@@ -15,7 +15,14 @@ import { testingQa } from "./courses/testing-qa";
 export { businessProcesses } from "./processes";
 export { configScenarios } from "./config-scenarios";
 export { docLibrary } from "./docs";
-export { tradingProject } from "./projects/trading-company";
+import { tradingProject } from "./projects/trading-company";
+import { manufacturingProject } from "./projects/manufacturing-company";
+import { servicesProject } from "./projects/professional-services";
+import { multiCompanyProject } from "./projects/multi-company";
+import { migrationProject } from "./projects/legacy-migration";
+import type { ProjectContent } from "./types";
+
+export { tradingProject };
 
 export const allCourses: CourseContent[] = [
   erpFundamentals,
@@ -31,6 +38,9 @@ export const allCourses: CourseContent[] = [
   integrationFundamentals,
   testingQa,
 ];
+
+/** Implementation projects loaded into the portal (Project A–E as their content is completed). */
+export const allProjects: ProjectContent[] = [tradingProject, manufacturingProject, servicesProject, multiCompanyProject, migrationProject];
 
 export const platforms = [
   { slug: "odoo", name: "Odoo", vendor: "Odoo S.A.", active: true, defaultVersion: "17.0" },

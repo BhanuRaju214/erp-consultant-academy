@@ -100,28 +100,69 @@ A web order is not finished when the customer pays. The retailer must issue a le
 
 ## 3. Process flow
 
-\`\`\`text
- Customer browses shop ──► Adds to cart ──► Checkout (address, delivery method, tax ID for B2B)
-        │
-        ▼
- Online payment (Stripe/PayPal...) ──► Payment transaction "done"
-        │                                     │
-        ▼                                     ▼
- Sales Order confirmed               Payment posted: Outstanding Receipts ↑ / Receivable ↓
-        │
-        ├──► Delivery order (pick, pack, ship) ──► Stock ↓ (valuation entry if automated)
-        │
-        ▼
- Customer invoice (auto-generated, posted, reconciled with the payment)
-        │
-        ▼
- Send & Print: email/portal PDF  ──►  E-invoice (UBL/Peppol/Factur-X or local EDI) transmitted
-        │
-        ▼
- Provider payout hits the bank ──► Bank statement line reconciled (net amount + fees)
-        │
-        ▼
- Return? ──► Return receipt ──► Credit note ──► Refund (provider or bank)
+\`\`\`visual-flow
+{
+  "title": "Order-to-cash for an online store",
+  "caption": "Select a step to see the documents and the accounting effect.",
+  "steps": [
+    {
+      "title": "Browse & add to cart",
+      "icon": "store",
+      "app": "Website"
+    },
+    {
+      "title": "Checkout",
+      "icon": "cart",
+      "app": "Website",
+      "detail": "Address, delivery method, and tax ID for B2B customers."
+    },
+    {
+      "title": "Online payment",
+      "icon": "payment",
+      "app": "Payment provider",
+      "detail": "Stripe, PayPal, … The payment transaction becomes “done”.",
+      "impact": "Payment posted: Outstanding Receipts ↑ / Receivable ↓"
+    },
+    {
+      "title": "Sales order confirmed",
+      "icon": "check",
+      "app": "Sales"
+    },
+    {
+      "title": "Deliver & invoice",
+      "icon": "workflow",
+      "parallel": [
+        {
+          "title": "Delivery order",
+          "app": "Inventory",
+          "icon": "truck",
+          "detail": "Pick, pack, ship. Stock ↓ (valuation entry if automated)."
+        },
+        {
+          "title": "Customer invoice",
+          "app": "Accounting",
+          "icon": "invoice",
+          "detail": "Auto-generated, posted and reconciled with the payment."
+        }
+      ]
+    },
+    {
+      "title": "Send & e-invoice",
+      "icon": "mail",
+      "detail": "Email / portal PDF, and the e-invoice (UBL / Peppol / Factur-X or local EDI) is transmitted."
+    },
+    {
+      "title": "Provider payout reconciled",
+      "icon": "bank",
+      "impact": "Bank statement line reconciled: net amount + fees.",
+      "branch": {
+        "when": "Return?",
+        "result": "Return receipt → credit note → refund (provider or bank)",
+        "tone": "warning"
+      }
+    }
+  ]
+}
 \`\`\`
 
 > **Consultant tip:** In the discovery workshop, take one real web order from the client's current shop and trace it on a whiteboard through every box above. Each box where they say "someone does that by hand" is a requirement.
@@ -450,10 +491,34 @@ Timelines change frequently. Trainees must always check the **current official r
 
 **Peppol** is an international network for exchanging business documents using a "four-corner" model:
 
-\`\`\`text
- Seller ERP (C1) ──► Seller's Access Point (C2) ══ Peppol network ══► Buyer's Access Point (C3) ──► Buyer ERP (C4)
-                                   │
-                         SML/SMP lookup: "where does participant 0208:0987654394 receive invoices?"
+\`\`\`visual-flow
+{
+  "title": "Peppol four-corner model",
+  "caption": "Before sending, the seller's access point looks up the buyer in the SML/SMP directory: “where does participant 0208:0987654394 receive invoices?”",
+  "steps": [
+    {
+      "title": "Seller ERP",
+      "icon": "server",
+      "app": "Corner 1"
+    },
+    {
+      "title": "Seller's access point",
+      "icon": "plug",
+      "app": "Corner 2",
+      "detail": "Looks up the receiver via SML/SMP, then sends over the Peppol network."
+    },
+    {
+      "title": "Buyer's access point",
+      "icon": "plug",
+      "app": "Corner 3"
+    },
+    {
+      "title": "Buyer ERP",
+      "icon": "server",
+      "app": "Corner 4"
+    }
+  ]
+}
 \`\`\`
 
 | Term | Meaning |

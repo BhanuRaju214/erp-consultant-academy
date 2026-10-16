@@ -12,11 +12,11 @@
   --border: #e2e5ee;
   --text: #141a2b;
   --muted: #5d667c;
-  --primary: #0b7d96;
+  --primary: #0a6d84;
   --primary-fg: #ffffff;
   --primary-soft: #e6f8fc;
   --accent: #0e7490;
-  --success: #15803d;
+  --success: #146c34;
   --success-soft: #e8f6ed;
   --warning: #b45309;
   --warning-soft: #fdf3e2;
@@ -71,6 +71,7 @@
   --color-sidebar: var(--sidebar);
   --color-sidebar-text: var(--sidebar-text);
   --color-sidebar-active: var(--sidebar-active);
+  --color-brand: #17c0e2;
   --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "Cascadia Code", Menlo, Consolas, monospace;
 }
@@ -107,20 +108,15 @@ body {
   --tw-prose-hr: var(--border);
   --tw-prose-bullets: var(--muted);
   --tw-prose-counters: var(--muted);
-  max-width: 78ch;
+  max-width: none;
 }
-.lesson-prose table {
-  display: block;
-  overflow-x: auto;
-  font-size: 0.875rem;
+.lesson-prose > :where(p, ul, ol, h2, h3, h4, blockquote, pre, dl) {
+  max-width: 75ch;
 }
-.lesson-prose th {
-  background: var(--surface-2);
-  padding: 0.5rem 0.75rem !important;
-}
-.lesson-prose td {
-  padding: 0.5rem 0.75rem !important;
-  vertical-align: top;
+/* Tables are wrapped and styled by the Markdown renderer (src/components/markdown.tsx). */
+.lesson-prose h2 {
+  margin-top: 2.5em;
+  padding-top: 0.25em;
 }
 .lesson-prose blockquote {
   background: var(--primary-soft);
@@ -154,4 +150,24 @@ body {
   body {
     background: white;
   }
+}
+
+/* Scenario video (visual-story) animations */
+@keyframes story-road { to { stroke-dashoffset: -32; } }
+@keyframes story-pulse { 0%, 100% { opacity: 0.1; } 50% { opacity: 0.3; } }
+@keyframes story-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes story-fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.story-road { animation: story-road 0.9s linear infinite; }
+.story-pulse { animation: story-pulse 1.8s ease-in-out infinite; }
+.story-bob { animation: story-bob 1.6s ease-in-out infinite; }
+.story-fade { animation: story-fade 0.45s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .story-road, .story-pulse, .story-bob, .story-fade { animation: none; }
+}
+@keyframes story-spin { to { transform: rotate(360deg); } }
+@keyframes story-dust { 0% { opacity: 0.9; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.6); } }
+.story-spin { animation: story-spin 0.9s linear infinite; transform-box: fill-box; transform-origin: center; }
+.story-dust { animation: story-dust 0.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@media (prefers-reduced-motion: reduce) {
+  .story-spin, .story-dust { animation: none; }
 }

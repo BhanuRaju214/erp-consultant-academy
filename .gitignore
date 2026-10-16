@@ -7,3 +7,6 @@ storage
 *.tsbuildinfo
 next-env.d.ts
 .next-verify
+
+# Generated LMS exports
+/exports

@@ -1,4 +1,5 @@
 import type { CourseContent } from "../types";
+import { whatIsErpBody } from "../visual-lessons/erp-what-is-erp";
 
 /**
  * ERP Fundamentals — the entry course of the ERP Consultant Academy.
@@ -35,78 +36,7 @@ export const erpFundamentals: CourseContent = {
           durationMin: 25,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
-
-Imagine **Brightline Furniture Pvt Ltd**, a fictional manufacturer of office chairs with 120 employees. A salesperson takes an order by email, types it into a spreadsheet, and phones the warehouse to ask if stock exists. The warehouse checks a different spreadsheet. Purchasing buys fabric based on a printed list. Accounts raise the invoice in a separate accounting package two weeks later — after someone remembers to tell them the goods were shipped.
-
-Every department is working hard, but no one sees the whole picture. This is the problem that **Enterprise Resource Planning (ERP)** software was created to solve.
-
-## Definition
-
-An **ERP system** is an integrated suite of business applications that share **one database** and **one set of master data** so that every department — sales, purchasing, inventory, manufacturing, accounting, HR, projects — works on the same information in real time.
-
-The key words are:
-
-- **Integrated** — a transaction in one area automatically updates the others. Confirming a sales order can reserve stock, create a delivery, and later produce an invoice and journal entry.
-- **Shared data** — a customer, product or vendor is created once and used everywhere.
-- **Process-oriented** — the system follows end-to-end business flows (for example *Order to Cash* or *Procure to Pay*) rather than isolated tasks.
-
-## The "resource" in ERP
-
-ERP plans and tracks the resources of an enterprise:
-
-| Resource | Examples | Typical ERP area |
-|---|---|---|
-| Money | Cash, receivables, payables, budgets | Accounting / Finance |
-| Materials | Raw materials, finished goods, spare parts | Inventory, Purchase, Manufacturing |
-| People | Employees, timesheets, payroll, skills | HR, Timesheets, Payroll |
-| Capacity | Machines, work centres, vehicles | Manufacturing, Maintenance, Fleet |
-| Customers & relationships | Leads, quotations, contracts | CRM, Sales, Subscriptions |
-
-## A short history
-
-- **1960s–70s — MRP (Material Requirements Planning):** calculated what raw materials to buy based on a production plan.
-- **1980s — MRP II:** added capacity planning, shop-floor control and costing.
-- **1990s — ERP:** extended the idea to finance, HR, sales and distribution in one system.
-- **2000s onwards — ERP II / cloud ERP:** web access, e-commerce, CRM, mobile apps and software-as-a-service delivery.
-
-Modern ERPs range from very large enterprise suites to modular open-source platforms such as **Odoo**, which offers separate "apps" (CRM, Sales, Purchase, Inventory, Accounting, Manufacturing and many more) that share one database.
-
-## How integration looks in practice
-
-\`\`\`text
- Sales order confirmed
-        |
-        v
- Stock reserved  --->  Delivery order  --->  Goods shipped
-        |                                        |
-        v                                        v
- Purchase suggested (if short)          Customer invoice
-                                                 |
-                                                 v
-                                     Journal entry in the ledger
-\`\`\`
-
-In a non-integrated company, every arrow in this diagram is a phone call, an email or a re-typed spreadsheet row.
-
-## Real-world scenario
-
-**Brightline Furniture** implements an ERP. A salesperson now creates a quotation in the Sales module and sees available stock on the product line. When the customer accepts, the order is confirmed and the warehouse automatically sees a delivery to prepare. If fabric is short, purchasing gets a replenishment suggestion. When the delivery is validated, accounts creates the invoice from the order with one click — the price, taxes and customer details are already there. The month-end close that previously took eight days now takes three, because there is no reconciliation of four different spreadsheets.
-
-## What ERP is *not*
-
-- It is **not** just accounting software — accounting is one module.
-- It is **not** a magic fix for poor processes — automating a bad process only produces bad results faster.
-- It is **not** "install and forget" — it needs configuration, data, training and ongoing ownership.
-
-## Key takeaways
-
-- ERP = integrated applications on **one database** with **shared master data**.
-- Integration means one transaction updates every affected department automatically.
-- ERP evolved from MRP (materials) to cover finance, people, customers and capacity.
-- ERP supports end-to-end processes such as Order to Cash and Procure to Pay.
-- Technology alone does not fix a business; process and people matter as much as software.
-`,
+          body: whatIsErpBody,
           flashcards: [
             { term: "ERP", definition: "Enterprise Resource Planning — an integrated suite of business applications sharing one database and common master data." },
             { term: "MRP", definition: "Material Requirements Planning — the 1970s precursor to ERP that calculates material needs from a production plan." },
@@ -227,15 +157,50 @@ Understanding these problems precisely is essential: during discovery you will d
 
 ## A typical disconnected landscape
 
-\`\`\`text
- [Online store] ---(CSV export weekly)---> [Order spreadsheet]
-                                                |
-                                     (re-typed manually)
-                                                v
- [CRM tool]          [Warehouse spreadsheet]   [Accounting package]
-     ^                        ^                         ^
-     |                        |                         |
-  Sales team             Storekeeper               Accountant
+\`\`\`visual-cards
+{
+  "label": "Disconnected landscape",
+  "title": "Five tools, five versions of the truth",
+  "columns": 3,
+  "cards": [
+    {
+      "icon": "store",
+      "title": "Online store",
+      "body": "Orders are exported **weekly as CSV** — up to a week out of date.",
+      "tone": "warning"
+    },
+    {
+      "icon": "file",
+      "title": "Order spreadsheet",
+      "body": "Orders are **re-typed manually** into the accounting package.",
+      "tone": "danger"
+    },
+    {
+      "icon": "users",
+      "title": "CRM tool",
+      "body": "Used by the **sales team**; no link to stock or invoices.",
+      "tone": "neutral"
+    },
+    {
+      "icon": "warehouse",
+      "title": "Warehouse spreadsheet",
+      "body": "Kept by the **storekeeper**; stock levels nobody else can see.",
+      "tone": "neutral"
+    },
+    {
+      "icon": "landmark",
+      "title": "Accounting package",
+      "body": "The **accountant** re-keys orders and chases missing ones.",
+      "tone": "neutral"
+    },
+    {
+      "icon": "alert",
+      "title": "Result",
+      "body": "Typos, missed orders, delays and no single, trusted view of the business.",
+      "tone": "danger"
+    }
+  ]
+}
 \`\`\`
 
 ## The core problems
@@ -327,22 +292,71 @@ A finance director of **Vertex Build Contractors** (fictional) asks: "If I chang
 
 ## The layered view
 
-\`\`\`text
- +-------------------------------------------------------------+
- |  USER INTERFACE  (web browser, mobile app, POS terminal)    |
- +-------------------------------------------------------------+
- |  APPLICATION SERVER                                         |
- |   Business modules: CRM | Sales | Purchase | Inventory |    |
- |   Manufacturing | Accounting | HR | Projects ...            |
- |   Business rules, workflows, security, automation           |
- +-------------------------------------------------------------+
- |  INTEGRATION LAYER  (APIs, connectors, import/export)       |
- +-------------------------------------------------------------+
- |  DATABASE  (shared master data + transactions)              |
- +-------------------------------------------------------------+
-         ^                                   ^
-   Reporting & analytics             External systems
-   (dashboards, BI tools)            (banks, couriers, e-commerce)
+\`\`\`visual-layers
+{
+  "title": "How an ERP is put together",
+  "caption": "Every module reads and writes the same database — that is why a payment term changed in Sales is immediately visible to Accounting.",
+  "layers": [
+    {
+      "title": "User interface",
+      "subtitle": "How people work with the system",
+      "icon": "globe",
+      "items": [
+        "Web browser",
+        "Mobile app",
+        "POS terminal"
+      ]
+    },
+    {
+      "title": "Application server",
+      "subtitle": "Business modules and rules",
+      "icon": "server",
+      "items": [
+        "CRM",
+        "Sales",
+        "Purchase",
+        "Inventory",
+        "Manufacturing",
+        "Accounting",
+        "HR",
+        "Projects",
+        "…"
+      ],
+      "detail": "Business rules, workflows, security and automation run here."
+    },
+    {
+      "title": "Integration layer",
+      "subtitle": "How other systems connect",
+      "icon": "plug",
+      "items": [
+        "APIs",
+        "Connectors",
+        "Import / export"
+      ]
+    },
+    {
+      "title": "Database",
+      "subtitle": "One shared source of truth",
+      "icon": "database",
+      "items": [
+        "Shared master data",
+        "Transactions"
+      ]
+    }
+  ],
+  "connects": [
+    {
+      "title": "Reporting & analytics",
+      "detail": "Dashboards and BI tools read from the shared data.",
+      "icon": "chart"
+    },
+    {
+      "title": "External systems",
+      "detail": "Banks, couriers and e-commerce exchange data through the integration layer.",
+      "icon": "link"
+    }
+  ]
+}
 \`\`\`
 
 ## Component by component
@@ -603,9 +617,37 @@ An **environment** is a separate copy of the ERP used for a specific purpose.
 
 ### The promotion path
 
-\`\`\`text
-  DEV  --->  TEST  --->  STAGING  --->  PRODUCTION
- build      verify      rehearse       go live
+\`\`\`visual-flow
+{
+  "title": "The promotion path",
+  "caption": "Changes move one way only: never build or experiment directly in production.",
+  "steps": [
+    {
+      "title": "Development",
+      "icon": "code",
+      "app": "DEV",
+      "detail": "Build configuration and code changes."
+    },
+    {
+      "title": "Test",
+      "icon": "search",
+      "app": "TEST",
+      "detail": "Verify the change against acceptance criteria."
+    },
+    {
+      "title": "Staging",
+      "icon": "refresh",
+      "app": "STAGING",
+      "detail": "Rehearse the deployment on a copy of production."
+    },
+    {
+      "title": "Production",
+      "icon": "rocket",
+      "app": "PROD",
+      "detail": "Go live for business users on real data."
+    }
+  ]
+}
 \`\`\`
 
 Changes move **forward** through the path after passing checks. Data generally moves **backward**: production is copied to staging (often anonymised) so tests reflect reality.
@@ -725,17 +767,44 @@ Before agreeing to any customization, walk through this ladder:
 - **Performance and stability** — poorly written code can slow down or break standard features.
 - **Lost innovation** — heavily modified systems often skip upgrades and miss new standard features.
 
-\`\`\`text
- Effort over the system's life
-   ^
-   |                         heavily customised
-   |                    ____/
-   |               ____/
-   |          ____/          ______ mostly standard
-   |     ____/      ________/
-   |____/__________/
-   +-------------------------------------------> time
-      go-live     upgrade 1      upgrade 2
+\`\`\`visual-trend
+{
+  "title": "Effort over the system's life",
+  "caption": "Illustrative shape, not measured data: every upgrade has to re-test and often rework custom code, so the gap widens over time.",
+  "yLabel": "Effort",
+  "xLabel": "Time",
+  "points": [
+    "Go-live",
+    "Year 1",
+    "Upgrade 1",
+    "Year 3",
+    "Upgrade 2"
+  ],
+  "series": [
+    {
+      "label": "Heavily customised",
+      "values": [
+        20,
+        32,
+        55,
+        68,
+        95
+      ],
+      "tone": "danger"
+    },
+    {
+      "label": "Mostly standard",
+      "values": [
+        20,
+        24,
+        30,
+        33,
+        40
+      ],
+      "tone": "success"
+    }
+  ]
+}
 \`\`\`
 
 ## Good reasons to customize
@@ -832,20 +901,72 @@ A client of the fictional partner **Northwind ERP Partners** reports: "When we d
 
 ## How tickets are diagnosed
 
-\`\`\`text
- Issue reported
-      |
-      v
- Reproduce in test? --no--> Gather more info (steps, user, record)
-      |yes
-      v
- Is it user error / training?  --yes--> Train, update manual
-      |no
-      v
- Is it configuration or data?  --yes--> Fix config/data (test first)
-      |no
-      v
- Standard bug or customization defect --> Escalate to developer / vendor
+\`\`\`visual-decision
+{
+  "title": "How tickets are diagnosed",
+  "caption": "Click through the questions in order — each answer narrows down where the fix belongs.",
+  "start": "repro",
+  "nodes": {
+    "repro": {
+      "question": "Can you reproduce the issue in the test environment?",
+      "options": [
+        {
+          "label": "Yes",
+          "next": "user"
+        },
+        {
+          "label": "No",
+          "next": "gather"
+        }
+      ]
+    },
+    "gather": {
+      "result": "Gather more information",
+      "tone": "neutral",
+      "detail": "Ask for the exact steps, the user and the record, then try to reproduce again."
+    },
+    "user": {
+      "question": "Is it user error or a training gap?",
+      "options": [
+        {
+          "label": "Yes",
+          "next": "train"
+        },
+        {
+          "label": "No",
+          "next": "config"
+        }
+      ]
+    },
+    "train": {
+      "result": "Train the user and update the manual",
+      "tone": "success"
+    },
+    "config": {
+      "question": "Is it a configuration or data problem?",
+      "options": [
+        {
+          "label": "Yes",
+          "next": "fix"
+        },
+        {
+          "label": "No",
+          "next": "escalate"
+        }
+      ]
+    },
+    "fix": {
+      "result": "Fix the configuration or data",
+      "tone": "info",
+      "detail": "Test the fix in the test environment first."
+    },
+    "escalate": {
+      "result": "Escalate to the developer or vendor",
+      "tone": "warning",
+      "detail": "It is a standard bug or a customisation defect."
+    }
+  }
+}
 \`\`\`
 
 The techno-functional consultant can walk this entire tree without handing the ticket off at every step.
@@ -1038,9 +1159,37 @@ Benefits must be **owned** by a business manager and measured after go-live; oth
 
 ## Phased vs big-bang
 
-\`\`\`text
- Big bang:   [ all modules, all sites ] ---> go-live day
- Phased:     [ Phase 1: finance + sales + stock ] -> [ Phase 2: manufacturing ] -> [ Phase 3: other sites ]
+\`\`\`visual-compare
+{
+  "title": "Phased vs big-bang at a glance",
+  "columns": [
+    "Big bang",
+    "Phased"
+  ],
+  "rows": [
+    {
+      "label": "Go-live scope",
+      "values": [
+        "All modules, all sites",
+        "Phase 1: finance + sales + stock"
+      ]
+    },
+    {
+      "label": "Later waves",
+      "values": [
+        "None",
+        "Phase 2: manufacturing → Phase 3: other sites"
+      ]
+    },
+    {
+      "label": "Go-live events",
+      "values": [
+        "One go-live day",
+        "One per phase"
+      ]
+    }
+  ]
+}
 \`\`\`
 
 Big bang is faster but riskier; phased reduces risk but needs temporary interfaces between old and new systems.

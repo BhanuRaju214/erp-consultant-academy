@@ -9,6 +9,7 @@ import type { ProjectContent } from "../types";
 export const tradingProject: ProjectContent = {
   slug: "trading-company-implementation",
   code: "A",
+  configScenario: "trading-company",
   title: "Bluewave Trading LLC — Odoo implementation for a two-warehouse distributor",
   industry: "Wholesale distribution (kitchen appliances & hardware)",
   level: "beginner",

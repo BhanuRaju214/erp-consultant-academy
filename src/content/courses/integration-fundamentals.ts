@@ -56,9 +56,27 @@ Sunrise Office Supplies runs Odoo for sales, inventory and accounting, but also 
 
 An **Application Programming Interface** is a contract that lets one program ask another to do something or return data. A web API uses HTTP: the client sends a **request** to a URL, the server returns a **response**.
 
-\`\`\`text
-Client (web shop)  --HTTP request-->   Server (Odoo / middleware)
-                   <--HTTP response--
+\`\`\`visual-flow
+{
+  "title": "Request and response",
+  "steps": [
+    {
+      "title": "Client sends an HTTP request",
+      "icon": "globe",
+      "app": "Web shop"
+    },
+    {
+      "title": "Server processes it",
+      "icon": "server",
+      "app": "Odoo / middleware"
+    },
+    {
+      "title": "HTTP response returns to the client",
+      "icon": "refresh",
+      "app": "Web shop"
+    }
+  ]
+}
 \`\`\`
 
 ## Anatomy of an HTTP request
@@ -1491,10 +1509,37 @@ Prevent overlapping runs (a lock file, a database lock or the scheduler's concur
 
 A queue (e.g. RabbitMQ, a cloud queue service, or a jobs table) decouples receiving from processing:
 
-\`\`\`text
-Web shop --webhook--> Receiver --enqueue--> [Queue] --worker--> Odoo API
-                                              |
-                                        dead-letter queue (failed after N retries)
+\`\`\`visual-flow
+{
+  "title": "Decoupling with a queue",
+  "steps": [
+    {
+      "title": "Web shop sends a webhook",
+      "icon": "store"
+    },
+    {
+      "title": "Receiver enqueues the message",
+      "icon": "plug"
+    },
+    {
+      "title": "Queue",
+      "icon": "list"
+    },
+    {
+      "title": "Worker processes it",
+      "icon": "settings",
+      "branch": {
+        "when": "Fails after N retries",
+        "result": "Moved to the dead-letter queue",
+        "tone": "danger"
+      }
+    },
+    {
+      "title": "Odoo API",
+      "icon": "server"
+    }
+  ]
+}
 \`\`\`
 
 - Workers retry transient failures with backoff.
