@@ -329,6 +329,160 @@ Odoo picks the price matching vendor, quantity and validity on the RFQ line. Rep
 5. Vendor confirms; click **Confirm Order**.
 6. Amount = 3,96,000 (< 5,00,000) → status **Purchase Order** directly. A **Receipt** smart button appears.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Create an RFQ and confirm the purchase order",
+  "intro": "You are Northwind's buyer. Paper stock is low: order 2,000 reams of A4 paper from Paper Mills Inc.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "**P00006** is a confirmed purchase order for 2,000 reams. Odoo created the receipt for Northwind Main automatically.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-rfq-01.webp",
+      "alt": "Purchase Requests for Quotation list view with the New button.",
+      "path": "Purchase ▸ Orders ▸ Requests for Quotation",
+      "task": "Start a new request for quotation.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty RFQ opens. Nothing is sent or committed until you confirm."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-rfq-02.webp",
+      "alt": "New RFQ with the Vendor field showing Paper Mills Inc in the dropdown.",
+      "path": "Purchase ▸ RFQ ▸ Vendor",
+      "task": "Typing **Paper Mills** shows matching vendors. **Pick Paper Mills Inc.**",
+      "target": {
+        "x": 13.05,
+        "y": 30.95,
+        "w": 17.7,
+        "h": 3.5,
+        "label": "Paper Mills Inc"
+      },
+      "hint": "Choose the existing vendor; *Create* would make a duplicate.",
+      "traps": [
+        {
+          "x": 13.05,
+          "y": 36.95,
+          "w": 17.7,
+          "h": 3.5,
+          "feedback": "That would create a **new** vendor. Paper Mills Inc already exists: duplicates split the purchase history."
+        }
+      ],
+      "explain": "The vendor's payment terms and currency fill in from the partner record."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-rfq-03.webp",
+      "alt": "RFQ with vendor Paper Mills Inc and the Add a product link.",
+      "path": "Purchase ▸ RFQ ▸ Products",
+      "task": "**Add a product line.**",
+      "target": {
+        "x": 4.65,
+        "y": 57.45,
+        "w": 6.8,
+        "h": 3.1,
+        "label": "Add a product"
+      },
+      "explain": "A new line opens with the product field ready."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-rfq-04.webp",
+      "alt": "Product dropdown on the RFQ line showing A4 Copy Paper 80gsm (Ream).",
+      "path": "Purchase ▸ RFQ ▸ Products",
+      "task": "Typing **A4 Copy** finds the product. **Select A4 Copy Paper 80gsm.**",
+      "target": {
+        "x": 4.95,
+        "y": 60.45,
+        "w": 24.8,
+        "h": 3.5,
+        "label": "A4 Copy Paper 80gsm (Ream)"
+      },
+      "explain": "The unit price comes from the vendor price list on the product (₹4.00 from Paper Mills)."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-rfq-05.webp",
+      "alt": "RFQ line for A4 Copy Paper with quantity 1 and unit price 4.00.",
+      "path": "Purchase ▸ RFQ ▸ Products",
+      "task": "Order **2,000 reams**. Set the quantity.",
+      "target": {
+        "x": 12.55,
+        "y": 56.55,
+        "w": 7.6,
+        "h": 9.4,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "2000",
+        "placeholder": "reams"
+      },
+      "traps": [
+        {
+          "x": 36.15,
+          "y": 56.55,
+          "w": 7.6,
+          "h": 9.4,
+          "feedback": "That is the **unit price**; it comes from the vendor price list. Change the quantity."
+        }
+      ],
+      "explain": "2,000 × ₹4.00 = ₹8,000 before GST."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-rfq-06.webp",
+      "alt": "Deliver To dropdown showing Northwind Main: Receipts.",
+      "path": "Purchase ▸ RFQ ▸ Deliver To",
+      "task": "The paper must arrive at the **Northwind Main** warehouse. **Pick its receipts operation.**",
+      "target": {
+        "x": 43.15,
+        "y": 45.85,
+        "w": 17.7,
+        "h": 3.5,
+        "label": "Northwind Main: Receipts"
+      },
+      "explain": "**Deliver To** decides which warehouse receives the goods, and so which receipt Odoo creates."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-rfq-07.webp",
+      "alt": "Completed RFQ for 2,000 reams with the Send by Email and Confirm Order buttons.",
+      "path": "Purchase ▸ RFQ",
+      "task": "Paper Mills confirmed the price by phone. **Turn the RFQ into a purchase order.**",
+      "target": {
+        "x": 6.95,
+        "y": 11.75,
+        "w": 8.4,
+        "h": 4.2,
+        "label": "Confirm Order"
+      },
+      "traps": [
+        {
+          "x": 0.8500000000000001,
+          "y": 11.75,
+          "w": 6.3,
+          "h": 4.2,
+          "feedback": "**Send by Email** sends the RFQ to the vendor but does not confirm it. The vendor already agreed: confirm the order."
+        }
+      ],
+      "explain": "The RFQ becomes a **Purchase Order** and Odoo creates the receipt for Northwind Main."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-rfq-08.webp",
+      "alt": "Confirmed purchase order with the Receive button and a Receipt smart button.",
+      "path": "Purchase ▸ Orders",
+      "task": "P00006 is confirmed.",
+      "explain": "Status **Purchase Order**. The **Receipt** smart button links to the incoming shipment."
+    }
+  ]
+}
+\`\`\`
+
 ### Walkthrough B — PO requiring approval
 
 1. Buyer creates an RFQ to ErgoSeat Furniture: 50 executive chairs × 12,500 = 6,25,000.
@@ -354,6 +508,228 @@ Odoo picks the price matching vendor, quantity and validity on the RFQ line. Rep
 3. Enter the vendor's **Bill Reference** and **Bill Date**; check taxes.
 4. Click **Confirm** to post.
 5. Alternatively create the bill from Accounting and use the **Auto-Complete** field to select the PO (verify label in your instance).
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Receive part of the order and bill what arrived",
+  "intro": "The paper is billed on **received quantities**. Paper Mills delivers 1,500 of the 2,000 reams.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "Received 1,500, billed 1,500, and **NW/IN/00010** still expects 500. With *received quantities* control you never pay for paper that has not arrived.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-01.webp",
+      "alt": "Confirmed purchase order for 2,000 reams with the Receive button.",
+      "path": "Purchase ▸ Orders",
+      "task": "The truck from Paper Mills has arrived for **P00006**. **Open the receipt.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.4,
+        "h": 4.2,
+        "label": "Receive"
+      },
+      "also": [
+        {
+          "x": 54.85,
+          "y": 6.05,
+          "w": 7.8,
+          "h": 4.2
+        }
+      ],
+      "explain": "The receipt for Northwind Main opens with a demand of 2,000."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-02.webp",
+      "alt": "Receipt for 2,000 reams of A4 paper in Ready state.",
+      "path": "Inventory ▸ Receipts",
+      "task": "Only **1,500 reams** were delivered. Record what arrived.",
+      "target": {
+        "x": 38.95,
+        "y": 48.55,
+        "w": 7.6,
+        "h": 5,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity received",
+        "answer": "1500",
+        "placeholder": "reams"
+      },
+      "traps": [
+        {
+          "x": 0.8500000000000001,
+          "y": 11.85,
+          "w": 5.6,
+          "h": 4.2,
+          "feedback": "Validating now would receive **2,000**. Count the delivery first."
+        }
+      ],
+      "explain": "Quantity 1,500 against a demand of 2,000."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-03.webp",
+      "alt": "Receipt line with demand 2,000 and quantity 1,500.",
+      "path": "Inventory ▸ Receipts",
+      "task": "**Confirm the receipt.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.85,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Validate"
+      },
+      "explain": "Odoo sees that 500 are missing and asks what to do with them."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-04.webp",
+      "alt": "Create Backorder dialog.",
+      "path": "Validate ▸ Create Backorder?",
+      "task": "Paper Mills will ship the other **500 next week**. What do you choose?",
+      "target": {
+        "x": 16.85,
+        "y": 58.05,
+        "w": 9.6,
+        "h": 4.2,
+        "label": "Create Backorder"
+      },
+      "traps": [
+        {
+          "x": 26.45,
+          "y": 58.05,
+          "w": 8.1,
+          "h": 4.2,
+          "feedback": "**No Backorder** cancels the remaining 500. Use it only when the vendor will not deliver them."
+        }
+      ],
+      "explain": "1,500 reams enter NW/Stock; a backorder receipt waits for the other 500."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-05.webp",
+      "alt": "Receipt in Done state with a breadcrumb back to the purchase order.",
+      "path": "Inventory ▸ Receipts",
+      "task": "Receipt done. **Go back to P00006** using the breadcrumb.",
+      "target": {
+        "x": 7.45,
+        "y": 5.75,
+        "w": 3.4,
+        "h": 2.4,
+        "label": "the purchase order breadcrumb"
+      },
+      "hint": "Breadcrumbs at the top left take you back to where you came from.",
+      "explain": "Back on the purchase order: **Received** now shows 1,500."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-06.webp",
+      "alt": "Purchase order line showing quantity 2,000, received 1,500 and billed 0, with the Upload Bill button.",
+      "path": "Purchase ▸ Orders",
+      "task": "The order shows **Received 1,500** and **Billed 0**. Now the vendor's invoice arrives.",
+      "explain": "In Odoo 20 there is no *Create Bill* button on the order: you either **Upload Bill** (the vendor's PDF, read by OCR) or create the bill in Accounting and link the order. Next you do the second."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-07.webp",
+      "alt": "Vendor bills list with the New button.",
+      "path": "Accounting ▸ Vendors ▸ Bills",
+      "task": "In Accounting, **start a new vendor bill**.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty draft bill opens."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-08.webp",
+      "alt": "Vendor field on the draft bill with Paper Mills Inc in the dropdown.",
+      "path": "Accounting ▸ Vendors ▸ Bills",
+      "task": "**Select the vendor** Paper Mills Inc.",
+      "target": {
+        "x": 12.05,
+        "y": 31.75,
+        "w": 28.7,
+        "h": 3.5,
+        "label": "Paper Mills Inc"
+      },
+      "explain": "With the vendor set, the **Auto-Complete** field can offer that vendor's open purchase orders."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-09.webp",
+      "alt": "Auto-Complete dropdown on the draft bill offering the purchase order.",
+      "path": "Accounting ▸ Vendors ▸ Bills ▸ Auto-Complete",
+      "task": "Link the bill to the order: in **Auto-Complete**, pick **P00006**.",
+      "target": {
+        "x": 12.05,
+        "y": 48.15,
+        "w": 19.9,
+        "h": 3.5,
+        "label": "P00006"
+      },
+      "hint": "Auto-Complete copies the billable lines of a purchase order into the bill.",
+      "explain": "Odoo copies the billable quantity: **1,500 reams** (received), not the 2,000 ordered."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-10.webp",
+      "alt": "Draft vendor bill for 1,500 reams loaded from the purchase order.",
+      "path": "Accounting ▸ Vendors ▸ Bills",
+      "task": "Enter the vendor's invoice number **PM-7781** as the bill reference.",
+      "target": {
+        "x": 11.65,
+        "y": 32.55,
+        "w": 19.3,
+        "h": 3.2,
+        "label": "Bill Reference"
+      },
+      "input": {
+        "label": "Bill Reference",
+        "answer": "PM-7781",
+        "placeholder": "vendor invoice number"
+      },
+      "explain": "The reference lets Odoo warn you about duplicate bills from the same vendor."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-11.webp",
+      "alt": "Bill Date calendar open on the draft vendor bill.",
+      "path": "Accounting ▸ Vendors ▸ Bills",
+      "task": "Set the **Bill Date** to today, the date on the vendor's invoice.",
+      "target": {
+        "x": 44.75,
+        "y": 58.35,
+        "w": 2.9,
+        "h": 4.4,
+        "label": "today's date"
+      },
+      "explain": "The bill date drives the due date (from the payment terms) and the accounting period."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-12.webp",
+      "alt": "Draft vendor bill with reference PM-7781 and bill date, ready to confirm.",
+      "path": "Accounting ▸ Vendors ▸ Bills",
+      "task": "1,500 reams match the receipt. **Post the bill.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "The bill is **Posted**: Northwind owes Paper Mills for 1,500 reams plus GST."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-receive-bill-13.webp",
+      "alt": "Posted vendor bill for Paper Mills Inc.",
+      "path": "Accounting ▸ Vendors ▸ Bills",
+      "task": "The bill is posted. Notice the red banner.",
+      "explain": "The red banner is Odoo duplicate-bill check: another bill from Paper Mills already uses reference **PM-7781**. In real life stop here and compare the two before paying anything. The order now shows **Billed 1,500**."
+    }
+  ]
+}
+\`\`\`
 
 ### Walkthrough E — 3-way matching
 

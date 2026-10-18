@@ -479,6 +479,184 @@ All walkthroughs use Timbercraft data from Lesson 3 and assume opening stock of 
 
 If only 6 cabinets are finished today, set quantity produced to 6 and Mark as Done. Odoo asks whether to **create a backorder**. Choosing yes closes the original MO for 6 and creates a new MO (suffix -002) for the remaining 4, carrying remaining components. Choosing *No Backorder* closes the MO at 6 and releases the rest.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Make 10 kitchen cabinets, finish 6 today",
+  "intro": "Production planned 10 *Kitchen Cabinet 60cm* in Northwind Main. Only 6 are finished by the end of the shift.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "**NW/MO/00002-001** is done for 6 cabinets; **NW/MO/00002-002** carries the remaining 4 with their components. Odoo numbers a split order with -001 / -002 suffixes.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-01.webp",
+      "alt": "Manufacturing orders list with the New button.",
+      "path": "Manufacturing ▸ Operations ▸ Manufacturing Orders",
+      "task": "Start a **new manufacturing order**.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "A draft MO opens."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-02.webp",
+      "alt": "Product dropdown on the MO showing Kitchen Cabinet 60cm.",
+      "path": "Manufacturing ▸ Manufacturing Order",
+      "task": "**Select the product** Kitchen Cabinet 60cm.",
+      "target": {
+        "x": 11.65,
+        "y": 28.55,
+        "w": 21.4,
+        "h": 3.5,
+        "label": "Kitchen Cabinet 60cm"
+      },
+      "explain": "Odoo finds the bill of materials and lists the components for 1 cabinet."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-03.webp",
+      "alt": "MO for Kitchen Cabinet 60cm with quantity 1 and its components.",
+      "path": "Manufacturing ▸ Manufacturing Order",
+      "task": "Production planned **10** cabinets. Set the quantity.",
+      "target": {
+        "x": 11.25,
+        "y": 33.55,
+        "w": 5.5,
+        "h": 3.2,
+        "label": "Quantity"
+      },
+      "input": {
+        "label": "Quantity to produce",
+        "answer": "10",
+        "placeholder": "cabinets"
+      },
+      "explain": "Component quantities scale with the BoM: 18 m² oak, 40 hinges, 10 runner pairs, 240 screws."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-04.webp",
+      "alt": "MO for 10 cabinets with the Components and Miscellaneous tabs.",
+      "path": "Manufacturing ▸ Manufacturing Order",
+      "task": "The cabinets are built in **Northwind Main**. The operation type is on the **Miscellaneous** tab: open it.",
+      "target": {
+        "x": 10.35,
+        "y": 38.85,
+        "w": 8.9,
+        "h": 4.8,
+        "label": "Miscellaneous"
+      },
+      "explain": "The operation type decides the warehouse: where components are taken from and where cabinets go."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-05.webp",
+      "alt": "Operation Type dropdown showing Northwind Main: Manufacturing.",
+      "path": "Manufacturing ▸ Manufacturing Order ▸ Miscellaneous",
+      "task": "**Pick Northwind Main: Manufacturing.**",
+      "target": {
+        "x": 14.45,
+        "y": 48.15,
+        "w": 17.4,
+        "h": 3.5,
+        "label": "Northwind Main: Manufacturing"
+      },
+      "explain": "Components now come from NW/Stock and finished cabinets go back to NW/Stock."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-06.webp",
+      "alt": "Draft MO for 10 cabinets with components listed and the Confirm button.",
+      "path": "Manufacturing ▸ Manufacturing Order",
+      "task": "Everything is set. **Confirm the order.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "The MO is **Confirmed**: Odoo reserves the components in NW/Stock."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-07.webp",
+      "alt": "Confirmed MO with components available and the quantity producing field.",
+      "path": "Manufacturing ▸ Manufacturing Order",
+      "task": "The shift finished **6** cabinets. Record the quantity produced.",
+      "target": {
+        "x": 11.25,
+        "y": 32.95,
+        "w": 6,
+        "h": 3.2,
+        "label": "Quantity producing"
+      },
+      "input": {
+        "label": "Quantity produced",
+        "answer": "6",
+        "placeholder": "cabinets"
+      },
+      "hint": "The quantity being produced sits next to the planned quantity at the top of the form.",
+      "explain": "Consumed components update to match 6 cabinets (10.8 m² oak, 24 hinges…)."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-08.webp",
+      "alt": "MO with 6 of 10 cabinets producing and the Produce button.",
+      "path": "Manufacturing ▸ Manufacturing Order",
+      "task": "6 of 10 are finished. **Record today's production.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.7,
+        "h": 4.2,
+        "label": "Produce"
+      },
+      "traps": [
+        {
+          "x": 10.15,
+          "y": 11.75,
+          "w": 4.9,
+          "h": 4.2,
+          "feedback": "Cancel would throw the whole order away, including the 6 finished cabinets."
+        }
+      ],
+      "explain": "6 is less than 10, so Odoo asks what to do with the other 4."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-09.webp",
+      "alt": "Dialog You produced less than the initial demand with Create Backorder, Close Production and Discard.",
+      "path": "Produce ▸ Backorder",
+      "task": "The remaining **4 will be built tomorrow**. What do you choose?",
+      "target": {
+        "x": 16.85,
+        "y": 56.45,
+        "w": 9.6,
+        "h": 4.2,
+        "label": "Create Backorder"
+      },
+      "traps": [
+        {
+          "x": 26.45,
+          "y": 56.45,
+          "w": 9.5,
+          "h": 4.2,
+          "feedback": "**Close Production** closes the order at 6 and drops the other 4. Production still needs them."
+        }
+      ],
+      "explain": "The MO closes for 6 cabinets; a backorder MO for the remaining 4 is created with the remaining components."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-make-10.webp",
+      "alt": "Backorder manufacturing order NW/MO/00002-002 for 4 cabinets, confirmed, with components available.",
+      "path": "Manufacturing ▸ Manufacturing Orders",
+      "task": "Odoo opens the backorder **NW/MO/00002-002** for the remaining 4 cabinets.",
+      "explain": "The original order, renamed **NW/MO/00002-001**, is Done for 6 cabinets (the **Backorders** smart button links both). This backorder already has its components reserved: 7.2 m² oak, 16 hinges, 4 runner pairs, 96 screws."
+    }
+  ]
+}
+\`\`\`
+
 ### 8.4 Scrap during production
 
 A spray defect ruins one carcass. From the MO click **Scrap**, choose the product (finished cabinet or a component), quantity and scrap location. The scrap is a stock move to Virtual Locations/Scrap and is valued at cost. Scraps are also listed under Manufacturing ▸ Operations (verify menu) and Inventory scrap reporting.

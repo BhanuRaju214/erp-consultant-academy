@@ -655,6 +655,113 @@ export function FigureBlock({ data }: { data: VisualData<"figure"> }) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Odoo screen: real screenshot with numbered callouts                 */
+/* ------------------------------------------------------------------ */
+
+export function ScreenBlock({ data }: { data: VisualData<"screen"> }) {
+  const [active, setActive] = useState<number | null>(null);
+  const ref = useRef<HTMLDialogElement>(null);
+  const isStatic = useStaticRender();
+  // A blinking outline around the data plus a number tag outside the box, so nothing covers what is being explained.
+  const markers = (big: boolean) =>
+    data.callouts.map((c, i) => {
+      const w = c.w ?? 7;
+      const h = c.h ?? 4;
+      const left = c.x - w / 2;
+      const top = c.y - h / 2;
+      const side = c.tag ?? (top < 4 ? "bottom" : "top");
+      const tagPos: React.CSSProperties =
+        side === "top" ? { left: `${left}%`, top: `${top}%`, transform: "translate(0, calc(-100% - 3px))" }
+        : side === "bottom" ? { left: `${left}%`, top: `${top + h}%`, transform: "translate(0, 3px)" }
+        : side === "left" ? { left: `${left}%`, top: `${c.y}%`, transform: "translate(calc(-100% - 4px), -50%)" }
+        : { left: `${left + w}%`, top: `${c.y}%`, transform: "translate(4px, -50%)" };
+      const on = active === i;
+      const handlers = {
+        onMouseEnter: () => setActive(i),
+        onMouseLeave: () => setActive(null),
+        onClick: (e: React.MouseEvent) => {
+          e.stopPropagation();
+          setActive(on ? null : i);
+        },
+      };
+      return (
+        <span key={i}>
+          <span
+            {...handlers}
+            style={{ left: `${left}%`, top: `${top}%`, width: `${w}%`, height: `${h}%` }}
+            className={cn("absolute cursor-pointer rounded-md border-2 transition-colors", on ? "border-accent bg-accent/10" : cn("border-[#e8590c]", !isStatic && "screen-blink"))}
+            aria-hidden
+          />
+          <button
+            type="button"
+            {...handlers}
+            onFocus={() => setActive(i)}
+            style={tagPos}
+            aria-label={`${i + 1}: ${c.title}`}
+            className={cn(
+              "absolute z-10 flex items-center justify-center rounded-full font-bold text-white shadow-md ring-2 ring-white transition",
+              big ? "h-7 w-7 text-xs" : "h-5 w-5 text-[10px] sm:h-6 sm:w-6 sm:text-[11px]",
+              on ? "scale-110 bg-accent" : "bg-[#e8590c]",
+            )}
+          >
+            {i + 1}
+          </button>
+        </span>
+      );
+    });
+  return (
+    <VisualFrame kind="Odoo screen" title={data.title} caption={data.caption} bodyClassName="p-0 sm:p-0">
+      {(data.path || data.version) && (
+        <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2 sm:px-5">
+          {data.path && <span className="rounded-md bg-surface-2 px-2 py-0.5 font-mono text-xs text-accent">{data.path}</span>}
+          {data.version && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary">Real screen · {data.version}</span>}
+        </div>
+      )}
+      <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_17rem]">
+        <div className="relative bg-white">
+          {/* Markers are positioned against the image only: the grid cell can be taller than the image when the legend is long. */}
+          <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={data.src} alt={data.alt} width={data.width} height={data.height} loading="lazy" decoding="async" className="block h-auto w-full" />
+            {markers(false)}
+          </div>
+          {!isStatic && (
+            <button type="button" onClick={() => ref.current?.showModal()} className="absolute bottom-2 right-2 flex items-center gap-1 rounded-md bg-black/65 px-2 py-1 text-xs text-white" aria-label="Open the screen full size">
+              <ZoomIn className="h-3.5 w-3.5" aria-hidden /> Full size
+            </button>
+          )}
+        </div>
+        {data.callouts.length > 0 && (
+          <ol className="divide-y divide-border border-t border-border text-sm lg:border-l lg:border-t-0">
+            {data.callouts.map((c, i) => (
+              <li key={i} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)} className={cn("flex gap-2.5 px-3 py-2.5 transition", active === i && "bg-primary-soft")}>
+                <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", active === i ? "bg-accent" : "bg-[#e8590c]")}>{i + 1}</span>
+                <span className="min-w-0">
+                  <span className="block font-semibold text-fg">{c.title}</span>
+                  {c.text && <InlineMd className="block text-xs leading-relaxed text-muted">{c.text}</InlineMd>}
+                </span>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+      {!isStatic && (
+        <dialog ref={ref} className="m-auto max-h-[94vh] max-w-[96vw] rounded-xl bg-white p-0 backdrop:bg-black/75" onClick={(e) => e.target === ref.current && ref.current?.close()}>
+          <button type="button" onClick={() => ref.current?.close()} className="absolute right-2 top-2 z-10 rounded-md bg-black/60 p-1.5 text-white" aria-label="Close">
+            <X className="h-4 w-4" />
+          </button>
+          <div className="relative">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={data.src} alt={data.alt} className="block h-auto max-h-[92vh] w-auto" />
+            {markers(true)}
+          </div>
+        </dialog>
+      )}
+    </VisualFrame>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Practice checklists ("- [ ] task")                                  */
 /* ------------------------------------------------------------------ */
 

@@ -493,11 +493,299 @@ Path: **Accounting ▸ Customers ▸ Invoices ▸ New** (usually generated from 
 5. Click **Confirm**. The invoice receives its number INV/2025/00045 and is **Posted**.
 6. Send via **Send & Print**.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Post a customer invoice and register the payment",
+  "intro": "Contoso Ltd bought **10 toner cartridges**. Invoice them, then record Contoso's bank transfer.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "Invoice **INV/26-27/0003** is posted and the payment recorded. The payment sits in *Outstanding Receipts* until the bank statement line is reconciled.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-01.webp",
+      "alt": "Customer invoices list with the New button.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "Start a **new customer invoice**.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "A draft invoice opens. It has no number until it is posted."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-02.webp",
+      "alt": "Customer field on the draft invoice with Contoso Ltd in the dropdown.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "**Select the customer** Contoso Ltd.",
+      "target": {
+        "x": 12.65,
+        "y": 31.45,
+        "w": 18,
+        "h": 3.5,
+        "label": "Contoso Ltd"
+      },
+      "explain": "Payment terms and the receivable account come from the customer."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-03.webp",
+      "alt": "Draft invoice for Contoso Ltd with the Add a line link.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "**Add an invoice line.**",
+      "target": {
+        "x": 4.65,
+        "y": 55.45,
+        "w": 5,
+        "h": 3.1,
+        "label": "Add a line"
+      },
+      "explain": "A new line opens with the product field active."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-04.webp",
+      "alt": "Product dropdown on the invoice line showing Toner Cartridge HP 26A.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "**Select Toner Cartridge HP 26A.**",
+      "target": {
+        "x": 4.95,
+        "y": 58.25,
+        "w": 21.5,
+        "h": 3.5,
+        "label": "Toner Cartridge HP 26A"
+      },
+      "explain": "The price, income account and GST come from the product."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-05.webp",
+      "alt": "Invoice line for Toner Cartridge HP 26A with quantity 1.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "Contoso bought **10** cartridges. Set the quantity.",
+      "target": {
+        "x": 20.25,
+        "y": 54.55,
+        "w": 7.6,
+        "h": 11.7,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "10",
+        "placeholder": "units"
+      },
+      "traps": [
+        {
+          "x": 34.45,
+          "y": 54.55,
+          "w": 7.6,
+          "h": 11.7,
+          "feedback": "That is the **price**. Change the quantity."
+        }
+      ],
+      "explain": "The totals update: untaxed amount, GST and total."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-06.webp",
+      "alt": "Draft invoice for 10 toner cartridges with the Confirm button.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "**Post the invoice.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "The invoice gets its number and posts: debit Receivable, credit Sales and GST."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-07.webp",
+      "alt": "Posted invoice with the Pay button.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "Contoso paid the full amount by bank transfer. **Record the payment** (the **Pay** button).",
+      "target": {
+        "x": 8.75,
+        "y": 12.15,
+        "w": 3.6,
+        "h": 4.2,
+        "label": "Pay"
+      },
+      "traps": [
+        {
+          "x": 17.35,
+          "y": 12.15,
+          "w": 7.1,
+          "h": 4.2,
+          "feedback": "**Credit Note** cancels (part of) the invoice. The customer paid: register the payment."
+        }
+      ],
+      "explain": "The payment dialog proposes the full amount, the bank journal and today's date."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-08.webp",
+      "alt": "Register Payment dialog with journal Bank and the full amount.",
+      "path": "Register Payment",
+      "task": "Journal, amount and date are right. **Create the payment.**",
+      "target": {
+        "x": 16.85,
+        "y": 61.95,
+        "w": 9,
+        "h": 4.2,
+        "label": "Create Payment"
+      },
+      "traps": [
+        {
+          "x": 25.85,
+          "y": 61.95,
+          "w": 5.3,
+          "h": 4.2,
+          "feedback": "Discard closes the dialog without recording anything."
+        }
+      ],
+      "explain": "Odoo posts the payment and matches it with the invoice."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-invoice-pay-09.webp",
+      "alt": "Invoice with the payment status ribbon.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "INV/26-27/0003 now shows **In Payment**.",
+      "explain": "**In Payment** means the money is recorded but not yet matched to a bank statement line; after bank reconciliation it shows **Paid**."
+    }
+  ]
+}
+\`\`\`
+
 ### 8.2 Credit note
 
 Contoso returns 20 reams. Open the posted invoice ▸ **Credit Note** (reversal wizard) ▸ reason "Damaged goods" ▸ create a draft credit note, set quantity 20 ▸ **Confirm**. Credit note value: 130.00 + 10.40 tax = 140.40. It appears as an outstanding credit that can be reconciled with the invoice.
 
 Posted documents are never deleted: use **Reset to Draft** (if no lock date or payment blocks it) or a credit note.
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Issue a credit note for returned goods",
+  "intro": "Contoso returns **2 damaged cartridges**. Posted invoices are never edited or deleted: you credit them.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "The credit note reverses 2 cartridges plus GST. Because the invoice was already paid, it stays as an **outstanding credit** for Contoso: use it on the next invoice or refund it.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-credit-note-01.webp",
+      "alt": "Posted and paid invoice with the Credit Note button.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "Two cartridges from INV/26-27/0003 arrived damaged. **Start a credit note.**",
+      "target": {
+        "x": 17.35,
+        "y": 12.15,
+        "w": 7.1,
+        "h": 4.2,
+        "label": "Credit Note"
+      },
+      "traps": [
+        {
+          "x": 30.95,
+          "y": 12.15,
+          "w": 8.1,
+          "h": 4.2,
+          "feedback": "**Reset to Draft** rewrites history on a paid invoice. Use a credit note."
+        }
+      ],
+      "explain": "The reversal dialog opens."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-credit-note-02.webp",
+      "alt": "Credit note dialog with the Reason field.",
+      "path": "Credit Note",
+      "task": "Record why: type **Damaged goods** as the reason.",
+      "target": {
+        "x": 28.45,
+        "y": 40.55,
+        "w": 54.7,
+        "h": 3.2,
+        "label": "Reason"
+      },
+      "input": {
+        "label": "Reason",
+        "answer": "Damaged goods",
+        "placeholder": "why the invoice is credited"
+      },
+      "explain": "The reason is printed on the credit note and kept for audit."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-credit-note-03.webp",
+      "alt": "Credit note dialog with reason Damaged goods and the Reverse button.",
+      "path": "Credit Note",
+      "task": "**Create the credit note.**",
+      "target": {
+        "x": 16.85,
+        "y": 62.95,
+        "w": 5.4,
+        "h": 4.2,
+        "label": "Reverse"
+      },
+      "traps": [
+        {
+          "x": 22.35,
+          "y": 62.95,
+          "w": 13.9,
+          "h": 4.2,
+          "feedback": "That also creates a **new invoice** (for re-invoicing a corrected amount). Contoso only returns goods."
+        }
+      ],
+      "explain": "A draft credit note opens, copying the invoice line (10 cartridges)."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-credit-note-04.webp",
+      "alt": "Draft credit note copied from the invoice with quantity 10.",
+      "path": "Accounting ▸ Customers ▸ Credit Notes",
+      "task": "Only **2** cartridges are credited. Set the quantity.",
+      "target": {
+        "x": 21.95,
+        "y": 63.25,
+        "w": 7.6,
+        "h": 7,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "2",
+        "placeholder": "units"
+      },
+      "explain": "The credit note now covers 2 cartridges plus GST."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-credit-note-05.webp",
+      "alt": "Draft credit note for 2 cartridges with the Confirm button.",
+      "path": "Accounting ▸ Customers ▸ Credit Notes",
+      "task": "**Post the credit note.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.85,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "Posting reverses revenue and GST for 2 cartridges: debit Sales and GST, credit Receivable."
+    },
+    {
+      "src": "/visuals/odoo-accounting/sims/acc-credit-note-06.webp",
+      "alt": "Posted credit note for Contoso Ltd.",
+      "path": "Accounting ▸ Customers ▸ Credit Notes",
+      "task": "The credit note is posted.",
+      "explain": "Contoso now has an outstanding credit you can apply to the next invoice or refund."
+    }
+  ]
+}
+\`\`\`
 
 ### 8.3 Vendor bill
 

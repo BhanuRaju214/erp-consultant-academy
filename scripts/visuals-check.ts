@@ -33,8 +33,9 @@ for (const c of allCourses) {
           errors.push(`${c.slug}/${l.slug}: visual-${b.type}: ${r.error}`);
           continue;
         }
-        const d = r.data as { title?: string; src?: string; question?: string; company?: string };
-        if (b.type === "figure" && d.src) figureSrcs.add(d.src);
+        const d = r.data as { title?: string; src?: string; question?: string; company?: string; steps?: { src: string }[] };
+        if ((b.type === "figure" || b.type === "screen") && d.src) figureSrcs.add(d.src);
+        if (b.type === "simulate") for (const st of d.steps ?? []) figureSrcs.add(st.src);
         blocks.push({ type: b.type, title: d.title ?? d.question ?? d.company ?? (d.src ? path.basename(d.src) : "") });
       }
       rows.push({ course: c.slug, lesson: l.slug, title: l.title, blocks });

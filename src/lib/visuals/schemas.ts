@@ -7,6 +7,8 @@ import { z } from "zod";
 
 const text = z.string().trim().min(1);
 const icon = z.string().optional();
+/** A rectangle on a screenshot, in % of its width and height. */
+const box = z.object({ x: z.number().min(0).max(100), y: z.number().min(0).max(100), w: z.number().positive().max(100), h: z.number().positive().max(100) });
 const tone = z.enum(["success", "warning", "danger", "info", "neutral"]).optional();
 
 const hubSpec = z.object({
@@ -195,6 +197,70 @@ export const visualSchemas = {
     credit: z.string().optional(),
     width: z.number().int().positive().optional(),
     height: z.number().int().positive().optional(),
+  }),
+  /** A real Odoo screenshot with numbered callouts placed by position (% of the image). */
+  screen: z.object({
+    src: z.string().regex(/^\/visuals\/[a-z0-9/_.-]+\.(png|webp|jpg)$/, "src must be a screenshot under /visuals/ (png, webp or jpg)"),
+    alt: z.string().trim().min(10, "alt text must describe the screen (10+ characters)"),
+    title: z.string().optional(),
+    caption: z.string().optional(),
+    /** Menu path shown as a chip, e.g. "Inventory ▸ Operations ▸ Receipts". */
+    path: z.string().optional(),
+    /** Odoo version the screen was captured from, e.g. "Odoo 20". */
+    version: z.string().optional(),
+    width: z.number().int().positive().optional(),
+    height: z.number().int().positive().optional(),
+    callouts: z
+      .array(
+        z.object({
+          /** Centre of the highlighted data, in % of the image. */
+          x: z.number().min(0).max(100),
+          y: z.number().min(0).max(100),
+          /** Size of the highlight box around the data (% of the image); a small default box when omitted. */
+          w: z.number().positive().max(100).optional(),
+          h: z.number().positive().max(100).optional(),
+          /** Side of the box where the number tag sits, so it never covers the data. */
+          tag: z.enum(["top", "bottom", "left", "right"]).optional(),
+          title: text,
+          text: z.string().optional(),
+        }),
+      )
+      .max(12)
+      .default([]),
+  }),
+  /** Click-through practice on real screenshots: the learner clicks (and types) to complete a process. */
+  simulate: z.object({
+    title: z.string().optional(),
+    intro: z.string().optional(),
+    caption: z.string().optional(),
+    version: z.string().optional(),
+    /** Shown on the completion card. */
+    outcome: z.string().optional(),
+    width: z.number().int().positive().optional(),
+    height: z.number().int().positive().optional(),
+    steps: z
+      .array(
+        z.object({
+          src: z.string().regex(/^\/visuals\/[a-z0-9/_.-]+\.(png|webp|jpg)$/, "src must be a screenshot under /visuals/ (png, webp or jpg)"),
+          alt: z.string().trim().min(10, "alt text must describe the screen (10+ characters)"),
+          path: z.string().optional(),
+          /** What the learner must do on this screen. */
+          task: text,
+          /** Where to click. A step without a target is a "look" step with a Next button. */
+          target: box.extend({ label: text }).optional(),
+          /** Other areas that also count as correct (e.g. a second button doing the same thing). */
+          also: z.array(box).max(4).default([]),
+          /** After the correct click, ask the learner to type a value. */
+          input: z.object({ label: text, answer: text, placeholder: z.string().optional() }).optional(),
+          hint: z.string().optional(),
+          /** Plausible wrong clicks with a specific explanation. */
+          traps: z.array(box.extend({ feedback: text })).max(6).default([]),
+          /** Shown once the step is done: what Odoo just did and why. */
+          explain: text,
+        }),
+      )
+      .min(2)
+      .max(16),
   }),
   takeaways: z.object({ title: z.string().optional(), items: z.array(text).min(1).max(12) }),
 } as const;

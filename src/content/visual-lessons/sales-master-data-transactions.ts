@@ -113,6 +113,173 @@ Select a step to see who acts and what Odoo creates.
 }
 \`\`\`
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Create a quotation and confirm the sales order",
+  "intro": "Greenfield International School wants **60 reams** of A4 paper, shipped from Northwind Main.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "**S00005** is a confirmed sales order. Odoo created the delivery in Northwind Main, and the order is ready to invoice.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-01.webp",
+      "alt": "Sales quotations list with the New button.",
+      "path": "Sales ▸ Orders ▸ Quotations",
+      "task": "Start a **new quotation**.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "A blank quotation opens with today's date and you as salesperson."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-02.webp",
+      "alt": "Customer field with Greenfield International School in the dropdown.",
+      "path": "Sales ▸ Quotations ▸ Customer",
+      "task": "Typing **Greenfield** finds the customer. **Pick Greenfield International School.**",
+      "target": {
+        "x": 11.45,
+        "y": 28.55,
+        "w": 34,
+        "h": 3.5,
+        "label": "Greenfield International School"
+      },
+      "traps": [
+        {
+          "x": 11.45,
+          "y": 34.55,
+          "w": 34,
+          "h": 3.5,
+          "feedback": "That creates a **duplicate** customer. Greenfield already exists: pick it."
+        }
+      ],
+      "explain": "The customer's addresses, payment terms and pricelist fill in from the contact."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-03.webp",
+      "alt": "Quotation for Greenfield with the Add Line link.",
+      "path": "Sales ▸ Quotations ▸ Order Lines",
+      "task": "**Add an order line.**",
+      "target": {
+        "x": 4.65,
+        "y": 50.85,
+        "w": 4.4,
+        "h": 3.1,
+        "label": "Add Line"
+      },
+      "explain": "A new order line opens with the product field active."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-04.webp",
+      "alt": "Product dropdown on the order line showing A4 Copy Paper 80gsm (Ream).",
+      "path": "Sales ▸ Quotations ▸ Order Lines",
+      "task": "**Select A4 Copy Paper 80gsm.**",
+      "target": {
+        "x": 4.95,
+        "y": 53.55,
+        "w": 24.8,
+        "h": 3.5,
+        "label": "A4 Copy Paper 80gsm (Ream)"
+      },
+      "explain": "The unit price (₹6.50) and the 5% GST come from the product."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-05.webp",
+      "alt": "Order line for A4 Copy Paper with quantity 1.",
+      "path": "Sales ▸ Quotations ▸ Order Lines",
+      "task": "The school needs **60 reams**. Set the quantity.",
+      "target": {
+        "x": 16.35,
+        "y": 49.95,
+        "w": 7.6,
+        "h": 9.3,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "60",
+        "placeholder": "reams"
+      },
+      "traps": [
+        {
+          "x": 30.35,
+          "y": 49.95,
+          "w": 7.6,
+          "h": 9.3,
+          "feedback": "That is the **unit price** from the product or pricelist. Change the quantity."
+        }
+      ],
+      "explain": "60 × ₹6.50 = ₹390 before GST."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-06.webp",
+      "alt": "Quotation for 60 reams showing the Order Lines and Other Info tabs.",
+      "path": "Sales ▸ Quotations",
+      "task": "The goods must ship from **Northwind Main**. The warehouse is on the **Other Info** tab: open it.",
+      "target": {
+        "x": 9.85,
+        "y": 41.15,
+        "w": 7.3,
+        "h": 4.8,
+        "label": "Other Info"
+      },
+      "explain": "Other Info holds the delivery, invoicing and tracking settings of the order."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-07.webp",
+      "alt": "Warehouse dropdown showing Northwind Main.",
+      "path": "Sales ▸ Quotations ▸ Other Info ▸ Warehouse",
+      "task": "**Pick the Northwind Main warehouse.**",
+      "target": {
+        "x": 42.25,
+        "y": 90.45,
+        "w": 18.6,
+        "h": 3.5,
+        "label": "Northwind Main"
+      },
+      "explain": "The delivery will be created in Northwind Main (pick, then deliver)."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-08.webp",
+      "alt": "Completed quotation with Send by Email and Confirm buttons.",
+      "path": "Sales ▸ Quotations",
+      "task": "The school accepted by phone. **Confirm the order.**",
+      "target": {
+        "x": 11.15,
+        "y": 11.75,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "traps": [
+        {
+          "x": 0.8500000000000001,
+          "y": 11.75,
+          "w": 4.2,
+          "h": 4.2,
+          "feedback": "**Send by Email** sends the quotation for approval; it does not confirm it. The customer already said yes."
+        }
+      ],
+      "explain": "The quotation becomes a **Sales Order**: Odoo reserves the paper and creates the delivery."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-quote-09.webp",
+      "alt": "Confirmed sales order with the Delivery smart button.",
+      "path": "Sales ▸ Orders",
+      "task": "S00005 is confirmed.",
+      "explain": "Status **Sales Order**. The **Delivery** smart button links to the shipment in Northwind Main."
+    }
+  ]
+}
+\`\`\`
+
 ### Walkthrough B — Customer signs online
 
 \`\`\`visual-flow
@@ -166,6 +333,80 @@ Select a step to see who acts and what Odoo creates.
 \`\`\`
 
 > **Consultant tip:** "Nothing to invoice" errors almost always mean the invoicing policy is "Delivered quantities" and the delivery has not been validated.
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Invoice the sales order",
+  "intro": "A4 paper uses the **Ordered quantities** invoicing policy, so you can invoice as soon as the order is confirmed.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "Invoice **INV/26-27/0002** is posted for 60 reams plus GST. Under *Delivered quantities* you could only invoice what has been shipped.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-sales/sims/sal-invoice-01.webp",
+      "alt": "Confirmed sales order with the Create Invoice button.",
+      "path": "Sales ▸ Orders",
+      "task": "Accounts wants to bill **S00005** now. **Create the invoice.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 8.3,
+        "h": 4.2,
+        "label": "Create Invoice"
+      },
+      "explain": "Odoo asks what kind of invoice you want."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-invoice-02.webp",
+      "alt": "Create invoice dialog with Regular invoice selected and the Create Draft button.",
+      "path": "Create Invoice",
+      "task": "A **regular invoice** for the ordered quantity is what you need. **Create the draft.**",
+      "target": {
+        "x": 16.85,
+        "y": 59.05,
+        "w": 7.4,
+        "h": 4.2,
+        "label": "Create Draft"
+      },
+      "traps": [
+        {
+          "x": 26.85,
+          "y": 47.35,
+          "w": 13.1,
+          "h": 2.8,
+          "feedback": "A **down payment** bills an advance, not the order. Keep *Regular invoice*."
+        }
+      ],
+      "explain": "A draft invoice opens for 60 reams at ₹6.50 plus GST."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-invoice-03.webp",
+      "alt": "Draft customer invoice for Greenfield International School.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "Check the lines and **post the invoice**.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.85,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "Posting gives the invoice its number and creates the journal entry (receivable, sales, GST)."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-invoice-04.webp",
+      "alt": "Posted customer invoice with Send and Register Payment buttons.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "Invoice INV/26-27/0002 is posted.",
+      "explain": "Next: **Send** it to the customer, and **Register Payment** when the money arrives."
+    }
+  ]
+}
+\`\`\`
 
 ### Walkthrough E — Down payment
 

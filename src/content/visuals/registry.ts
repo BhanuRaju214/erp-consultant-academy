@@ -34,7 +34,12 @@ export interface VisualAsset {
   reviewedBy?: string;
 }
 
+import { odooInventoryScreens } from "./odoo-inventory";
+import { odooAppSimScreens } from "./odoo-app-sims";
+
 export const visualAssets: VisualAsset[] = [
+  ...odooInventoryScreens,
+  ...odooAppSimScreens,
   // Add Napkin exports / screenshots here as they are produced, e.g.
   // {
   //   src: "/visuals/odoo-sales/master-data-and-transactions/np-07-sales-document-flow.svg",

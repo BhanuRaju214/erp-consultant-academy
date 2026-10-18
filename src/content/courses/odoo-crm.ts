@@ -357,6 +357,137 @@ Greenfield also emailed sales@ — a second lead was created.
 4. Move the opportunity to **Proposition**. The **Quotations** smart button shows the count.
 5. When the customer confirms the quotation, the opportunity can be marked **Won**.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Work an opportunity through the pipeline and win it",
+  "intro": "Greenfield International School asked for a yearly stationery supply. Budget: about ₹8 lakh.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "The opportunity is **Won**: probability 100% and expected revenue ₹8,00,000. Pipeline and win/loss reports count it immediately.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-crm/sims/crm-win-01.webp",
+      "alt": "CRM pipeline kanban with New, Qualified, Proposition and Won columns.",
+      "path": "CRM ▸ Sales ▸ My Pipeline",
+      "task": "**Open the opportunity** *Greenfield – annual stationery*.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 20.15,
+        "w": 22.4,
+        "h": 11.3,
+        "label": "the Greenfield card"
+      },
+      "hint": "Each card is an opportunity; columns are stages.",
+      "explain": "The opportunity form opens: customer, expected revenue, probability and the activity history."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-win-02.webp",
+      "alt": "Greenfield opportunity form with expected revenue 0.",
+      "path": "CRM ▸ Opportunity",
+      "task": "After the first call the budget is clear: **8,00,000**. Enter the expected revenue.",
+      "target": {
+        "x": 2.55,
+        "y": 29.85,
+        "w": 14.3,
+        "h": 3.6,
+        "label": "Expected Revenue"
+      },
+      "input": {
+        "label": "Expected Revenue",
+        "answer": "800000",
+        "placeholder": "₹"
+      },
+      "explain": "Expected revenue × probability feeds the forecast."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-win-03.webp",
+      "alt": "Opportunity with the stage bar New, Qualified, Proposition, Won.",
+      "path": "CRM ▸ Opportunity",
+      "task": "The need and budget are confirmed. **Move it to Qualified.**",
+      "target": {
+        "x": 45.55,
+        "y": 12.15,
+        "w": 7,
+        "h": 3.5,
+        "label": "Qualified"
+      },
+      "traps": [
+        {
+          "x": 57.95,
+          "y": 12.15,
+          "w": 4.7,
+          "h": 3.5,
+          "feedback": "Not won yet: there is no quotation. Qualify it first."
+        }
+      ],
+      "explain": "The stage changes, exactly as when you drag the card in the pipeline."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-win-04.webp",
+      "alt": "Qualified opportunity with the New Quotation button.",
+      "path": "CRM ▸ Opportunity",
+      "task": "Prepare the offer. **Create a quotation** from the opportunity.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 8.8,
+        "h": 4.2,
+        "label": "New Quotation"
+      },
+      "explain": "Odoo opens a quotation with the customer, salesperson and sales team already filled in, linked to the opportunity."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-win-05.webp",
+      "alt": "New quotation pre-filled from the opportunity, with the breadcrumb back to it.",
+      "path": "Sales ▸ Quotations",
+      "task": "The salesperson adds the lines later. **Go back to the opportunity** with the breadcrumb.",
+      "target": {
+        "x": 7.45,
+        "y": 5.75,
+        "w": 12.4,
+        "h": 2.4,
+        "label": "the opportunity breadcrumb"
+      },
+      "explain": "Back on the opportunity. An empty quotation is not kept: the salesperson saves it once the products are added, and the **Quotations** smart button then counts it."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-win-06.webp",
+      "alt": "Opportunity with the Won and Lost buttons.",
+      "path": "CRM ▸ Opportunity",
+      "task": "Greenfield signed the quotation. **Mark the opportunity as won.**",
+      "target": {
+        "x": 9.45,
+        "y": 11.75,
+        "w": 4.1,
+        "h": 4.2,
+        "label": "Won"
+      },
+      "traps": [
+        {
+          "x": 13.25,
+          "y": 11.75,
+          "w": 3.9,
+          "h": 4.2,
+          "feedback": "The customer signed: this is a win, not a loss."
+        }
+      ],
+      "explain": "Probability becomes 100% and the opportunity moves to the Won stage."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-win-07.webp",
+      "alt": "Opportunity with the green Won ribbon.",
+      "path": "CRM ▸ Opportunity",
+      "task": "The opportunity is won.",
+      "explain": "A **Won** ribbon marks it; win/loss and pipeline reports update immediately."
+    }
+  ]
+}
+\`\`\`
+
 ### Walkthrough F — Mark as Won or Lost
 
 - **Won**: click **Won**. Probability becomes 100% and the record moves to the Won stage.
@@ -369,6 +500,103 @@ Greenfield also emailed sales@ — a second lead was created.
 | Restore | Recomputed | Yes | Unchanged |
 
 > **Consultant tip:** Make lost reasons mandatory through process discipline and reporting reviews. If the client insists on a hard validation, that is a customization (or an automation/Studio rule on Enterprise) — label it as such in the gap list.
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Mark an opportunity as lost, with a reason",
+  "intro": "Riverside College chose a cheaper competitor for its classroom furniture.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "The opportunity is archived as **Lost** with probability 0% and the reason *Too expensive*. Use the **Lost** filter to find it, or **Restore** it if the customer comes back.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-crm/sims/crm-lost-01.webp",
+      "alt": "CRM pipeline kanban.",
+      "path": "CRM ▸ Sales ▸ My Pipeline",
+      "task": "**Open** *Riverside – classroom furniture*.",
+      "target": {
+        "x": 25.05,
+        "y": 20.15,
+        "w": 22.4,
+        "h": 13.4,
+        "label": "the Riverside card"
+      },
+      "explain": "The opportunity form opens."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-lost-02.webp",
+      "alt": "Riverside opportunity with the Won and Lost buttons.",
+      "path": "CRM ▸ Opportunity",
+      "task": "Riverside went with a competitor. **Mark the opportunity as lost.**",
+      "target": {
+        "x": 13.25,
+        "y": 11.75,
+        "w": 3.9,
+        "h": 4.2,
+        "label": "Lost"
+      },
+      "traps": [
+        {
+          "x": 9.45,
+          "y": 11.75,
+          "w": 4.1,
+          "h": 4.2,
+          "feedback": "They chose a competitor: that is a loss."
+        }
+      ],
+      "explain": "Odoo asks for the reason."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-lost-03.webp",
+      "alt": "Mark Lost dialog with the lost reasons Too expensive, We don't have people/skills and Not enough stock.",
+      "path": "Mark Lost",
+      "task": "The competitor was cheaper. **Choose the reason.**",
+      "target": {
+        "x": 30.05,
+        "y": 43.55,
+        "w": 6.3,
+        "h": 2.4,
+        "label": "Too expensive"
+      },
+      "traps": [
+        {
+          "x": 50.15,
+          "y": 43.55,
+          "w": 7.8,
+          "h": 2.4,
+          "feedback": "Stock was not the problem: Riverside said the price was too high."
+        }
+      ],
+      "explain": "Lost reasons feed the *lost by reason* analysis. Never leave them empty."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-lost-04.webp",
+      "alt": "Mark Lost dialog with the reason Too expensive.",
+      "path": "Mark Lost",
+      "task": "**Confirm the loss.**",
+      "target": {
+        "x": 29.35,
+        "y": 59.45,
+        "w": 7.6,
+        "h": 4.2,
+        "label": "Mark as Lost"
+      },
+      "explain": "The opportunity is archived with probability 0%."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-lost-05.webp",
+      "alt": "Opportunity with the red Lost ribbon.",
+      "path": "CRM ▸ Opportunity",
+      "task": "The opportunity is lost.",
+      "explain": "A **Lost** ribbon marks it. It disappears from the pipeline but stays searchable with the *Lost* filter."
+    }
+  ]
+}
+\`\`\`
 
 ## Key takeaways
 

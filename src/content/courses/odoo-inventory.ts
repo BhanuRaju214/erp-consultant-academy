@@ -40,7 +40,59 @@ export const odooInventory: CourseContent = {
           durationMin: 40,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard"],
-          body: `## 1. Overview
+          body: `\`\`\`visual-hero
+{
+  "eyebrow": "Odoo Inventory · Lesson 1",
+  "title": "Inventory overview and process flow",
+  "subtitle": "Where every unit is, how it got there and what it is worth: watch the goods move before you configure anything.",
+  "objectives": [
+    "Explain Inventory as double-entry stock moves",
+    "Name the core objects: location, transfer, route, quant",
+    "Follow goods from vendor to customer in Odoo",
+    "Recognise what changed in Odoo 18–20"
+  ],
+  "hub": {
+    "center": {
+      "label": "Inventory",
+      "icon": "warehouse"
+    },
+    "nodes": [
+      {
+        "label": "Purchase",
+        "icon": "cart",
+        "detail": "Confirming a purchase order creates the **receipt**."
+      },
+      {
+        "label": "Sales",
+        "icon": "file",
+        "detail": "Confirming a sales order creates the **delivery** (and pick)."
+      },
+      {
+        "label": "Manufacturing",
+        "icon": "factory",
+        "detail": "Consumes components and produces finished goods."
+      },
+      {
+        "label": "Accounting",
+        "icon": "landmark",
+        "detail": "Stock moves drive **valuation** and cost of goods sold."
+      },
+      {
+        "label": "eCommerce / POS",
+        "icon": "store",
+        "detail": "Shows availability and creates deliveries."
+      },
+      {
+        "label": "Barcode",
+        "icon": "search",
+        "detail": "Scan receipts, picks and counts (Enterprise)."
+      }
+    ]
+  }
+}
+\`\`\`
+
+## 1. Overview
 
 Inventory is the operational heart of any company that buys, stores, makes or sells physical goods. In Odoo, the **Inventory** app records *where* every unit is, *how* it got there and *what it is worth*. It is a double-entry stock system: every movement is a **stock move** from one **location** to another, exactly like a journal entry moves value from one account to another.
 
@@ -56,18 +108,55 @@ Throughout this course we work with our fictional client:
 | Vendors | ~60 suppliers, some overseas (freight and duty costs) |
 | Pain today | Spreadsheets, frequent stock-outs of toner, unknown stock value at month end |
 
-### Core concepts in one table
-
-| Concept | Meaning in Odoo |
-|---|---|
-| Warehouse | A physical site; Odoo auto-creates its locations, operation types and routes |
-| Location | A place where stock can sit (shelf, rack) or a *virtual* place (vendor, customer, loss) |
-| Stock move | Movement of a quantity of one product from a source to a destination location |
-| Transfer (picking) | A document grouping moves, e.g. a Receipt or a Delivery Order |
-| Operation type | Template for transfers (Receipts, Delivery Orders, Internal Transfers, Pick, Pack) |
-| Route | A chain of rules telling Odoo how to bring or send goods (Buy, Manufacture, MTO, multi-step) |
-| Quant | The on-hand quantity of a product in a location (plus lot/package/owner) |
-| Valuation layer | The value record created when stock enters or leaves the company |
+\`\`\`visual-cards
+{
+  "label": "Core concepts",
+  "title": "Eight words that explain all of Inventory",
+  "columns": 4,
+  "cards": [
+    {
+      "icon": "warehouse",
+      "title": "Warehouse",
+      "body": "A physical site. Odoo creates its locations, operation types and routes for you."
+    },
+    {
+      "icon": "layers",
+      "title": "Location",
+      "body": "Where stock sits (rack, shelf) or a *virtual* place: vendor, customer, loss."
+    },
+    {
+      "icon": "workflow",
+      "title": "Stock move",
+      "body": "One product, one quantity, from a source location to a destination."
+    },
+    {
+      "icon": "clipboard",
+      "title": "Transfer",
+      "body": "A document grouping moves: a receipt, a pick or a delivery."
+    },
+    {
+      "icon": "settings",
+      "title": "Operation type",
+      "body": "The template for transfers: Receipts, Delivery Orders, Pick, Internal."
+    },
+    {
+      "icon": "refresh",
+      "title": "Route",
+      "body": "Rules for how goods arrive or leave: Buy, Manufacture, MTO, multi-step."
+    },
+    {
+      "icon": "box",
+      "title": "Quant",
+      "body": "On-hand quantity of a product in a location (plus lot, package, owner)."
+    },
+    {
+      "icon": "coins",
+      "title": "Valuation layer",
+      "body": "The value recorded when stock enters or leaves the company."
+    }
+  ]
+}
+\`\`\`
 
 ## 2. Business problems solved
 
@@ -83,6 +172,233 @@ Throughout this course we work with our fictional client:
 | Partial shipments from vendors | Backorders created automatically on partial validation |
 
 ## 3. Process flow
+
+Watch the goods move first: Northwind receives paper, stores it, picks and ships an order, counts and scraps.
+
+\`\`\`visual-story
+{
+  "title": "Inventory: goods moving through Northwind Main",
+  "company": "Northwind Office Supplies · fictional",
+  "token": "box",
+  "pace": 7,
+  "intro": "This animation follows paper, toner and chairs through Northwind's warehouse. Buildings are locations, trucks carry goods, and the badge under a building shows the work done there.",
+  "legend": "Buildings are locations (real or virtual). Trucks carry goods; parcels are documents. The badge shows the work on the spot.",
+  "stations": [
+    {
+      "id": "vendor",
+      "label": "Paper Mills Inc",
+      "icon": "factory",
+      "app": "Vendor (virtual)",
+      "x": 0,
+      "y": 0,
+      "outside": true
+    },
+    {
+      "id": "stock",
+      "label": "NW/Stock",
+      "icon": "warehouse",
+      "app": "Receipts land here",
+      "x": 3,
+      "y": 0
+    },
+    {
+      "id": "rack",
+      "label": "NW/Stock/Rack-A",
+      "icon": "layers",
+      "app": "Putaway",
+      "x": 4,
+      "y": 2
+    },
+    {
+      "id": "output",
+      "label": "NW/Output",
+      "icon": "box",
+      "app": "Dispatch bay",
+      "x": 3,
+      "y": 4
+    },
+    {
+      "id": "customer",
+      "label": "Contoso Ltd",
+      "icon": "building",
+      "app": "Customer (virtual)",
+      "x": 1,
+      "y": 4,
+      "outside": true
+    },
+    {
+      "id": "loss",
+      "label": "Inventory adjustment · Scrap",
+      "icon": "alert",
+      "app": "Virtual loss locations",
+      "x": 0,
+      "y": 2,
+      "outside": true
+    }
+  ],
+  "scenes": [
+    {
+      "at": "Day 1",
+      "from": "vendor",
+      "to": "stock",
+      "token": "truck",
+      "carry": "300 reams",
+      "action": "Receiving 300 of 500",
+      "document": "NW/IN/00001",
+      "title": "Receipt: 300 of 500 reams arrive",
+      "text": "The vendor ships 300 of the 500 ordered. The receipt is validated for 300 and a **backorder** NW/IN/00002 keeps the other 200 open.",
+      "say": "Paper Mills Inc delivers three hundred of the five hundred reams Northwind ordered. The storekeeper records exactly what arrived, and Odoo keeps a backorder open for the missing two hundred."
+    },
+    {
+      "at": "Day 1",
+      "from": "stock",
+      "to": "rack",
+      "carry": "Putaway",
+      "action": "Storing on Rack-A",
+      "title": "Putaway rule stores paper on Rack-A",
+      "text": "A putaway rule sends every Paper product arriving in NW/Stock to **Rack-A**. An internal move: no value changes.",
+      "say": "A putaway rule sends paper to Rack-A automatically. Goods only moved inside the warehouse, so their value does not change."
+    },
+    {
+      "at": "Day 3",
+      "from": "customer",
+      "to": "stock",
+      "carry": "Order: 120 reams",
+      "action": "Reserving 120",
+      "document": "S00003",
+      "title": "Sales order reserves stock",
+      "text": "Contoso orders 120 reams. Odoo creates two transfers: a **Pick** (NW/PICK) and a **Deliver** (NW/OUT).",
+      "say": "Contoso orders one hundred and twenty reams. Northwind ships in two steps, so Odoo creates a pick and a delivery, and reserves the stock."
+    },
+    {
+      "at": "Day 3",
+      "from": "rack",
+      "to": "output",
+      "carry": "120 reams",
+      "action": "Picking 120 reams",
+      "document": "NW/PICK/00001",
+      "title": "Pick: from the rack to the dispatch bay",
+      "text": "The picker collects the reams and validates the pick. The goods are still Northwind's, now at **NW/Output**.",
+      "say": "The picker brings the reams to the dispatch bay and validates the pick. The goods still belong to Northwind, so nothing is posted to the accounts yet."
+    },
+    {
+      "at": "Day 3",
+      "from": "output",
+      "to": "customer",
+      "token": "truck",
+      "carry": "120 reams",
+      "action": "Delivering to Contoso",
+      "document": "NW/OUT/00001",
+      "title": "Deliver: the goods leave the company",
+      "text": "Validating the delivery moves the reams to the **Customers** location: stock and stock value go down.",
+      "say": "When the truck leaves and the delivery is validated, the reams move to the customer location. Now stock, and its value, go down."
+    },
+    {
+      "at": "Month end",
+      "from": "stock",
+      "to": "loss",
+      "carry": "−3 toner",
+      "action": "Counting: 47 of 50",
+      "document": "Physical Inventory",
+      "tone": "warning",
+      "title": "Cycle count finds 3 cartridges missing",
+      "text": "The team counts 47 toner cartridges where Odoo expected 50. Applying the count moves 3 to **Inventory adjustment**.",
+      "say": "During the count the team finds forty-seven toner cartridges instead of fifty. Applying the count moves the missing three to the inventory adjustment location, a virtual place that represents the loss."
+    },
+    {
+      "at": "Month end",
+      "from": "stock",
+      "to": "loss",
+      "carry": "5 chairs",
+      "action": "Scrapping 5 chairs",
+      "tone": "warning",
+      "title": "Scrap: damaged chairs leave stock",
+      "text": "Five chairs damaged during unloading are scrapped from the receipt's ⚙ menu. Stock falls from 40 to 35.",
+      "say": "Five chairs were damaged during unloading. Scrapping them moves them to the scrap location, so stock drops from forty to thirty-five."
+    },
+    {
+      "at": "Any time",
+      "to": "stock",
+      "tone": "success",
+      "title": "One report, the whole truth",
+      "text": "**Inventory ▸ Reporting ▸ Stock** shows on hand, free to use, incoming, outgoing and value for every product.",
+      "say": "At any moment the stock report shows what is on hand, what is free to sell, what is coming in, what is going out, and what it is all worth."
+    }
+  ],
+  "counters": [
+    {
+      "label": "Paper on hand",
+      "values": [
+        "300",
+        "300",
+        "300 (120 reserved)",
+        "300 (180 free)",
+        "180",
+        "180",
+        "180",
+        "180"
+      ]
+    },
+    {
+      "label": "Paper incoming",
+      "values": [
+        "200",
+        "200",
+        "200",
+        "200",
+        "200",
+        "200",
+        "200",
+        "200"
+      ]
+    },
+    {
+      "label": "Toner",
+      "values": [
+        "50",
+        "50",
+        "50",
+        "50",
+        "50",
+        "47",
+        "47",
+        "47"
+      ]
+    },
+    {
+      "label": "Chairs",
+      "values": [
+        "40",
+        "40",
+        "40",
+        "40",
+        "40",
+        "40",
+        "35",
+        "35"
+      ]
+    }
+  ],
+  "results": [
+    {
+      "label": "Paper on hand",
+      "value": "180 (+200 incoming)"
+    },
+    {
+      "label": "Toner after count",
+      "value": "47"
+    },
+    {
+      "label": "Chairs after scrap",
+      "value": "35"
+    },
+    {
+      "label": "Documents",
+      "value": "Receipt, backorder, pick, delivery, count, scrap"
+    }
+  ]
+}
+\`\`\`
 
 The standard **Procure-to-Stock-to-Ship** flow for Northwind, using one-step routes:
 
@@ -189,6 +505,50 @@ Side flows that also generate stock moves:
 - **Scrap**: WH/Stock ──► Virtual Locations/Scrap
 - **Returns**: Customers ──► WH/Stock (return of a delivery) or WH/Stock ──► Vendors (return of a receipt)
 
+### What it looks like in Odoo
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-stock-report.webp",
+  "alt": "Odoo 20 Stock report listing the three Northwind products with on-hand, free-to-use, unit cost, total value, incoming and outgoing quantities.",
+  "title": "Stock report: what Inventory knows at any moment",
+  "path": "Inventory ▸ Reporting ▸ Stock",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 29.1,
+      "y": 22.6,
+      "title": "On hand per product",
+      "text": "Paper: 300 on hand; 120 are already picked to NW/Output for Contoso, so 180 are free to use.",
+      "w": 19.8,
+      "h": 3.8,
+      "tag": "left"
+    },
+    {
+      "x": 25.6,
+      "y": 27.1,
+      "title": "Toner",
+      "text": "47 after the count found 3 missing.",
+      "w": 12.8,
+      "h": 3.8,
+      "tag": "bottom"
+    },
+    {
+      "x": 25.6,
+      "y": 18.2,
+      "title": "Chairs",
+      "text": "35 after scrapping 5.",
+      "w": 12.8,
+      "h": 3.8,
+      "tag": "top"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST."
+}
+\`\`\`
+
 > **Consultant tip:** In a workshop, draw this flow on a whiteboard *before* opening Odoo. Ask the client to point at every place where goods physically stop. Each stop is a candidate location; each arrow is a candidate operation type. Do not create steps that nobody will actually scan or validate — every extra step is extra clicks forever.
 
 ## How this course is structured
@@ -205,6 +565,53 @@ Side flows that also generate stock moves:
 ## Version note: Odoo 17 vs 18
 
 In **Odoo 17** a product has a *Product Type* of **Storable Product**, **Consumable** or **Service**. Only storable products have tracked on-hand quantities and valuation. In **Odoo 18** the types become **Goods**, **Service** and **Combo**, and a **Track Inventory** checkbox on a Goods product replaces the Storable/Consumable distinction. When you read older blogs or Odoo 18 documentation, translate accordingly (verify in your training instance).
+
+\`\`\`visual-compare
+{
+  "title": "What changed in the screens (checked in an Odoo 20 database)",
+  "columns": [
+    "Odoo 17",
+    "Odoo 18–20"
+  ],
+  "rows": [
+    {
+      "label": "Stock-tracked product",
+      "values": [
+        "Product Type = Storable Product",
+        "Goods + inventory tracking (Odoo 20: **Tracking** = By Quantity / By Lots / By Serial)"
+      ]
+    },
+    {
+      "label": "Purchase unit of measure",
+      "values": [
+        "Purchase UoM field on the product",
+        "Odoo 20: no Purchase UoM field; use **Units & Packagings**"
+      ]
+    },
+    {
+      "label": "Inventory valuation options",
+      "values": [
+        "Manual / Automated",
+        "Odoo 20: **Periodic (at closing)** / **Perpetual (at invoicing)**"
+      ]
+    },
+    {
+      "label": "Physical count and scrap menus",
+      "values": [
+        "Inventory ▸ Operations",
+        "Inventory ▸ Operations ▸ **Adjustments**"
+      ]
+    },
+    {
+      "label": "Scrapping",
+      "values": [
+        "Scrap orders (stock.scrap)",
+        "Odoo 20: Scrap dialog from a transfer's ⚙ menu; scraps listed as stock moves"
+      ]
+    }
+  ]
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -273,6 +680,39 @@ Before a single receipt can be validated in a live database, the following must 
 
 Path: **Inventory ▸ Configuration ▸ Settings**. The most important options (labels as in Odoo 17 — verify in your training instance):
 
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-settings.webp",
+  "alt": "Odoo 20 Inventory settings page showing the Warehouse section with Storage Locations and Multi-Step Routes.",
+  "title": "Warehouse settings that unlock warehouse design",
+  "path": "Inventory ▸ Configuration ▸ Settings ▸ Warehouse",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 26.3,
+      "y": 56.9,
+      "title": "Storage Locations",
+      "text": "Track stock in racks and shelves; needed for putaway rules.",
+      "w": 19.5,
+      "h": 4.8,
+      "tag": "left"
+    },
+    {
+      "x": 55.3,
+      "y": 56.9,
+      "title": "Multi-Step Routes",
+      "text": "Unlocks 2- and 3-step receipts and deliveries.",
+      "w": 12.2,
+      "h": 4.8,
+      "tag": "left"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST."
+}
+\`\`\`
+
 | Setting | Section | Why enable it | Northwind decision |
 |---|---|---|---|
 | Storage Locations | Warehouse | Track stock in sub-locations (racks, shelves); required for putaway rules | Yes |
@@ -290,6 +730,98 @@ Enabling **Multi-Step Routes** automatically enables **Storage Locations**.
 ### 6.2 Warehouse configuration
 
 Path: **Inventory ▸ Configuration ▸ Warehouses** ▸ open the warehouse.
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-warehouse.webp",
+  "alt": "Odoo 20 warehouse form for Northwind Main with short name NW, Receive and Store (1 step) and Pick then Deliver (2 steps) selected.",
+  "title": "Northwind Main: 1-step receipts, 2-step deliveries",
+  "path": "Inventory ▸ Configuration ▸ Warehouses",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 7.6,
+      "y": 22.7,
+      "title": "Short Name",
+      "text": "NW prefixes every location and transfer (NW/IN, NW/PICK, NW/OUT).",
+      "w": 10.6,
+      "h": 3.2,
+      "tag": "right"
+    },
+    {
+      "x": 18.8,
+      "y": 44.8,
+      "title": "Incoming Shipments",
+      "text": "Receive and Store (1 step) for Northwind's small receiving team.",
+      "w": 32.6,
+      "h": 9.8,
+      "tag": "top"
+    },
+    {
+      "x": 16.3,
+      "y": 56.8,
+      "title": "Outgoing Shipments",
+      "text": "Pick then Deliver (2 steps): orders are consolidated at a dispatch bay.",
+      "w": 27.6,
+      "h": 9.8,
+      "tag": "top"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST. Odoo 20 labels: Receive and Store (1 step) / Receive then Store (2) / Receive, Quality Control, then Store (3); Deliver (1) / Pick then Deliver (2) / Pick, Pack, then Deliver (3)."
+}
+\`\`\`
+
+\`\`\`visual-decision
+{
+  "title": "How many delivery steps does the client need?",
+  "start": "consolidate",
+  "nodes": {
+    "consolidate": {
+      "question": "Are orders collected and consolidated in a dispatch area before loading?",
+      "options": [
+        {
+          "label": "Yes",
+          "next": "pack"
+        },
+        {
+          "label": "No",
+          "next": "one"
+        }
+      ]
+    },
+    "one": {
+      "result": "Deliver (1 step)",
+      "tone": "success",
+      "detail": "Pickers take goods straight from stock to the truck. Fewest clicks."
+    },
+    "pack": {
+      "question": "Is there a separate packing station (boxes, labels, weights)?",
+      "options": [
+        {
+          "label": "Yes",
+          "next": "three"
+        },
+        {
+          "label": "No",
+          "next": "two"
+        }
+      ]
+    },
+    "two": {
+      "result": "Pick then Deliver (2 steps)",
+      "tone": "info",
+      "detail": "Northwind's choice: pick to the dispatch bay, then deliver."
+    },
+    "three": {
+      "result": "Pick, Pack, then Deliver (3 steps)",
+      "tone": "warning",
+      "detail": "Only if someone really scans or validates the pack step: every extra step is extra clicks forever."
+    }
+  }
+}
+\`\`\`
 
 | Field | Options | Effect |
 |---|---|---|
@@ -313,6 +845,48 @@ Path: **Inventory ▸ Configuration ▸ Operation Types**. Key fields:
 ### 6.4 Product category valuation (preview)
 
 Path: **Inventory ▸ Configuration ▸ Product Categories**.
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-category.webp",
+  "alt": "Odoo 20 product category form for Goods / Paper with costing method Average Cost and the inventory valuation option.",
+  "title": "Product category: costing method and valuation",
+  "path": "Inventory ▸ Configuration ▸ Product Categories",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 6.4,
+      "y": 25.1,
+      "title": "Parent Category",
+      "text": "Goods: Odoo 20's top-level category for physical products.",
+      "w": 8,
+      "h": 3,
+      "tag": "top"
+    },
+    {
+      "x": 46.9,
+      "y": 39.7,
+      "title": "Costing Method",
+      "text": "Average Cost (AVCO) for paper: the price fluctuates.",
+      "w": 28.8,
+      "h": 3.2,
+      "tag": "right"
+    },
+    {
+      "x": 46.9,
+      "y": 35.6,
+      "title": "Inventory Valuation",
+      "text": "Odoo 20: Periodic (at closing) or Perpetual (at invoicing).",
+      "w": 28.8,
+      "h": 3.2,
+      "tag": "top"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST. In Odoo 20 the valuation choice is Periodic (at closing) or Perpetual (at invoicing)."
+}
+\`\`\`
 
 | Field | Options |
 |---|---|
@@ -371,6 +945,8 @@ Path: **Inventory ▸ Configuration ▸ UoM Categories** (requires the Units of 
 | Unit | Box of 12 | Bigger than reference | 12 |
 | Unit | Ream (500 sheets) — sold as Units | — | Use a separate product UoM if needed |
 
+> **Odoo 20 note:** the separate Purchase UoM field no longer exists on the product (checked in an Odoo 20 database); buying in boxes is handled with **Units & Packagings**.
+
 On the product: **Unit of Measure** (sales/stock UoM) and **Purchase UoM** must belong to the *same category*. Northwind buys pens in *Box of 12* and sells in *Units*: receiving 10 boxes increases stock by 120 units.
 
 ### 7.2 Product categories
@@ -387,6 +963,66 @@ Create the hierarchy **All ▸ Saleable ▸ Paper / Toner / Furniture / IT Acces
 ### 7.3 Products
 
 Path: **Inventory ▸ Products ▸ Products ▸ New**.
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-product.webp",
+  "alt": "Odoo 20 product form for A4 Copy Paper 80gsm with product type Goods, tracking By Quantity, 300 units on hand and category Goods / Paper.",
+  "title": "A stock-tracked product in Odoo 20",
+  "path": "Inventory ▸ Products ▸ Products",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 14.8,
+      "y": 33.8,
+      "title": "Product Type",
+      "text": "Goods. Odoo 17 called a stock-tracked product a Storable Product.",
+      "w": 24.6,
+      "h": 3.2,
+      "tag": "top"
+    },
+    {
+      "x": 9.9,
+      "y": 42.6,
+      "title": "Tracking",
+      "text": "By Quantity: Odoo tracks on-hand stock. Choose lots or serial numbers here for traceable products.",
+      "w": 14.8,
+      "h": 3,
+      "tag": "right"
+    },
+    {
+      "x": 10,
+      "y": 46.6,
+      "title": "Quantity On Hand",
+      "text": "Live stock, updated by every validated transfer.",
+      "w": 15.2,
+      "h": 3,
+      "tag": "bottom"
+    },
+    {
+      "x": 40.5,
+      "y": 53.8,
+      "title": "Category",
+      "text": "Goods / Paper: the category decides the costing method.",
+      "w": 16.2,
+      "h": 3,
+      "tag": "left"
+    },
+    {
+      "x": 87.6,
+      "y": 8.1,
+      "title": "Min/Max",
+      "text": "The reordering rule, one click away.",
+      "w": 8.4,
+      "h": 3.8,
+      "tag": "bottom"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST. The smart buttons at the top show stock, forecast, incoming/outgoing and the Min/Max rule at a glance."
+}
+\`\`\`
 
 | Field | Example (A4 Copy Paper 80gsm) |
 |---|---|
@@ -414,6 +1050,39 @@ Product type decision guide (Odoo 17):
 
 After enabling Storage Locations, go to **Inventory ▸ Configuration ▸ Locations**.
 
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-locations.webp",
+  "alt": "Odoo 20 locations list filtered on NW showing NW/Stock with sub-locations Rack-A, Rack-B, Floor and Cage, and NW/Output.",
+  "title": "Locations of the Northwind warehouse",
+  "path": "Inventory ▸ Configuration ▸ Locations",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 7,
+      "y": 31.4,
+      "title": "Sub-locations",
+      "text": "Racks inside NW/Stock: Rack-A for paper, Rack-B for toner, Floor and Cage.",
+      "w": 8.8,
+      "h": 20.4,
+      "tag": "right"
+    },
+    {
+      "x": 5.8,
+      "y": 18,
+      "title": "Output",
+      "text": "Created by the 2-step delivery setting: the dispatch bay.",
+      "w": 6.4,
+      "h": 3.2,
+      "tag": "right"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST."
+}
+\`\`\`
+
 | Location type | Examples | Holds real stock? |
 |---|---|---|
 | View | NW (parent of all warehouse locations) | No — used only to group |
@@ -429,6 +1098,39 @@ Northwind sub-locations: NW/Stock/Rack-A (paper), NW/Stock/Rack-B (toner), NW/St
 ### 7.5 Putaway rules
 
 Path: **Inventory ▸ Configuration ▸ Putaway Rules**. Rule example: *When product category = Paper arrives in NW/Stock, store to NW/Stock/Rack-A*. Product-specific rules override category rules.
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-putaway.webp",
+  "alt": "Odoo 20 putaway rules list with a rule sending the Goods / Paper category arriving in NW/Stock to NW/Stock/Rack-A.",
+  "title": "Putaway rule: paper goes to Rack-A",
+  "path": "Inventory ▸ Configuration ▸ Putaway Rules",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 34.3,
+      "y": 18,
+      "title": "When category is Paper",
+      "text": "Applies to every product in the Paper category arriving in NW/Stock.",
+      "w": 7.8,
+      "h": 3.2,
+      "tag": "bottom"
+    },
+    {
+      "x": 49.3,
+      "y": 18,
+      "title": "Store to Rack-A",
+      "text": "Arriving reams are routed to Rack-A automatically.",
+      "w": 9,
+      "h": 3.2,
+      "tag": "bottom"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST."
+}
+\`\`\`
 
 ### 7.6 Routes
 
@@ -490,29 +1192,295 @@ All transfers are found under **Inventory ▸ Operations ▸ Transfers** (or via
 | Done | Validated; stock and valuation updated |
 | Cancelled | Cancelled |
 
+\`\`\`visual-flow
+{
+  "compact": true,
+  "title": "Transfer states",
+  "steps": [
+    {
+      "title": "Draft"
+    },
+    {
+      "title": "Waiting"
+    },
+    {
+      "title": "Ready"
+    },
+    {
+      "title": "Done"
+    }
+  ]
+}
+\`\`\`
+
 ### 8.1 Walkthrough: Receipt with backorder
 
-Scenario: Northwind orders **500 reams** of A4 paper at USD 4.00 from Paper Mills Inc (PO P00021). The vendor ships only 300 now.
+Scenario: Northwind orders **500 reams** of A4 paper at USD 4.00 from Paper Mills Inc (PO P00001). The vendor ships only 300 now.
 
-1. Confirm PO P00021 in Purchase. A receipt NW/IN/00012 is created (Vendors ▸ NW/Stock).
+1. Confirm PO P00001 in Purchase. A receipt NW/IN/00001 is created (Vendors ▸ NW/Stock).
 2. Open the receipt (Purchase order ▸ **Receipt** smart button, or Inventory ▸ Operations ▸ Transfers).
 3. In the operations line, set **Quantity** to 300 (in 17 the column is "Quantity"; earlier versions show "Done").
 4. Click **Validate**.
 5. Odoo asks whether to **Create Backorder** or **No Backorder**. Choose *Create Backorder*.
-6. NW/IN/00012 is Done for 300; a new receipt NW/IN/00013 for 200 is created and linked to the same PO.
+6. NW/IN/00001 is Done for 300; a new receipt NW/IN/00002 for 200 is created and linked to the same PO.
 7. If putaway rules exist, the move line destination becomes NW/Stock/Rack-A automatically.
 
 Result: on hand = 300, incoming forecast = 200.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST.",
+  "title": "Receive 300 of 500 reams and keep a backorder",
+  "intro": "You are the Northwind receiving clerk. Click on the screen exactly where you would click in Odoo.",
+  "outcome": "300 reams are on hand in NW/Stock and **NW/IN/00002** waits for the remaining 200. The PO shows Received = 300.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-po-confirmed.webp",
+      "alt": "Confirmed purchase order P00001 for 500 reams with a Receipt smart button.",
+      "path": "Purchase ▸ Orders",
+      "task": "PO **P00001** (500 reams from Paper Mills Inc) is confirmed and the truck has arrived. **Open the receipt** Odoo created.",
+      "target": {
+        "x": 46.4,
+        "y": 6.4,
+        "w": 7.3,
+        "h": 3.6,
+        "label": "the Receipt smart button"
+      },
+      "also": [
+        {
+          "x": 1.1,
+          "y": 12,
+          "w": 4.9,
+          "h": 3.8
+        }
+      ],
+      "hint": "Smart buttons at the top of a document link to related records. Look for the truck icon.",
+      "traps": [
+        {
+          "x": 6.3,
+          "y": 12,
+          "w": 6.2,
+          "h": 3.8,
+          "feedback": "Not yet: the vendor bill comes **after** the goods are received, so you can match the bill to what actually arrived."
+        }
+      ],
+      "explain": "Confirming the PO created receipt **NW/IN/00001** automatically. The smart button (or the **Receive** button) opens it."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-receipt-ready.webp",
+      "alt": "Receipt NW/IN/00001 in Ready state with demand 500 and quantity 500.",
+      "path": "Inventory ▸ Operations ▸ Receipts",
+      "task": "Only **300 reams** were on the truck. Change the received quantity on the line.",
+      "target": {
+        "x": 42,
+        "y": 49,
+        "w": 4.6,
+        "h": 4,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity received",
+        "answer": "300",
+        "placeholder": "e.g. 120"
+      },
+      "hint": "Two numbers on the line: **Demand** is what was ordered, **Quantity** is what you receive now.",
+      "traps": [
+        {
+          "x": 1.1,
+          "y": 12.2,
+          "w": 5.1,
+          "h": 3.8,
+          "feedback": "Stop! Validating now would record **500** reams received when only 300 arrived. Count first, then validate."
+        },
+        {
+          "x": 35,
+          "y": 49,
+          "w": 4.2,
+          "h": 4,
+          "feedback": "That is **Demand**: what was ordered (500). Leave it; change what you actually received."
+        },
+        {
+          "x": 28.4,
+          "y": 12,
+          "w": 4.4,
+          "h": 3.8,
+          "feedback": "Cancel would cancel the whole receipt. The goods did arrive, just fewer of them."
+        }
+      ],
+      "explain": "Quantity is now **300** while Demand stays **500**. Odoo will notice the difference when you validate."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-receipt-300.webp",
+      "alt": "Receipt line with demand 500 and quantity 300.",
+      "path": "Inventory ▸ Operations ▸ Receipts",
+      "task": "The line shows 300 of 500. **Confirm the receipt.**",
+      "target": {
+        "x": 1.1,
+        "y": 12.2,
+        "w": 5.1,
+        "h": 3.8,
+        "label": "Validate"
+      },
+      "hint": "The main action button is at the top left.",
+      "traps": [
+        {
+          "x": 28.4,
+          "y": 12.2,
+          "w": 4.4,
+          "h": 3.8,
+          "feedback": "Cancel throws the receipt away. You want to confirm what arrived."
+        }
+      ],
+      "explain": "Validate posts the stock move for 300 reams from Vendors to NW/Stock."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-backorder-dialog.webp",
+      "alt": "Create Backorder dialog with Create Backorder, No Backorder and Discard.",
+      "path": "Validate ▸ Create Backorder?",
+      "task": "Paper Mills will deliver the **remaining 200 next week**. What do you choose?",
+      "target": {
+        "x": 17.2,
+        "y": 58.4,
+        "w": 9,
+        "h": 3.6,
+        "label": "Create Backorder"
+      },
+      "traps": [
+        {
+          "x": 26.8,
+          "y": 58.4,
+          "w": 7.6,
+          "h": 3.6,
+          "feedback": "**No Backorder** closes the remaining 200 for good. Use it only when the vendor will *not* send them."
+        },
+        {
+          "x": 34.9,
+          "y": 58.4,
+          "w": 4.8,
+          "h": 3.6,
+          "feedback": "Discard goes back to the receipt without validating anything."
+        }
+      ],
+      "explain": "Odoo validates 300 now and creates a new receipt for the 200 still expected, linked to the same PO."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-receipt-done.webp",
+      "alt": "Receipt NW/IN/00001 in Done state with 300 reams received.",
+      "path": "Inventory ▸ Operations ▸ Receipts",
+      "task": "Look at the result: the receipt is **Done** for 300.",
+      "explain": "On hand is now 300. The putaway rule stored the reams in **NW/Stock/Rack-A**."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-backorder.webp",
+      "alt": "Backorder receipt NW/IN/00002 for the remaining 200 reams.",
+      "path": "Inventory ▸ Operations ▸ Receipts",
+      "task": "And here is the backorder.",
+      "explain": "**NW/IN/00002** for 200 reams shows *Back order of NW/IN/00001*. Forecast = 300 on hand + 200 incoming."
+    }
+  ]
+}
+\`\`\`
+
 ### 8.2 Walkthrough: 2-step delivery (Pick ▸ Ship)
 
-Scenario: Customer Contoso Ltd orders 120 reams (SO S00045).
+Scenario: Customer Contoso Ltd orders 120 reams (SO S00003).
 
-1. Confirm SO S00045. Odoo creates **NW/PICK/00031** (NW/Stock ▸ NW/Output) and **NW/OUT/00028** (NW/Output ▸ Customers). The OUT is *Waiting another operation*.
+1. Confirm SO S00003. Odoo creates **NW/PICK/00001** (NW/Stock ▸ NW/Output) and **NW/OUT/00001** (NW/Output ▸ Customers). The OUT is *Waiting another operation*.
 2. Open the PICK. With reservation method *At Confirmation*, 120 units are already reserved. Click **Check Availability** if not.
 3. Picker collects goods; set quantities and click **Validate**.
-4. NW/OUT/00028 becomes **Ready**. Dispatch loads the truck and validates it.
+4. NW/OUT/00001 becomes **Ready**. Dispatch loads the truck and validates it.
 5. The sales order line shows *Delivered = 120*; it is now invoiceable if the invoicing policy is "Delivered quantities".
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST.",
+  "title": "Ship 120 reams to Contoso in two steps",
+  "intro": "Northwind Main uses **Pick ▸ Deliver**. You play both the picker and the dispatcher.",
+  "outcome": "Both transfers are done and the sales order shows Delivered = 120, so it can be invoiced on delivered quantities.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-so-delivery.webp",
+      "alt": "Confirmed sales order S00003 for Contoso Ltd with a Delivery smart button.",
+      "path": "Sales ▸ Orders",
+      "task": "Sales order **S00003** for 120 reams is confirmed. **Open the delivery** to start picking.",
+      "target": {
+        "x": 46.4,
+        "y": 6.4,
+        "w": 7.3,
+        "h": 3.6,
+        "label": "the Delivery smart button"
+      },
+      "hint": "Like the PO, the order links to its transfers through a smart button with a truck icon.",
+      "traps": [
+        {
+          "x": 1.1,
+          "y": 12,
+          "w": 7.8,
+          "h": 3.8,
+          "feedback": "With the *Delivered quantities* invoicing policy there is nothing to invoice yet. Ship first."
+        }
+      ],
+      "explain": "Confirming the order created **NW/PICK/00001**. The OUT transfer waits until the pick is done."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-pick.webp",
+      "alt": "Pick transfer NW/PICK/00001 moving 120 reams from NW/Stock to NW/Output.",
+      "path": "Inventory ▸ Operations ▸ Transfers",
+      "task": "The picker has moved 120 reams from the shelf to the dispatch bay. **Record the pick.**",
+      "target": {
+        "x": 1.1,
+        "y": 12.2,
+        "w": 5.1,
+        "h": 3.8,
+        "label": "Validate"
+      },
+      "traps": [
+        {
+          "x": 15.1,
+          "y": 12,
+          "w": 4.4,
+          "h": 3.8,
+          "feedback": "Cancel would cancel the pick and leave the customer without goods."
+        }
+      ],
+      "explain": "120 reams moved **NW/Stock ▸ NW/Output**. Odoo now makes the delivery Ready."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-out-ready.webp",
+      "alt": "Delivery NW/OUT/00001 in Ready state from NW/Output to the customer.",
+      "path": "Inventory ▸ Operations ▸ Deliveries",
+      "task": "The truck is loaded at the dispatch bay. **Ship the goods.**",
+      "target": {
+        "x": 1.1,
+        "y": 12.2,
+        "w": 5.1,
+        "h": 3.8,
+        "label": "Validate"
+      },
+      "traps": [
+        {
+          "x": 15.1,
+          "y": 12.2,
+          "w": 4.4,
+          "h": 3.8,
+          "feedback": "Cancel would cancel the shipment. The truck is ready to go."
+        }
+      ],
+      "explain": "120 reams moved **NW/Output ▸ Customers**: on hand falls by 120 and the sales order shows Delivered = 120."
+    }
+  ]
+}
+\`\`\`
 
 ### 8.3 Walkthrough: lot-tracked receipt
 
@@ -520,6 +1488,48 @@ Scenario: Customer Contoso Ltd orders 120 reams (SO S00045).
 2. On the receipt line click the **details** (list) icon to open the detailed operations.
 3. Enter Lot/Serial Number **TN-2024-118**, quantity 50.
 4. Validate. The lot is created and stocked in NW/Stock/Rack-B.
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-lot-details.webp",
+  "alt": "Odoo 20 Detailed Operations dialog for Toner Cartridge HP 26A with lot TN-2024-118, store to NW/Stock, quantity 50.",
+  "title": "Entering a lot number on receipt",
+  "path": "Receipt line ▸ Details",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 23,
+      "y": 24.6,
+      "title": "Detailed operations",
+      "text": "Opened from Details on the receipt line.",
+      "w": 12.6,
+      "h": 3.2,
+      "tag": "right"
+    },
+    {
+      "x": 20.1,
+      "y": 48.1,
+      "title": "Lot number",
+      "text": "Enter the lot printed on the cartons: TN-2024-118.",
+      "w": 7,
+      "h": 3.4,
+      "tag": "left"
+    },
+    {
+      "x": 61.2,
+      "y": 48.1,
+      "title": "Quantity",
+      "text": "50 cartridges in this lot.",
+      "w": 4.6,
+      "h": 3.4,
+      "tag": "bottom"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST. Generate Lots creates a range of lot or serial numbers in one go."
+}
+\`\`\`
 
 For serial-tracked laptops, one line per serial number (quantity 1 each). Odoo can generate a range of serials from the first number entered (verify the exact button in your training instance).
 
@@ -547,6 +1557,114 @@ Path: **Inventory ▸ Operations ▸ Scrap** (or the **Scrap** button on a trans
 
 1. New scrap order: product Executive Chair, quantity 5, source NW/Stock/Floor, scrap location Virtual Locations/Scrap.
 2. Click **Validate**. Stock decreases by 5 and, with automated valuation, the loss is posted.
+
+> **Odoo 20:** there is no separate scrap order. Open the transfer (or product), choose **⚙ ▸ Scrap**, pick the product and quantity, and **Confirm**. Scraps are listed as stock moves under Operations ▸ Adjustments ▸ Scrap.
+
+#### Try it yourself: count and scrap
+
+\`\`\`visual-simulate
+{
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST.",
+  "title": "Post a stock count and scrap damaged chairs",
+  "intro": "Two everyday corrections: the shelf count does not match, and goods arrive damaged.",
+  "outcome": "Toner on hand is **47** (3 written off to Inventory adjustment) and chairs are **35** (5 moved to scrap). Both are stock moves you can audit.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-physical-count.webp",
+      "alt": "Physical Inventory line for toner lot TN-2024-118 in NW/Stock.",
+      "path": "Inventory ▸ Operations ▸ Adjustments ▸ Physical Inventory",
+      "task": "The cycle count found **47** toner cartridges of lot TN-2024-118. Odoo expects 50. **Enter the count.**",
+      "target": {
+        "x": 58,
+        "y": 16.2,
+        "w": 5.2,
+        "h": 3.4,
+        "label": "the Counted cell"
+      },
+      "input": {
+        "label": "Counted quantity",
+        "answer": "47",
+        "placeholder": "what is on the shelf"
+      },
+      "hint": "**On Hand** is what Odoo thinks; **Counted** is what you found.",
+      "traps": [
+        {
+          "x": 52.5,
+          "y": 16.2,
+          "w": 4.5,
+          "h": 3.4,
+          "feedback": "That is **On Hand**, Odoo's figure. You record your count in the next column."
+        }
+      ],
+      "explain": "Counted = 47, so the **Difference** is −3. Nothing is posted until you apply."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-physical-count.webp",
+      "alt": "Physical Inventory line with counted 47 and difference −3, with Apply and Clear actions.",
+      "path": "Inventory ▸ Operations ▸ Adjustments ▸ Physical Inventory",
+      "task": "Difference is −3. **Post the adjustment** for this line.",
+      "target": {
+        "x": 82.6,
+        "y": 16.4,
+        "w": 4.4,
+        "h": 3.2,
+        "label": "Apply"
+      },
+      "also": [
+        {
+          "x": 4.9,
+          "y": 6,
+          "w": 5.5,
+          "h": 3.6
+        }
+      ],
+      "traps": [
+        {
+          "x": 87.8,
+          "y": 16.4,
+          "w": 3.6,
+          "h": 3.2,
+          "feedback": "**Clear** throws the count away. Apply posts it."
+        }
+      ],
+      "explain": "Odoo posts a move of 3 cartridges from NW/Stock to **Inventory adjustment**, and the stock value falls with it."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-scrap.webp",
+      "alt": "Scrap Products dialog for 5 Executive Chairs opened from receipt NW/IN/00004.",
+      "path": "Transfer ▸ ⚙ ▸ Scrap",
+      "task": "5 chairs were damaged while unloading. From the receipt's **⚙ ▸ Scrap** you filled in the product and quantity. **Scrap them.**",
+      "target": {
+        "x": 17.2,
+        "y": 60.5,
+        "w": 5.1,
+        "h": 3.6,
+        "label": "Confirm"
+      },
+      "traps": [
+        {
+          "x": 81.4,
+          "y": 36,
+          "w": 2,
+          "h": 3,
+          "feedback": "Closing the dialog leaves the damaged chairs in stock."
+        }
+      ],
+      "explain": "The chairs move to a virtual scrap location. On hand drops from 40 to **35**."
+    },
+    {
+      "src": "/visuals/odoo-inventory/screens/inv-scraps-list.webp",
+      "alt": "Scraps list showing the scrapped stock move of 5 Executive Chairs.",
+      "path": "Inventory ▸ Operations ▸ Adjustments ▸ Scrap",
+      "task": "Where do scraps show up later?",
+      "explain": "Every scrap is a **stock move** into the scrap location, listed under Operations ▸ Adjustments ▸ Scrap for audit."
+    }
+  ]
+}
+\`\`\`
 
 ### 8.8 Landed costs (summary)
 
@@ -600,6 +1718,66 @@ Path: **Inventory ▸ Operations ▸ Replenishment** (or Product ▸ smart butto
 
 Logic: when **forecasted** quantity (on hand + incoming − outgoing) drops below 400, Odoo proposes enough to reach 1,200, rounded to multiples of 100. With Trigger *Auto* the scheduler creates or updates an RFQ; with *Manual* a buyer clicks **Order Once**. The Replenishment screen also *suggests* rules for products with negative forecasts.
 
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-inventory/screens/inv-replenishment.webp",
+  "alt": "Odoo 20 Replenishment screen for A4 paper at NW/Stock: on hand 180, forecast 380, min 400, max 1,200, to order 820, with Order and Automate buttons.",
+  "title": "Replenishment: the reordering rule at work",
+  "path": "Inventory ▸ Operations ▸ Procurement ▸ Replenishment",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 39.4,
+      "y": 16.6,
+      "title": "Forecast",
+      "text": "On hand 180 + incoming 200 = 380 (the backorder still to arrive).",
+      "w": 4.8,
+      "h": 7.6,
+      "tag": "top"
+    },
+    {
+      "x": 62.2,
+      "y": 16.6,
+      "title": "Min",
+      "text": "380 is below the minimum of 400, so Odoo suggests an order.",
+      "w": 3.6,
+      "h": 7.6,
+      "tag": "top"
+    },
+    {
+      "x": 66,
+      "y": 16.6,
+      "title": "Max",
+      "text": "Order enough to reach 1,200.",
+      "w": 3.8,
+      "h": 7.6,
+      "tag": "top"
+    },
+    {
+      "x": 70.6,
+      "y": 16.6,
+      "title": "To Order",
+      "text": "1,200 − 380 = 820 reams.",
+      "w": 4.4,
+      "h": 7.6,
+      "tag": "top"
+    },
+    {
+      "x": 87.8,
+      "y": 18.6,
+      "title": "Order",
+      "text": "Creates the request for quotation for Paper Mills Inc.",
+      "w": 4.6,
+      "h": 3.2,
+      "tag": "bottom"
+    }
+  ],
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts there are in ₹ with Indian GST. Odoo 20 has no Multiple Quantity field on the rule; rounding comes from packagings."
+}
+\`\`\`
+
 Other automation: MTO route, reservation method, automatic backorders, putaway rules, and (Enterprise) automated actions via Studio.
 
 ## 10. Reports and dashboards
@@ -628,6 +1806,8 @@ Exact menu names can change between 17 and 18 (verify in your training instance)
 
 ### Manual vs Automated valuation
 
+> **Odoo 20 note:** the category's Inventory Valuation options are now **Periodic (at closing)** and **Perpetual (at invoicing)** (checked in an Odoo 20 database). The entries below show the classic Odoo 17 automated (Anglo-Saxon) flow; confirm the exact postings in your version's test database before advising finance.
+
 - **Manual (periodic):** stock valuation layers are created, but **no journal entries** are posted at each move. Accountants post a periodic adjustment.
 - **Automated (perpetual):** every incoming/outgoing valued move posts a journal entry in the category's *Stock Journal*.
 
@@ -635,42 +1815,93 @@ Exact menu names can change between 17 and 18 (verify in your training instance)
 
 Account names follow the generic chart (Stock Valuation, Stock Interim (Received), Stock Interim (Delivered)); your localization may differ.
 
-**Receipt of 300 reams @ 4.00**
+\`\`\`visual-journal
+{
+  "title": "Receipt of 300 reams @ 4.00",
+  "lines": [
+    {
+      "account": "Stock Valuation",
+      "debit": "1,200.00"
+    },
+    {
+      "account": "Stock Interim (Received) — Stock Input",
+      "credit": "1,200.00"
+    }
+  ]
+}
+\`\`\`
 
-| Account | Debit | Credit |
-|---|---|---|
-| Stock Valuation | 1,200.00 | |
-| Stock Interim (Received) — Stock Input | | 1,200.00 |
+\`\`\`visual-journal
+{
+  "title": "Vendor bill for 300 reams @ 4.00",
+  "lines": [
+    {
+      "account": "Stock Interim (Received)",
+      "debit": "1,200.00"
+    },
+    {
+      "account": "Accounts Payable",
+      "credit": "1,200.00"
+    }
+  ]
+}
+\`\`\`
 
-**Vendor bill for 300 reams @ 4.00**
+\`\`\`visual-journal
+{
+  "title": "Delivery of 120 reams (AVCO 4.00)",
+  "lines": [
+    {
+      "account": "Stock Interim (Delivered) — Stock Output",
+      "debit": "480.00"
+    },
+    {
+      "account": "Stock Valuation",
+      "credit": "480.00"
+    }
+  ]
+}
+\`\`\`
 
-| Account | Debit | Credit |
-|---|---|---|
-| Stock Interim (Received) | 1,200.00 | |
-| Accounts Payable | | 1,200.00 |
+\`\`\`visual-journal
+{
+  "title": "Customer invoice 120 × 6.50 (tax ignored)",
+  "lines": [
+    {
+      "account": "Accounts Receivable",
+      "debit": "780.00"
+    },
+    {
+      "account": "Product Sales",
+      "credit": "780.00"
+    },
+    {
+      "account": "Cost of Goods Sold",
+      "debit": "480.00"
+    },
+    {
+      "account": "Stock Interim (Delivered)",
+      "credit": "480.00"
+    }
+  ]
+}
+\`\`\`
 
-**Delivery of 120 reams (AVCO 4.00)**
-
-| Account | Debit | Credit |
-|---|---|---|
-| Stock Interim (Delivered) — Stock Output | 480.00 | |
-| Stock Valuation | | 480.00 |
-
-**Customer invoice 120 × 6.50 (tax ignored)**
-
-| Account | Debit | Credit |
-|---|---|---|
-| Accounts Receivable | 780.00 | |
-| Product Sales | | 780.00 |
-| Cost of Goods Sold | 480.00 | |
-| Stock Interim (Delivered) | | 480.00 |
-
-**Physical inventory loss: 3 toner @ 55.00**
-
-| Account | Debit | Credit |
-|---|---|---|
-| Inventory loss / adjustment expense (per location or category accounts) | 165.00 | |
-| Stock Valuation | | 165.00 |
+\`\`\`visual-journal
+{
+  "title": "Physical inventory loss: 3 toner @ 55.00",
+  "lines": [
+    {
+      "account": "Inventory loss / adjustment expense (per location or category accounts)",
+      "debit": "165.00"
+    },
+    {
+      "account": "Stock Valuation",
+      "credit": "165.00"
+    }
+  ]
+}
+\`\`\`
 
 **Scrap 5 chairs @ 120.00** — similar: debit the scrap/loss account, credit Stock Valuation 600.00.
 
@@ -720,6 +1951,74 @@ Internal transfers between internal locations create **no** journal entry. Accou
 | Cannot change product type/UoM | Stock moves already exist | Archive and create a new product, or clear moves in a test DB only |
 | Valuation report ≠ Stock Valuation GL | Manual entries to stock account, or manual-valuation categories | Lock the stock account against manual posting by policy; reconcile differences |
 
+\`\`\`visual-decision
+{
+  "title": "Stock shows on hand but the delivery cannot reserve it",
+  "start": "where",
+  "nodes": {
+    "where": {
+      "question": "Is the stock inside the delivery's source location (e.g. NW/Stock and its racks)?",
+      "options": [
+        {
+          "label": "Yes",
+          "next": "reserved"
+        },
+        {
+          "label": "No",
+          "next": "move"
+        }
+      ]
+    },
+    "move": {
+      "result": "Finish the earlier step or move it",
+      "tone": "warning",
+      "detail": "Stock in NW/Input or another warehouse is not reservable: complete the Input ▸ Stock step or create an internal transfer."
+    },
+    "reserved": {
+      "question": "Is it already reserved by another transfer?",
+      "options": [
+        {
+          "label": "Yes",
+          "next": "unreserve"
+        },
+        {
+          "label": "No",
+          "next": "lot"
+        }
+      ]
+    },
+    "unreserve": {
+      "result": "Unreserve or re-prioritise",
+      "tone": "info",
+      "detail": "Unreserve the other transfer or change priorities, then Check Availability."
+    },
+    "lot": {
+      "question": "Does the product need a specific lot, package or owner?",
+      "options": [
+        {
+          "label": "Yes",
+          "next": "lotfix"
+        },
+        {
+          "label": "No",
+          "next": "count"
+        }
+      ]
+    },
+    "lotfix": {
+      "result": "Select the right lot or package",
+      "tone": "info",
+      "detail": "Reservation only takes matching lots/packages/owners."
+    },
+    "count": {
+      "result": "Count the location",
+      "tone": "danger",
+      "detail": "On-hand data may be wrong: run a physical count of the location and apply it."
+    }
+  }
+}
+\`\`\`
+
 ## 14. Practical assignments (task list)
 
 Complete these in your training instance using Northwind data:
@@ -737,6 +2036,34 @@ Complete these in your training instance using Northwind data:
 - [ ] Export the Valuation report and reconcile it to the Stock Valuation account balance.
 
 ## 15. Interview questions with model answers
+
+\`\`\`visual-check
+{
+  "question": "A receipt for 500 is validated with 300. What does Odoo do by default?",
+  "options": [
+    "Rejects the receipt",
+    "Asks whether to create a backorder for the remaining 200",
+    "Silently cancels the 200",
+    "Creates a vendor refund"
+  ],
+  "correct": 1,
+  "explanation": "With the default backorder policy (Ask), Odoo shows the Create Backorder dialog: you saw it in the Odoo 20 screens of lesson 4."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Which move posts NO accounting entry?",
+  "options": [
+    "Receipt from a vendor",
+    "Delivery to a customer",
+    "Pick from NW/Stock to NW/Output",
+    "Scrap of damaged chairs"
+  ],
+  "correct": 2,
+  "explanation": "Internal transfers (like the pick to the dispatch bay) keep goods inside the company, so value does not change."
+}
+\`\`\`
 
 **Q1. What is the difference between a Storable Product and a Consumable in Odoo 17?**
 *Model answer:* Storable products have on-hand quantities tracked per location and are valued; consumables create stock moves but Odoo assumes they are always available and does not value them. In Odoo 18 this is expressed by a Goods product with or without the Track Inventory checkbox.

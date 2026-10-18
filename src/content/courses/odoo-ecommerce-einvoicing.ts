@@ -408,6 +408,164 @@ Lea returns **1 hoodie** within 30 days.
 
 > **Consultant tip:** Agree the return policy in configuration terms: Is shipping refunded? Are returned items resaleable (stock) or damaged (scrap)? Who triggers the refund — warehouse or customer service? Each answer changes the steps above.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Handle a web-shop return: return receipt and credit note",
+  "intro": "Lea Martens ordered 2 Canal Hoodies from the web shop (S00006) and has not paid the invoice yet. She sends **1 hoodie** back within 30 days.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "One hoodie is back in NW/Stock. Odoo matched the credit note against Lea's open invoice, so she now owes only ₹2,623.94 for the hoodie she kept. Had she already paid online, the credit note would stay open and you would refund it.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-ecommerce-einvoicing/sims/web-return-01.webp",
+      "alt": "Done delivery order for 2 Canal Hoodies to Lea Martens with the Return button.",
+      "path": "Inventory ▸ Deliveries",
+      "task": "The parcel came back. On Lea's delivery **NW/OUT/00002**, **start a return**.",
+      "target": {
+        "x": 4.75,
+        "y": 11.75,
+        "w": 5,
+        "h": 4.2,
+        "label": "Return"
+      },
+      "explain": "Odoo 20 creates a draft **return receipt** straight away, with nothing to return yet."
+    },
+    {
+      "src": "/visuals/odoo-ecommerce-einvoicing/sims/web-return-02.webp",
+      "alt": "Draft return receipt for Canal Hoodie with demand 0 and the Return All and Clear buttons.",
+      "path": "Inventory ▸ Receipts",
+      "task": "Lea returns **1** hoodie, not both. Set the quantity to return.",
+      "target": {
+        "x": 39.15,
+        "y": 48.45,
+        "w": 7.6,
+        "h": 5,
+        "label": "the Demand cell"
+      },
+      "input": {
+        "label": "Quantity to return",
+        "answer": "1",
+        "placeholder": "hoodies"
+      },
+      "traps": [
+        {
+          "x": 54.15,
+          "y": 67.55,
+          "w": 6.4,
+          "h": 4.2,
+          "feedback": "**Return All** would take back both hoodies. Lea kept one."
+        }
+      ],
+      "explain": "The return receipt now expects 1 hoodie back into NW/Stock."
+    },
+    {
+      "src": "/visuals/odoo-ecommerce-einvoicing/sims/web-return-03.webp",
+      "alt": "Return receipt for 1 Canal Hoodie with the Validate button.",
+      "path": "Inventory ▸ Receipts",
+      "task": "The hoodie is checked and resaleable. **Receive it back into stock.**",
+      "target": {
+        "x": 8.95,
+        "y": 11.75,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Validate"
+      },
+      "traps": [
+        {
+          "x": 14.35,
+          "y": 11.75,
+          "w": 4.9,
+          "h": 4.2,
+          "feedback": "Cancel drops the return. The hoodie did come back."
+        }
+      ],
+      "explain": "1 hoodie is back in NW/Stock. (A damaged item would be scrapped instead.)"
+    },
+    {
+      "src": "/visuals/odoo-ecommerce-einvoicing/sims/web-return-04.webp",
+      "alt": "Posted invoice for 2 Canal Hoodies with the Credit Note button.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "Now the money side. On Lea's invoice, **start a credit note**.",
+      "target": {
+        "x": 17.35,
+        "y": 12.15,
+        "w": 7.1,
+        "h": 4.2,
+        "label": "Credit Note"
+      },
+      "explain": "The reversal dialog opens."
+    },
+    {
+      "src": "/visuals/odoo-ecommerce-einvoicing/sims/web-return-05.webp",
+      "alt": "Credit note dialog with the Reverse button.",
+      "path": "Credit Note",
+      "task": "**Create the credit note.**",
+      "target": {
+        "x": 16.85,
+        "y": 62.95,
+        "w": 5.4,
+        "h": 4.2,
+        "label": "Reverse"
+      },
+      "traps": [
+        {
+          "x": 22.35,
+          "y": 62.95,
+          "w": 13.9,
+          "h": 4.2,
+          "feedback": "That also re-invoices. Lea only returns goods."
+        }
+      ],
+      "explain": "A draft credit note opens with the invoice line (2 hoodies)."
+    },
+    {
+      "src": "/visuals/odoo-ecommerce-einvoicing/sims/web-return-06.webp",
+      "alt": "Draft credit note for 2 Canal Hoodies.",
+      "path": "Accounting ▸ Customers ▸ Credit Notes",
+      "task": "Credit only the **1** returned hoodie. Set the quantity.",
+      "target": {
+        "x": 21.95,
+        "y": 67.95,
+        "w": 7.6,
+        "h": 7,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "1",
+        "placeholder": "hoodies"
+      },
+      "explain": "The credit note now covers 1 hoodie plus GST."
+    },
+    {
+      "src": "/visuals/odoo-ecommerce-einvoicing/sims/web-return-07.webp",
+      "alt": "Draft credit note for 1 hoodie with the Confirm button.",
+      "path": "Accounting ▸ Customers ▸ Credit Notes",
+      "task": "**Post the credit note.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.85,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "Revenue and GST for 1 hoodie are reversed."
+    },
+    {
+      "src": "/visuals/odoo-ecommerce-einvoicing/sims/web-return-08.webp",
+      "alt": "Posted credit note for Lea Martens.",
+      "path": "Accounting ▸ Customers ▸ Credit Notes",
+      "task": "The credit note is posted and shows **Paid**.",
+      "explain": "Paid here means *settled against Lea's invoice*: the credit note was reconciled with the open invoice INV/26-27/0004, which now shows Partially Paid."
+    }
+  ]
+}
+\`\`\`
+
 ## Key takeaways
 
 - Products must be published, priced tax-included and set to the right invoicing policy for automatic invoicing.
