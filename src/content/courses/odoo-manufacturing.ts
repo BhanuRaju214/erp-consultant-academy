@@ -68,6 +68,22 @@ Throughout this course we work with our fictional client:
 | Manufacture route | Route on the product telling replenishment to create an MO instead of an RFQ |
 | Unbuild order | Reverses production: dismantles a finished product back into components |
 
+\`\`\`visual-cards
+{
+  "label": "Key concepts",
+  "title": "Manufacturing building blocks at Timbercraft",
+  "columns": 3,
+  "cards": [
+    { "icon": "list", "title": "Bill of Materials", "body": "Kitchen Cabinet 60cm = Oak Panel 18mm, hinges, drawer runners and screws." },
+    { "icon": "workflow", "title": "Operations", "body": "Cut, Assemble, Finish with default durations (Work Orders setting)." },
+    { "icon": "factory", "title": "Work centers", "body": "Cutting, Assembly and Finishing, each with capacity, hours and cost per hour." },
+    { "icon": "clipboard", "title": "Manufacturing order", "body": "Instructs production of a quantity from a BoM; underneath it is a set of stock moves." },
+    { "icon": "clock", "title": "Work order", "body": "One operation of one MO, timed at its work center.", "tone": "info" },
+    { "icon": "refresh", "title": "Manufacture route", "body": "Makes replenishment create MOs instead of RFQs; with MTO, a sales order creates the MO." }
+  ]
+}
+\`\`\`
+
 ## 2. Business problems solved
 
 | Business problem | How Odoo Manufacturing solves it |
@@ -80,6 +96,32 @@ Throughout this course we work with our fictional client:
 | Some steps are outsourced (spray finishing in peak season) | Subcontracting BoMs with resupply and receipt via purchase order |
 | Defects found after shipping | Lot/serial tracking on finished goods, Quality checks (Enterprise) |
 | Engineering changes made by word of mouth | BoM versions and Engineering Change Orders in PLM (Enterprise) |
+
+\`\`\`visual-beforeafter
+{
+  "title": "Timbercraft Furniture Works: before and after Odoo Manufacturing",
+  "before": {
+    "title": "Paper job cards",
+    "points": [
+      "Nobody knows what a Kitchen Cabinet 60cm really costs",
+      "The line stops when oak panels run out",
+      "Job cards get lost between Cutting and Finishing",
+      "Over-consumption of oak is invisible",
+      "Custom orders are built without a clear trigger"
+    ]
+  },
+  "after": {
+    "title": "BoMs, MOs and work orders",
+    "points": [
+      "BoM cost roll-up plus work center cost per hour on real time",
+      "Component availability on the MO and reordering rules for panels",
+      "Work orders with start, pause and done time tracking",
+      "Consumption flexibility and scrap records expose over-use",
+      "MTO + Manufacture routes create an MO from each confirmed sales order"
+    ]
+  }
+}
+\`\`\`
 
 ## 3. Process flow
 
@@ -170,6 +212,47 @@ With **3-step manufacturing** (warehouse setting) the flow gains two internal tr
 
 > **Consultant tip:** In the discovery workshop, walk the shop floor with the production manager. Count the *physical* stops a cabinet makes and the places where somebody would actually record time. Those become your work centers and operations. Do not model eight operations when the client will only ever click "done" once per shift.
 
+\`\`\`visual-hub
+{
+  "title": "Manufacturing and the apps around it",
+  "caption": "Quality, PLM, MPS and the Shop Floor view are Enterprise.",
+  "center": { "label": "Manufacturing (mrp)", "icon": "factory" },
+  "nodes": [
+    { "label": "Inventory", "icon": "warehouse", "detail": "Components and finished goods move through the virtual Production location." },
+    { "label": "Purchase", "icon": "cart", "detail": "Buys components; subcontracting is received through a PO." },
+    { "label": "Sales", "icon": "file", "detail": "MTO sales orders create MOs." },
+    { "label": "Accounting", "icon": "landmark", "detail": "Component and labour cost flow into finished-goods valuation." },
+    { "label": "Quality", "icon": "shield", "detail": "Quality checks on operations (Enterprise)." },
+    { "label": "PLM", "icon": "layers", "detail": "BoM versions and engineering change orders (Enterprise)." }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-order
+{
+  "title": "Plan-to-Produce at Timbercraft",
+  "prompt": "Put the steps for a make-to-order cabinet in order (1-step manufacturing).",
+  "items": [
+    "Sales order for 10 Kitchen Cabinets 60cm is confirmed",
+    "MTO + Manufacture routes create the MO",
+    "Components are checked as available and reserved",
+    "Work orders run at Cutting, Assembly and Finishing",
+    "MO is marked done: components consumed, cabinets added to stock",
+    "Cabinets are delivered to the customer"
+  ],
+  "explanation": "The MO consumes components into the Production location and brings finished goods back into stock before delivery can take them."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "In Odoo, what is a manufacturing order underneath?",
+  "options": ["A purchase order to the shop floor", "A set of stock moves through the virtual Production location", "A journal entry", "A project task"],
+  "correct": 1,
+  "explanation": "Components move from stock into Production and finished goods move from Production into stock; that is why Manufacturing depends on Inventory."
+}
+\`\`\`
+
 ## How this course is structured
 
 | Lesson | Template points covered |
@@ -244,6 +327,25 @@ Before the first MO can be confirmed you need, in this order:
 8. **Opening stock** of components and finished goods.
 9. **Reordering rules** for critical components and make-to-stock finished goods.
 
+\`\`\`visual-order
+{
+  "title": "Timbercraft set-up order",
+  "prompt": "Put Timbercraft's prerequisites in the order they must exist before the first MO can be confirmed.",
+  "items": [
+    "Company, currency and fiscal settings",
+    "Units of measure (m² for oak panels)",
+    "Product categories with costing method and valuation",
+    "Warehouse with manufacturing steps",
+    "Products with Buy or Manufacture routes",
+    "Work centers (if Work Orders is enabled)",
+    "Bills of materials",
+    "Opening stock",
+    "Reordering rules"
+  ],
+  "explanation": "Each item references the one before it: products need categories and UoM, BoMs need products and work centers, and opening stock and reordering rules need finished products and components to exist."
+}
+\`\`\`
+
 | Master data | Template / source | Owner at client |
 |---|---|---|
 | Products | /api/templates/products | Production planner + purchasing |
@@ -267,6 +369,23 @@ Go to **Manufacturing ▸ Configuration ▸ Settings**. Labels below are those o
 | Master Production Schedule | Planning grid by product and period | Enterprise — phase 2 |
 | Product Lifecycle Management (PLM) | ECOs and BoM versioning | Enterprise — not in scope |
 
+\`\`\`visual-match
+{
+  "title": "Manufacturing setting and its effect",
+  "prompt": "Match each Manufacturing setting to what it enables at Timbercraft.",
+  "leftLabel": "Setting",
+  "rightLabel": "Effect",
+  "pairs": [
+    { "left": "Work Orders", "right": "Operations on BoMs, work centers and time tracking per cabinet" },
+    { "left": "Work Order Dependencies", "right": "Finishing cannot start before Assembly is done" },
+    { "left": "By-Products", "right": "Oak offcuts produced as firewood bundles" },
+    { "left": "Subcontracting", "right": "Subcontracting BoM type for peak-season spray finishing" },
+    { "left": "Master Production Schedule", "right": "Planning grid by product and period (Enterprise)" }
+  ],
+  "explanation": "Each setting unlocks fields or BoM types; record the business reason for every one in the configuration workbook."
+}
+\`\`\`
+
 Inventory settings that matter for manufacturing (**Inventory ▸ Configuration ▸ Settings**):
 
 - **Multi-Step Routes** — required for 2-/3-step manufacturing.
@@ -285,6 +404,21 @@ Open **Inventory ▸ Configuration ▸ Warehouses ▸ TC**. With Multi-Step Rout
 
 Timbercraft chooses **2 steps**: oak panels live in the raw-material store and a storeman picks them to the line before each MO.
 
+\`\`\`visual-decision
+{
+  "title": "How many manufacturing steps?",
+  "caption": "Warehouse setting; 2 and 3 steps require Multi-Step Routes.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Are components stored at the production line?", "options": [ { "label": "Yes", "next": "r1" }, { "label": "No, in a central store", "next": "q2" } ] },
+    "q2": { "question": "Do finished products go to a separate finished-goods area?", "options": [ { "label": "No", "next": "r2" }, { "label": "Yes", "next": "r3" } ] },
+    "r1": { "result": "Manufacture (1 step): MO only", "tone": "info", "detail": "Small shops where components already sit at the line." },
+    "r2": { "result": "2 steps: Pick Components + MO", "tone": "success", "detail": "Timbercraft's choice: a storeman picks oak panels to the line before each MO." },
+    "r3": { "result": "3 steps: Pick Components + MO + Store Finished Product", "tone": "info", "detail": "Adds a transfer from production to the finished-goods area." }
+  }
+}
+\`\`\`
+
 ### Product routes
 
 On each finished product, **Inventory tab ▸ Routes**: tick **Manufacture**. For made-to-order cabinets also tick **Replenish on Order (MTO)** (the MTO route is archived by default; unarchive it under Inventory ▸ Configuration ▸ Routes). On components tick **Buy**.
@@ -294,6 +428,15 @@ On each finished product, **Inventory tab ▸ Routes**: tick **Manufacture**. Fo
 Manufacturing has User and Administrator access rights (Settings ▸ Users). Give planners User, the production manager Administrator, and operators the minimum they need (on Enterprise, Shop Floor access — verify the right group in your instance).
 
 > **Consultant tip:** Record each setting in a configuration workbook with three columns: *setting*, *value*, *business reason*. When someone asks in six months why By-Products is on, the workbook answers.
+
+\`\`\`visual-check
+{
+  "question": "A Timbercraft planner cannot find Work Centers under Manufacturing ▸ Configuration and the BoM has no Operations tab. What is missing?",
+  "options": ["The MTO route is archived", "Work Orders is not enabled in Manufacturing settings", "Multi-Step Routes is off", "The planner lacks Shop Floor access"],
+  "correct": 1,
+  "explanation": "Work centers, operations and work orders only appear once the Work Orders setting is on. Multi-Step Routes controls warehouse steps, and MTO affects replenishment, not BoM operations."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -402,6 +545,166 @@ Go to **Manufacturing ▸ Products ▸ Bills of Materials ▸ New**.
 
 If Timbercraft sells the cabinet in Oak and Walnut finishes as **product variants**, one BoM can serve all variants. Each BoM line has an **Apply on Variants** field so that "Oak Panel 18mm" applies only to the Oak variant and "Walnut Panel 18mm" only to the Walnut variant. Requires the Variants setting in Sales/Inventory.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Create a bill of materials",
+  "intro": "Timbercraft-style recipe for the new **Oak Bookshelf**: 1.2 m² of oak panel and 16 wood screws per bookshelf.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "The Oak Bookshelf has a bill of materials: manufacturing orders for it now list the components and their cost automatically.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-01.webp",
+      "alt": "Bills of materials list with the New button.",
+      "path": "Manufacturing ▸ Products ▸ Bills of Materials",
+      "task": "**Create a new bill of materials.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty BoM opens."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-02.webp",
+      "alt": "Product dropdown on the BoM showing Oak Bookshelf.",
+      "path": "Manufacturing ▸ Bill of Materials",
+      "task": "**Pick the product** Oak Bookshelf.",
+      "target": {
+        "x": 9.05,
+        "y": 17.75,
+        "w": 21.6,
+        "h": 3.5,
+        "label": "Oak Bookshelf"
+      },
+      "explain": "This recipe produces 1 Oak Bookshelf."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-03.webp",
+      "alt": "BoM form with the Components tab and Add a line.",
+      "path": "Manufacturing ▸ Bill of Materials ▸ Components",
+      "task": "**Add the first component.**",
+      "target": {
+        "x": 3.25,
+        "y": 37.45,
+        "w": 5,
+        "h": 3.1,
+        "label": "Add a line"
+      },
+      "explain": "A component line opens."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-04.webp",
+      "alt": "Component dropdown showing Oak Panel (m²).",
+      "path": "Manufacturing ▸ Bill of Materials ▸ Components",
+      "task": "**Pick Oak Panel (m²).**",
+      "target": {
+        "x": 3.65,
+        "y": 46.35,
+        "w": 23.9,
+        "h": 3.5,
+        "label": "Oak Panel (m²)"
+      },
+      "explain": "Oak panel is the main raw material."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-05.webp",
+      "alt": "Component line for Oak Panel with quantity 1.",
+      "path": "Manufacturing ▸ Bill of Materials ▸ Components",
+      "task": "One bookshelf uses **1.2** m². Set the quantity.",
+      "target": {
+        "x": 27.65,
+        "y": 36.55,
+        "w": 7.6,
+        "h": 5,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "1.2",
+        "placeholder": "m²"
+      },
+      "explain": "Quantities are per 1 finished product (the BoM quantity)."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-06.webp",
+      "alt": "BoM with one component line and Add a line.",
+      "path": "Manufacturing ▸ Bill of Materials ▸ Components",
+      "task": "**Add the second component.**",
+      "target": {
+        "x": 3.25,
+        "y": 41.95,
+        "w": 5,
+        "h": 3.1,
+        "label": "Add a line"
+      },
+      "explain": "Another line opens."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-07.webp",
+      "alt": "Component dropdown showing Wood Screw.",
+      "path": "Manufacturing ▸ Bill of Materials ▸ Components",
+      "task": "**Pick Wood Screw.**",
+      "target": {
+        "x": 3.65,
+        "y": 50.85,
+        "w": 23.9,
+        "h": 3.5,
+        "label": "Wood Screw"
+      },
+      "explain": "Screws are a consumable component."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-08.webp",
+      "alt": "Second component line for Wood Screw with quantity 1.",
+      "path": "Manufacturing ▸ Bill of Materials ▸ Components",
+      "task": "Each bookshelf needs **16** screws. Set the quantity.",
+      "target": {
+        "x": 27.65,
+        "y": 41.05,
+        "w": 7.6,
+        "h": 5,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "16",
+        "placeholder": "screws"
+      },
+      "explain": "Both components are listed."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-09.webp",
+      "alt": "Complete bill of materials with two components and the save button.",
+      "path": "Manufacturing ▸ Bill of Materials",
+      "task": "**Save the bill of materials.**",
+      "target": {
+        "x": 12.35,
+        "y": 6.55,
+        "w": 2.4,
+        "h": 3.9,
+        "label": "Save"
+      },
+      "hint": "The cloud icon next to the breadcrumb saves the record.",
+      "explain": "Saved: the recipe is active."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/cfg-mrp-bom-10.webp",
+      "alt": "Saved bill of materials for Oak Bookshelf.",
+      "path": "Manufacturing ▸ Bill of Materials",
+      "task": "The bill of materials is saved.",
+      "explain": "Next steps in a real project: add operations (work orders) if routing is enabled, and check the BoM cost with the BoM Overview."
+    }
+  ]
+}
+\`\`\`
+
 ### 7.4 Worked cost roll-up
 
 On the product form of Kitchen Cabinet 60cm, use **Compute Price from BoM** (action on the product; the BoM Overview / Structure & Cost report shows the same breakdown — verify exact button label).
@@ -428,6 +731,59 @@ On the product form of Kitchen Cabinet 60cm, use **Compute Price from BoM** (act
 **Cost of one Kitchen Cabinet 60cm = 60.20 + 46.00 = 106.20**
 
 Check: 20/60 × 30 = 10.00; 45/60 × 24 = 18.00; 30/60 × 36 = 18.00. By-product cost share is 0% here, so the full cost stays on the cabinet (if you assign a cost share % to a by-product, that share of the MO cost moves to the by-product — verify behaviour in your instance).
+
+#### In Odoo 20: Bill of materials for one cabinet
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-manufacturing/screens/mrp-bom.webp",
+  "alt": "Odoo 20 bill of materials for Kitchen Cabinet 60cm with four components and quantities.",
+  "title": "Bill of materials for one cabinet",
+  "path": "Manufacturing ▸ Products ▸ Bills of Materials",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 19.8,
+      "y": 16.1,
+      "w": 22.4,
+      "h": 3.3,
+      "tag": "right",
+      "title": "Product",
+      "text": "What this recipe produces."
+    },
+    {
+      "x": 11.6,
+      "y": 20.2,
+      "w": 6.1,
+      "h": 3.3,
+      "tag": "right",
+      "title": "Quantity",
+      "text": "Recipe for 1 cabinet; MOs scale it."
+    },
+    {
+      "x": 49.7,
+      "y": 22.3,
+      "w": 23,
+      "h": 7.5,
+      "tag": "left",
+      "title": "BoM Type",
+      "text": "Manufacture this product (vs kit or subcontracting)."
+    },
+    {
+      "x": 31.9,
+      "y": 47.5,
+      "w": 58.7,
+      "h": 26.5,
+      "tag": "top",
+      "title": "Components",
+      "text": "1.8 m² oak, 4 hinges, 1 runner pair, 24 screws per cabinet."
+    }
+  ],
+  "caption": "Real screen from an Odoo 20 training database with fictional Northwind data; amounts in ₹ with Indian GST."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -661,9 +1017,186 @@ If only 6 cabinets are finished today, set quantity produced to 6 and Mark as Do
 
 A spray defect ruins one carcass. From the MO click **Scrap**, choose the product (finished cabinet or a component), quantity and scrap location. The scrap is a stock move to Virtual Locations/Scrap and is valued at cost. Scraps are also listed under Manufacturing ▸ Operations (verify menu) and Inventory scrap reporting.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Scrap a damaged component during production",
+  "intro": "On NW/MO/00002-002 an oak panel cracks while it is being cut. Record **1 m²** of oak as scrap.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "1 m² of oak left stock as scrap, valued at cost. The MO cost and the scrap report show the loss.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-scrap-01.webp",
+      "alt": "Manufacturing order NW/MO/00002-002 with the action menu.",
+      "path": "Manufacturing ▸ Manufacturing Order",
+      "task": "Scrap is in the order's **action menu** (the gear). Open it.",
+      "target": {
+        "x": 14.05,
+        "y": 7.55,
+        "w": 2.3,
+        "h": 2.9,
+        "label": "the action menu"
+      },
+      "explain": "The menu lists actions for this order."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-scrap-02.webp",
+      "alt": "Action menu of the manufacturing order showing Scrap.",
+      "path": "Manufacturing Order ▸ Actions",
+      "task": "**Choose Scrap.**",
+      "target": {
+        "x": 14.45,
+        "y": 30.85,
+        "w": 14.7,
+        "h": 3.5,
+        "label": "Scrap"
+      },
+      "explain": "The scrap dialog opens, linked to this MO."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-scrap-03.webp",
+      "alt": "Scrap dialog with the product dropdown showing Oak Panel.",
+      "path": "Scrap Products",
+      "task": "**Pick the damaged component**, Oak Panel.",
+      "target": {
+        "x": 24.25,
+        "y": 43.55,
+        "w": 24.6,
+        "h": 3.5,
+        "label": "Oak Panel (m²)"
+      },
+      "explain": "You can scrap a component or the finished product."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-scrap-04.webp",
+      "alt": "Scrap dialog for Oak Panel with the quantity field.",
+      "path": "Scrap Products",
+      "task": "**1** m² is damaged. Set the quantity.",
+      "target": {
+        "x": 23.85,
+        "y": 44.45,
+        "w": 12.7,
+        "h": 3.2,
+        "label": "Quantity"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "1",
+        "placeholder": "m²"
+      },
+      "explain": "1 m² will move to the scrap location."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-scrap-05.webp",
+      "alt": "Filled scrap dialog with the Confirm button.",
+      "path": "Scrap Products",
+      "task": "**Confirm the scrap.**",
+      "target": {
+        "x": 16.85,
+        "y": 61.35,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "Stock of oak drops by 1 m² and the loss is valued."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-scrap-06.webp",
+      "alt": "Manufacturing order with the Scraps smart button.",
+      "path": "Manufacturing ▸ Manufacturing Order",
+      "task": "The scrap is recorded.",
+      "explain": "The **Scraps** smart button on the MO lists it; replace the panel before finishing the order."
+    }
+  ]
+}
+\`\`\`
+
 ### 8.5 Unbuild orders
 
 A customer returns a cabinet that is reused for parts. **Manufacturing ▸ Operations ▸ Unbuild Orders ▸ New**: product, BoM, quantity 1, lot if tracked, **Unbuild**. Odoo consumes the finished cabinet and returns components per the BoM to stock. (Consumables such as screws come back on paper too — adjust with a scrap if they are physically lost.)
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Unbuild a returned cabinet",
+  "intro": "A customer returned **1 Kitchen Cabinet 60cm**. It will be taken apart and its parts reused.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "The cabinet left stock and its components came back according to the BoM. Physically lost parts (e.g. screws) should then be scrapped.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-unbuild-01.webp",
+      "alt": "Unbuild orders list with the New button.",
+      "path": "Manufacturing ▸ Operations ▸ Unbuild Orders",
+      "task": "**Create an unbuild order.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty unbuild order opens."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-unbuild-02.webp",
+      "alt": "Product dropdown showing Kitchen Cabinet 60cm.",
+      "path": "Unbuild Order",
+      "task": "**Pick Kitchen Cabinet 60cm.**",
+      "target": {
+        "x": 10.45,
+        "y": 28.55,
+        "w": 21.4,
+        "h": 3.5,
+        "label": "Kitchen Cabinet 60cm"
+      },
+      "explain": "Odoo proposes the cabinet's bill of materials."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-unbuild-03.webp",
+      "alt": "Source Location dropdown showing NW/Stock.",
+      "path": "Unbuild Order ▸ Source Location",
+      "task": "The cabinet is in Northwind Main. **Pick NW/Stock** as the source.",
+      "target": {
+        "x": 44.45,
+        "y": 32.75,
+        "w": 16.3,
+        "h": 3.5,
+        "label": "NW/Stock"
+      },
+      "explain": "The cabinet is taken from NW/Stock and the components return there."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-unbuild-04.webp",
+      "alt": "Unbuild order for 1 Kitchen Cabinet with the Unbuild button.",
+      "path": "Unbuild Order",
+      "task": "Quantity 1 is right. **Unbuild.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.5,
+        "h": 4.2,
+        "label": "Unbuild"
+      },
+      "explain": "Odoo consumes the cabinet and returns 1.8 m² oak, 4 hinges, 1 runner pair and 24 screws."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-unbuild-05.webp",
+      "alt": "Done unbuild order for the Kitchen Cabinet.",
+      "path": "Manufacturing ▸ Unbuild Orders",
+      "task": "The unbuild is done.",
+      "explain": "Check the product moves: one cabinet out, four components in."
+    }
+  ]
+}
+\`\`\`
 
 ### 8.6 Make-to-order flow
 
@@ -681,6 +1214,160 @@ Peak season: SprayPro Finishing (fictional subcontractor) finishes cabinets.
 4. Create a **purchase order** to SprayPro for 20 cabinets. On confirmation Odoo creates a receipt and an underlying subcontracting MO; if components must be sent, a **resupply** transfer to the subcontractor location is created (via the Resupply Subcontractor route on components).
 5. When finished cabinets arrive, validate the **receipt**; Odoo records component consumption at the subcontractor and the finished goods entering stock.
 6. The vendor bill is for the service fee only; the cabinet value = components sent + subcontracting fee.
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Buy finished panels from a subcontractor",
+  "intro": "SprayPro Finishing lacquers oak panels for Northwind. Order **10 Lacquered Oak Panels**; SprayPro uses Northwind's oak (subcontracting BoM).",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "10 lacquered panels are in NW/Stock. Odoo also recorded the subcontracting production: 10 m² of Northwind's oak consumed at SprayPro. The vendor bill is only for SprayPro's service fee.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-01.webp",
+      "alt": "RFQ list with the New button.",
+      "path": "Purchase ▸ Requests for Quotation",
+      "task": "**Create an RFQ** to the subcontractor.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty RFQ opens."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-02.webp",
+      "alt": "Vendor dropdown showing SprayPro Finishing.",
+      "path": "Purchase ▸ RFQ ▸ Vendor",
+      "task": "**Pick SprayPro Finishing.**",
+      "target": {
+        "x": 13.05,
+        "y": 30.95,
+        "w": 17.7,
+        "h": 3.5,
+        "label": "SprayPro Finishing"
+      },
+      "explain": "SprayPro is the subcontractor on the panel's BoM."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-03.webp",
+      "alt": "RFQ for SprayPro with Add a product.",
+      "path": "Purchase ▸ RFQ",
+      "task": "**Add a product line.**",
+      "target": {
+        "x": 4.65,
+        "y": 54.95,
+        "w": 6.8,
+        "h": 3.1,
+        "label": "Add a product"
+      },
+      "explain": "A line opens."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-04.webp",
+      "alt": "Product dropdown showing Lacquered Oak Panel.",
+      "path": "Purchase ▸ RFQ",
+      "task": "**Select Lacquered Oak Panel.**",
+      "target": {
+        "x": 4.95,
+        "y": 57.95,
+        "w": 20.6,
+        "h": 3.5,
+        "label": "Lacquered Oak Panel"
+      },
+      "explain": "Price ₹300 = SprayPro's service fee per panel, from the vendor price list."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-05.webp",
+      "alt": "RFQ line for Lacquered Oak Panel with quantity 1.",
+      "path": "Purchase ▸ RFQ",
+      "task": "Order **10** panels.",
+      "target": {
+        "x": 12.55,
+        "y": 54.05,
+        "w": 7.6,
+        "h": 9.4,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "10",
+        "placeholder": "panels"
+      },
+      "explain": "10 × ₹300 service fee."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-06.webp",
+      "alt": "Deliver To dropdown with Northwind Main: Receipts.",
+      "path": "Purchase ▸ RFQ ▸ Deliver To",
+      "task": "Panels come to **Northwind Main**. Pick its receipts.",
+      "target": {
+        "x": 43.15,
+        "y": 43.15,
+        "w": 17.7,
+        "h": 3.5,
+        "label": "Northwind Main: Receipts"
+      },
+      "explain": "The finished panels will be received into NW/Stock."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-07.webp",
+      "alt": "Completed RFQ with Confirm Order.",
+      "path": "Purchase ▸ RFQ",
+      "task": "**Confirm the order.**",
+      "target": {
+        "x": 6.95,
+        "y": 11.75,
+        "w": 8.4,
+        "h": 4.2,
+        "label": "Confirm Order"
+      },
+      "explain": "Odoo creates the receipt and, behind it, a subcontracting manufacturing order at SprayPro."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-08.webp",
+      "alt": "Confirmed subcontracting PO with Receive.",
+      "path": "Purchase ▸ Orders",
+      "task": "SprayPro delivers the lacquered panels. **Open the receipt.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.4,
+        "h": 4.2,
+        "label": "Receive"
+      },
+      "explain": "The receipt shows the panels and a link to the components consumed."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-09.webp",
+      "alt": "Receipt of 10 lacquered panels with the Validate button.",
+      "path": "Inventory ▸ Receipts",
+      "task": "All 10 arrived. **Validate.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.85,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Validate"
+      },
+      "explain": "Panels enter NW/Stock; Odoo records the subcontracted production and consumes 10 m² of oak at SprayPro's location."
+    },
+    {
+      "src": "/visuals/odoo-manufacturing/sims/mrp-subcontract-10.webp",
+      "alt": "Done receipt of 10 lacquered oak panels.",
+      "path": "Inventory ▸ Receipts",
+      "task": "The panels are received.",
+      "explain": "Panel cost = oak consumed + SprayPro's fee. In practice you first send the oak with a resupply transfer."
+    }
+  ]
+}
+\`\`\`
 
 > **Consultant tip:** Always demo partial production, scrap and backorders in the user acceptance test. Users rarely produce exactly the planned quantity, and those edge cases are where trust in the system is won or lost.
 
@@ -734,6 +1421,19 @@ Standard Manufacturing has **no approval workflow on MOs**: any user with Manufa
 
 Worked reordering example: cabinet rule min 20 / max 50 / multiple 10, forecast 14. Quantity to reach max = 50 − 14 = 36, rounded up to a multiple of 10 = **40**, so Odoo proposes an MO for 40 cabinets.
 
+\`\`\`visual-flow
+{
+  "title": "Reordering rule to MO and component RFQ",
+  "caption": "Kitchen Cabinet 60cm: rule min 20 / max 50 / multiple 10, forecast 14.",
+  "steps": [
+    { "title": "Forecast below minimum", "icon": "warehouse", "app": "Inventory", "detail": "Forecast 14 is under the minimum of 20." },
+    { "title": "Rule computes the quantity", "icon": "refresh", "app": "Inventory", "detail": "50 minus 14 = 36, rounded up to a multiple of 10 = 40." },
+    { "title": "MO for 40 cabinets", "icon": "factory", "app": "Manufacturing", "detail": "Proposed because the product has the Manufacture route.", "odoo": "Inventory ▸ Operations ▸ Replenishment" },
+    { "title": "Component demand", "icon": "box", "app": "Inventory", "detail": "The MO's component needs lower their forecast.", "branch": { "when": "Component forecast below its minimum (Buy route)", "result": "RFQ to vendor", "tone": "info" } }
+  ]
+}
+\`\`\`
+
 ## 10. Reports and dashboards
 
 Menu names below are Odoo 17 defaults; edition-specific items should be verified.
@@ -749,6 +1449,23 @@ Menu names below are Odoo 17 defaults; edition-specific items should be verified
 | Stock valuation | Inventory ▸ Reporting ▸ Valuation | Value of raw materials and finished goods |
 
 OEE is often explained as Availability × Performance × Quality; in Odoo, OEE reporting is based on productivity time losses recorded on work centers (verify calculation details).
+
+\`\`\`visual-match
+{
+  "title": "Business question to report",
+  "prompt": "Match each question from Timbercraft's production manager to the report that answers it.",
+  "leftLabel": "Business question",
+  "rightLabel": "Report",
+  "pairs": [
+    { "left": "How many cabinets did we produce per month?", "right": "Manufacturing Orders analysis" },
+    { "left": "Did Assembly take longer than planned?", "right": "Work Orders analysis (expected vs real duration)" },
+    { "left": "How much time did the Cutting machine lose to blocks?", "right": "Overall Equipment Effectiveness" },
+    { "left": "What should one cabinet cost before we produce it?", "right": "BoM Overview (Structure & Cost)" },
+    { "left": "What is our finished goods inventory worth today?", "right": "Stock valuation" }
+  ],
+  "explanation": "Planning and time questions are answered in Manufacturing reporting; the money value of stock comes from Inventory ▸ Reporting ▸ Valuation."
+}
+\`\`\`
 
 ## 11. Accounting and inventory impact
 
@@ -775,17 +1492,29 @@ Under AVCO/FIFO the finished goods are valued at *actual* consumption and *actua
 
 **Journal entry 1 — component consumption**
 
-| Account | Debit | Credit |
-|---|---|---|
-| Production counterpart account (WIP / cost of production) | 602.00 | |
-| Stock Valuation – Raw Materials | | 602.00 |
+\`\`\`visual-journal
+{
+  "title": "Entry 1: components consumed by the MO for 10 cabinets",
+  "lines": [
+    { "account": "Production counterpart account (WIP / cost of production)", "debit": "602.00" },
+    { "account": "Stock Valuation – Raw Materials", "credit": "602.00" }
+  ],
+  "note": "AVCO, automated valuation: 10 × 60.20 of components leave stock for Virtual Locations/Production."
+}
+\`\`\`
 
 **Journal entry 2 — finished goods receipt**
 
-| Account | Debit | Credit |
-|---|---|---|
-| Stock Valuation – Finished Goods | 1,062.00 | |
-| Production counterpart account (WIP / cost of production) | | 1,062.00 |
+\`\`\`visual-journal
+{
+  "title": "Entry 2: 10 finished cabinets received into stock",
+  "lines": [
+    { "account": "Stock Valuation – Finished Goods", "debit": "1,062.00" },
+    { "account": "Production counterpart account (WIP / cost of production)", "credit": "1,062.00" }
+  ],
+  "note": "602.00 components + 460.00 work center time (Cutting 100, Assembly 180, Finishing 180) = 106.20 per cabinet."
+}
+\`\`\`
 
 Net on the production counterpart: 602.00 debit − 1,062.00 credit = **460.00 credit**, which is the labour and overhead absorbed into inventory. It offsets the real payroll and overhead expenses booked by Accounting.
 
@@ -796,6 +1525,15 @@ Net on the production counterpart: 602.00 debit − 1,062.00 credit = **460.00 c
 **Subcontracting**: receipt values the cabinet at components sent + subcontracting price; the vendor bill clears the interim account for the fee.
 
 > **Consultant tip:** Before go-live, run one MO in a test database and reconcile: Valuation report movement for finished goods = journal entry 2. If the numbers differ, check category valuation (Manual vs Automated) and the Production location accounts before anything else.
+
+\`\`\`visual-check
+{
+  "question": "The same MO for 10 cabinets runs again, but Assembly takes 500 minutes instead of 450 (AVCO). What is the finished goods value?",
+  "options": ["1,062.00", "1,082.00", "1,112.00", "602.00"],
+  "correct": 1,
+  "explanation": "Under AVCO/FIFO actual work order time is used: the extra 50 minutes × 24.00 / 60 = 20.00, so 1,062.00 + 20.00 = 1,082.00. Under Standard costing the cabinets would enter at the standard price instead."
+}
+\`\`\`
 
 ## 12. Integration with other apps
 
@@ -847,6 +1585,65 @@ Net on the production counterpart: 602.00 debit − 1,062.00 credit = **460.00 c
 | Lot required error on Mark as Done | Finished product tracked by lot/serial | Enter lot/serial before validating |
 | Cannot edit done MO | MO locked | Unlock (supervisor) or correct via unbuild/adjustment |
 
+\`\`\`visual-decision
+{
+  "title": "MO cost is higher than the BoM cost (106.20)",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Did the MO consume more components than the BoM, or record scrap?", "options": [ { "label": "Yes", "next": "r1" }, { "label": "No", "next": "q2" } ] },
+    "r1": { "result": "Over-consumption or scrap drives the cost", "tone": "warning", "detail": "Review consumed quantities and scrap; tighten consumption flexibility (Allowed with warning or Blocked)." },
+    "q2": { "question": "Is the real work order time longer than the expected duration?", "options": [ { "label": "Yes", "next": "r2" }, { "label": "No", "next": "q3" } ] },
+    "r2": { "result": "Labour time is the driver", "tone": "info", "detail": "Real time x work center cost per hour is added; check efficiency, default durations and timers left running." },
+    "q3": { "question": "Has a component cost risen since the last Compute Price from BoM (AVCO/FIFO)?", "options": [ { "label": "Yes", "next": "r3" }, { "label": "No", "next": "r4" } ] },
+    "r3": { "result": "Component costs changed", "tone": "info", "detail": "Recompute the BoM price to update the reference cost; with Standard price, revalue." },
+    "r4": { "result": "Check BoM quantities and units of measure", "tone": "danger", "detail": "A component in the wrong UoM (e.g. panels instead of m2) multiplies the cost." }
+  }
+}
+\`\`\`
+
+\`\`\`visual-decision
+{
+  "title": "Demand does not create an MO",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does the product have the Manufacture route and a BoM?", "options": [ { "label": "No", "next": "r1" }, { "label": "Yes", "next": "q2" } ] },
+    "r1": { "result": "Add the Manufacture route and a BoM", "tone": "warning", "detail": "Without them replenishment cannot create an MO." },
+    "q2": { "question": "Does it also have the Buy route with a vendor?", "options": [ { "label": "Yes", "next": "r2" }, { "label": "No", "next": "q3" } ] },
+    "r2": { "result": "Buy wins: an RFQ is created instead", "tone": "warning", "detail": "Remove Buy or set the route on the reordering rule." },
+    "q3": { "question": "Is the demand a sales order?", "options": [ { "label": "Yes", "next": "r3" }, { "label": "No", "next": "r4" } ] },
+    "r3": { "result": "Unarchive MTO and tick MTO + Manufacture", "tone": "info", "detail": "The MTO route is archived by default." },
+    "r4": { "result": "Check the reordering rule forecast and run the scheduler", "tone": "info", "detail": "An MO is proposed only when forecast stock drops below the minimum." }
+  }
+}
+\`\`\`
+
+\`\`\`visual-match
+{
+  "title": "Manufacturing symptoms and root causes",
+  "prompt": "Match each symptom to its most likely root cause.",
+  "leftLabel": "Symptom",
+  "rightLabel": "Root cause",
+  "pairs": [
+    { "left": "Operations tab missing on the BoM", "right": "Work Orders setting disabled" },
+    { "left": "Components Not Available though stock exists", "right": "Pick Components transfer not validated (2-step)" },
+    { "left": "Consumption error on Mark as Done", "right": "Consumption flexibility is Blocked" },
+    { "left": "Finished goods cost lacks labour", "right": "No work orders or cost per hour is 0" },
+    { "left": "No journal entries after the MO", "right": "Manual valuation or product not storable" },
+    { "left": "Finished product cost is 0", "right": "Component costs empty and price never computed from BoM" }
+  ],
+  "explanation": "Most manufacturing issues are routes, settings or valuation configuration."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Timbercraft's reordering rule on Kitchen Cabinet 60cm creates an RFQ instead of an MO. What do you check first?",
+  "options": ["The work center capacity", "The product routes: Buy has priority over Manufacture", "The consumption flexibility", "The lot tracking"],
+  "correct": 1,
+  "explanation": "When both Buy and Manufacture apply, Buy can win. Remove Buy or set the Manufacture route on the rule."
+}
+\`\`\`
+
 ## 14. Practical assignments (task list)
 
 - [ ] Enable Work Orders, Work Order Dependencies, By-Products and Subcontracting.
@@ -894,6 +1691,55 @@ Net on the production counterpart: 602.00 debit − 1,062.00 credit = **460.00 c
 *Model answer:* MPS, PLM, Quality and Shop Floor (and some reporting); BoMs, work centers, MOs, subcontracting and unbuild are standard.
 
 > **Consultant tip:** Answer with *business reason + Odoo mechanism + example*: "Timbercraft uses 2-step manufacturing because oak is stored centrally; Odoo creates a Pick Components transfer before each MO…"
+
+\`\`\`visual-roleplay
+{
+  "title": "Production review at Timbercraft",
+  "setting": "Timbercraft Furniture Works, first month-end after go-live. The production manager and the controller meet you.",
+  "client": "Production manager",
+  "rounds": [
+    {
+      "says": "The last cabinet MO cost 131 dollars a unit, but the BoM says 106.20. Odoo is wrong!",
+      "options": [
+        { "text": "Let's compare the MO with the BoM: consumed quantities and scrap, real work order time against expected, and whether component costs changed.", "quality": "best", "feedback": "The actual MO cost comes from real consumption and real time; the gap is almost always one of these." },
+        { "text": "Overwrite the product cost back to 106.20.", "quality": "poor", "feedback": "Hides real over-consumption or labour and distorts valuation." },
+        { "text": "Switch the category to Standard price so the cost stays fixed.", "quality": "ok", "feedback": "A valid costing choice for some clients, but it does not explain the variance and needs finance agreement." }
+      ]
+    },
+    {
+      "says": "The MO says the oak panels are Not Available, but the store is full of them.",
+      "options": [
+        { "text": "With 2-step manufacturing the panels must first be moved by the Pick Components transfer. Let's validate it and check reservations.", "quality": "best", "feedback": "Stock outside the MO source location cannot be reserved." },
+        { "text": "Force the MO to done anyway.", "quality": "poor", "feedback": "Creates negative stock in the wrong location." }
+      ]
+    },
+    {
+      "says": "We confirmed a custom kitchen order but no MO appeared.",
+      "options": [
+        { "text": "Check that the MTO route is unarchived and that the product has MTO and Manufacture ticked with a BoM.", "quality": "best", "feedback": "MTO is archived by default; both routes are needed for the SO to create the MO." },
+        { "text": "Create the MO manually every time.", "quality": "ok", "feedback": "Works, but loses the link to the sales order and the automation the client paid for." },
+        { "text": "It needs MPS, which is Enterprise.", "quality": "poor", "feedback": "MTO + Manufacture is standard; MPS is for planning, not for this." }
+      ]
+    },
+    {
+      "says": "Operators forget to stop the timer, so work orders show 9 hours.",
+      "options": [
+        { "text": "Train operators, review work orders daily, and set realistic default durations; real time drives labour cost.", "quality": "best", "feedback": "Addresses the data source of the cost problem." },
+        { "text": "Set every work center cost per hour to 0.", "quality": "poor", "feedback": "Removes labour from product cost entirely." },
+        { "text": "Stop using work orders.", "quality": "ok", "feedback": "Simplifies data entry but loses time tracking and labour costing." }
+      ]
+    },
+    {
+      "says": "Can MOs above 50 units need my approval?",
+      "options": [
+        { "text": "Not standard. Options are Studio or automation rules (Enterprise) or a custom module; I'll log it as a customization with an estimate.", "quality": "best", "feedback": "Honest about standard versus customization." },
+        { "text": "Yes, there is a setting for that.", "quality": "poor", "feedback": "No such standard setting exists." }
+      ]
+    }
+  ],
+  "wrapup": "Explain cost variances from real data, check routes and locations first, and treat approvals as customization."
+}
+\`\`\`
 
 ## Key takeaways
 

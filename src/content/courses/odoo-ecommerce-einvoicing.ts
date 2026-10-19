@@ -68,6 +68,38 @@ An online retailer sells through a web shop instead of (or next to) a physical s
 
 Website and eCommerce are available in **Odoo Community**; some carrier connectors, marketplace connectors and the full accounting reports / bank reconciliation widget are **Enterprise** (verify in your training instance).
 
+\`\`\`visual-hub
+{
+  "title": "eCommerce on top of the Odoo apps",
+  "caption": "One database: web order = sales order = delivery = invoice.",
+  "center": { "label": "eCommerce shop (website_sale)", "icon": "store" },
+  "nodes": [
+    { "label": "Website", "icon": "globe", "detail": "Site builder, pages, menus, domains, multi-website." },
+    { "label": "Sales", "icon": "file", "detail": "Every web order is a sales order; a quotation until payment or confirmation." },
+    { "label": "Inventory", "icon": "truck", "detail": "Delivery orders, returns and stock valuation." },
+    { "label": "Invoicing / Accounting", "icon": "invoice", "detail": "Invoices, credit notes, taxes, e-invoicing and reconciliation." },
+    { "label": "Payment providers", "icon": "payment", "detail": "Stripe, PayPal, Adyen, Mollie and others." },
+    { "label": "Delivery methods", "icon": "package", "detail": "Fixed or rule-based shipping prices, or carrier connectors." }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-cards
+{
+  "label": "Key concepts",
+  "title": "eCommerce and invoicing concepts",
+  "columns": 3,
+  "cards": [
+    { "icon": "cart", "title": "Web order", "body": "Sales order from checkout; a quotation until the payment is confirmed." },
+    { "icon": "payment", "title": "Payment provider", "body": "Stripe for Urban Thread's B2C cards and wallets; wire transfer for B2B." },
+    { "icon": "bank", "title": "Payout", "body": "Provider transfer to the bank: several orders, net of fees, days later." },
+    { "icon": "percent", "title": "Tax-included price", "body": "Consumers see gross prices with 21% VAT; B2B fiscal positions map to net." },
+    { "icon": "invoice", "title": "Automatic Invoice", "body": "Creates and posts the invoice when the online payment is confirmed.", "tone": "info" },
+    { "icon": "file", "title": "E-invoice", "body": "Structured XML such as UBL sent over Peppol; a PDF is not an e-invoice.", "tone": "warning" }
+  ]
+}
+\`\`\`
+
 ### Where invoicing and e-invoicing fit
 
 A web order is not finished when the customer pays. The retailer must issue a legally valid **invoice**: for consumers usually a PDF in the portal or email, for business customers increasingly a **structured electronic invoice** (XML) transmitted over a network such as **Peppol**, and in some countries the invoice must even be **cleared by the tax authority** before it is valid. Module 3 of this course is entirely dedicated to e-invoicing.
@@ -97,6 +129,32 @@ A web order is not finished when the customer pays. The retailer must issue a le
 | Trade customers demand Peppol / structured invoices | UBL/CII formats on invoices; Peppol sending where supported |
 | Abandoned carts lost forever | Abandoned cart list and automatic reminder emails |
 | Returns not reflected in accounting | Return pickings + credit notes + refunds through the provider |
+
+\`\`\`visual-beforeafter
+{
+  "title": "Urban Thread Online: before and after Odoo",
+  "before": {
+    "title": "Shop plugin + Excel",
+    "points": [
+      "Invoices exported one by one from the shop plugin",
+      "Stripe payouts matched to orders in Excel",
+      "Belgian B2B boutiques ask for Peppol invoices that cannot be sent",
+      "EU VAT on cross-border sales handled manually",
+      "Shop, stock and accounting in three systems"
+    ]
+  },
+  "after": {
+    "title": "One Odoo database",
+    "points": [
+      "Automatic Invoice on confirmed online payment",
+      "Payouts reconciled with fees in one step",
+      "UBL invoices sent over Peppol to B2B customers where supported",
+      "OSS fiscal positions apply destination VAT automatically",
+      "Web order, delivery and invoice linked on one sales order"
+    ]
+  }
+}
+\`\`\`
 
 ## 3. Process flow
 
@@ -166,6 +224,31 @@ A web order is not finished when the customer pays. The retailer must issue a le
 \`\`\`
 
 > **Consultant tip:** In the discovery workshop, take one real web order from the client's current shop and trace it on a whiteboard through every box above. Each box where they say "someone does that by hand" is a requirement.
+
+\`\`\`visual-order
+{
+  "title": "A B2C web order end to end",
+  "prompt": "Put the steps of an Urban Thread hoodie order in the order they happen.",
+  "items": [
+    "Customer adds the Canal Hoodie to the cart and checks out",
+    "Stripe confirms the payment and the quotation becomes a sales order",
+    "Automatic Invoice creates, posts and emails the invoice",
+    "Warehouse validates the delivery",
+    "Stripe payout arrives at the bank, net of fees",
+    "Payout is reconciled with the payments and the fees"
+  ],
+  "explanation": "Payment confirmation drives the order and the invoice; cash arrives later as a payout that must be reconciled."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Urban Thread's Stripe payout of EUR 4,600 never equals the sum of the orders. Why?",
+  "options": ["Odoo rounds prices", "Payouts group several orders and are net of provider fees", "VAT is removed from payouts", "Stripe pays only B2B orders"],
+  "correct": 1,
+  "explanation": "A payout bundles many payments minus fees; reconciliation matches the payments and books the difference as bank fees."
+}
+\`\`\`
 
 ## How this course is structured
 
@@ -296,6 +379,59 @@ Enable **Automatic Invoice** so that confirmed online payments generate a posted
 - Bank fees expense account and a reconciliation model for provider fees (Enterprise widget).
 - EU OSS: enable and refresh the tax mapping.
 - E-invoicing: install/enable the formats needed (Lesson 5).
+
+#### In Odoo 20: What makes a product sellable online
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-ecommerce-einvoicing/screens/web-product-ecommerce.webp",
+  "alt": "Odoo 20 product eCommerce tab for Canal Hoodie (unpublished) with website categories and options.",
+  "title": "What makes a product sellable online",
+  "path": "Product ▸ eCommerce tab",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 35.4,
+      "y": 28.6,
+      "w": 8.1,
+      "h": 4.9,
+      "tag": "bottom",
+      "title": "eCommerce tab",
+      "text": "Website categories, alternative and accessory products, ribbons."
+    },
+    {
+      "x": 21.5,
+      "y": 53.6,
+      "w": 19,
+      "h": 3.3,
+      "tag": "right",
+      "title": "Categories",
+      "text": "Where the product appears in the shop menu."
+    },
+    {
+      "x": 31.5,
+      "y": 8.2,
+      "w": 7.9,
+      "h": 4.3,
+      "tag": "right",
+      "title": "Published",
+      "text": "Off: this training product is hidden from the live shop. Switch on only when content and price are ready."
+    },
+    {
+      "x": 45,
+      "y": 41.4,
+      "w": 2.1,
+      "h": 3.2,
+      "tag": "right",
+      "title": "Sell when out of stock",
+      "text": "On: customers can order even with no stock; plan replenishment accordingly."
+    }
+  ],
+  "caption": "Real screen from an Odoo 20 training database with fictional Northwind data; amounts in ₹ with Indian GST."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -782,7 +918,40 @@ From Odoo 17.x, Odoo offers a built-in **Peppol** integration (account_peppol) i
 5. Use **Send & Print ▸ by Peppol**; follow the status on the invoice (e.g. processing, done, error).
 6. Incoming Peppol vendor bills arrive in the purchase journal as drafts.
 
+\`\`\`visual-order
+{
+  "title": "Go live on Peppol with Odoo as access point",
+  "prompt": "Put Urban Thread's Peppol set-up steps in order.",
+  "items": [
+    "Open the Peppol section in Accounting/Invoicing settings",
+    "Enter EAS and endpoint 0208:0123456749, contact email and phone; accept terms",
+    "Complete verification (SMS code) and wait for active registration",
+    "Check each customer's participant ID is valid and reachable",
+    "Send invoices with Send & Print by Peppol and follow the status"
+  ],
+  "explanation": "Odoo can only transmit once the company registration is active, and only to customers whose Peppol address is registered on the network."
+}
+\`\`\`
+
 If the client already uses another access point provider, integrate via that provider (third-party module or middleware) instead.
+
+\`\`\`visual-sequence
+{
+  "title": "Sending an invoice to Atelier Mosa BV by Peppol",
+  "caption": "Odoo acts as Urban Thread's access point; labels and statuses vary by version (verify).",
+  "actors": ["Accountant", "Odoo", "Peppol network", "Atelier Mosa BV"],
+  "messages": [
+    { "from": "Accountant", "to": "Odoo", "label": "Confirm invoice (posted)", "kind": "request" },
+    { "from": "Accountant", "to": "Odoo", "label": "Send & Print ▸ by Peppol", "kind": "request" },
+    { "from": "Odoo", "to": "Odoo", "label": "Generate Peppol BIS Billing 3.0 (UBL XML)", "note": "Format taken from the customer's Accounting tab", "kind": "self" },
+    { "from": "Odoo", "to": "Peppol network", "label": "Is 0208:0987654394 reachable?", "kind": "request" },
+    { "from": "Peppol network", "to": "Odoo", "label": "Participant registered", "kind": "response" },
+    { "from": "Odoo", "to": "Peppol network", "label": "Transmit e-invoice", "note": "Invoice status: processing", "kind": "async" },
+    { "from": "Peppol network", "to": "Atelier Mosa BV", "label": "Deliver e-invoice", "kind": "async" },
+    { "from": "Peppol network", "to": "Odoo", "label": "Delivery result", "note": "Status on the invoice becomes done (or error)", "kind": "response" }
+  ]
+}
+\`\`\`
 
 ## Country EDI localizations
 
@@ -823,6 +992,24 @@ Availability, edition (many are Enterprise), certificates and behaviour vary by 
 | Bank account | IBAN on company for payment means | Payment information missing |
 | Invoice reference | Buyer reference/PO number where the customer requires it | Rejected by buyer |
 
+\`\`\`visual-match
+{
+  "title": "Rejection message to the data to fix",
+  "prompt": "An e-invoice was rejected. Match each rejection to the master data you must fix in Odoo.",
+  "leftLabel": "Rejection",
+  "rightLabel": "Fix",
+  "pairs": [
+    { "left": "Receiver not found", "right": "Partner Peppol endpoint (scheme + ID) valid and registered" },
+    { "left": "Buyer VAT missing", "right": "Partner tax ID with country prefix" },
+    { "left": "Invalid unit code", "right": "Units of measure mapped to UN/ECE codes (Units = C62)" },
+    { "left": "Tax category / exemption reason missing", "right": "Tax mapped to a VAT category with exemption reason" },
+    { "left": "Payment information missing", "right": "IBAN on the company bank account" },
+    { "left": "Schema/business-rule error", "right": "Street, city, ZIP and country on seller and buyer" }
+  ],
+  "explanation": "Most e-invoicing failures are master-data problems, so clean data before the first transmission."
+}
+\`\`\`
+
 ## 9. Automation in the online order-to-cash flow
 
 | Automation | How | Scope |
@@ -836,6 +1023,15 @@ Availability, edition (many are Enterprise), certificates and behaviour vary by 
 | Custom triggers (e.g. send Peppol automatically when posted) | Automation rules (Studio/Enterprise) or custom module | Customization |
 
 > **Consultant tip:** Automatic invoicing creates a PDF and email, not a Peppol transmission. If B2B web orders must go out by Peppol automatically, design a rule or a daily batch through Send & Print and test it — do not assume.
+
+\`\`\`visual-check
+{
+  "question": "Urban Thread enabled Automatic Invoice. Boutique Nordlicht pays a web order online. What happens to its e-invoice?",
+  "options": ["Odoo sends it by Peppol automatically", "Odoo creates and emails the invoice PDF; Peppol sending needs Send & Print, a batch or an automation rule", "No invoice is created until the delivery is validated", "Odoo sends XRechnung to the German tax authority"],
+  "correct": 1,
+  "explanation": "Automatic invoicing creates a PDF and email (and portal access), not a Peppol transmission. B2B e-invoice sending needs explicit design and testing."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -884,16 +1080,53 @@ Availability, edition (many are Enterprise), certificates and behaviour vary by 
 | Payment fee ratio | Provider fees ÷ online revenue | < 2% |
 | E-invoice rejection rate | Rejected ÷ sent e-invoices | < 1% |
 
+\`\`\`visual-match
+{
+  "title": "Business question to report",
+  "prompt": "Match each question from Urban Thread's managers to the report that answers it.",
+  "leftLabel": "Business question",
+  "rightLabel": "Report",
+  "pairs": [
+    { "left": "What is our conversion rate and average basket online?", "right": "eCommerce dashboard / analytics" },
+    { "left": "Which shoppers left items without paying?", "right": "Abandoned carts" },
+    { "left": "Which product categories sell best by country?", "right": "Sales analysis filtered by website" },
+    { "left": "How much did we invoice after credit notes?", "right": "Invoice analysis" },
+    { "left": "Which B2B customers have not paid yet?", "right": "Aged receivable" },
+    { "left": "What must we declare for intra-EU and OSS sales?", "right": "Tax report / EC sales list / OSS" }
+  ],
+  "explanation": "Website reports answer traffic and basket questions; money owed and declared comes from Accounting reports."
+}
+\`\`\`
+
 ## 11. Accounting and inventory impact
 
 We follow Scenario A (Lea, total 175.45) and assume outstanding accounts on the Stripe journal and automated (perpetual) inventory valuation at average cost 28.00.
 
+\`\`\`visual-flow
+{
+  "title": "Lea's web order: from payment to payout",
+  "caption": "Automatic Invoice on, outstanding accounts on the Stripe journal, automated valuation at 28.00.",
+  "steps": [
+    { "title": "Online payment confirmed", "icon": "payment", "app": "Website", "impact": "Dr Outstanding Receipts 175.45 / Cr Receivable 175.45" },
+    { "title": "Invoice posted automatically", "icon": "invoice", "app": "Accounting", "detail": "Reconciled with the payment; Lea's receivable is zero.", "impact": "Dr Receivable 175.45 / Cr Sales 140.00, Shipping 5.00, VAT 30.45" },
+    { "title": "Delivery validated", "icon": "truck", "app": "Inventory", "detail": "2 units × 28.00", "impact": "Dr Stock Output or COGS 56.00 / Cr Stock Valuation 56.00" },
+    { "title": "Stripe payout reconciled", "icon": "bank", "app": "Accounting", "detail": "Fee 2.88, net 172.57; invoice becomes Paid.", "impact": "Dr Bank Suspense 172.57, Bank Fees 2.88 / Cr Outstanding Receipts 175.45" }
+  ]
+}
+\`\`\`
+
 ### Step 1 — Online payment confirmed
 
-| Account | Debit | Credit |
-|---|---|---|
-| Outstanding Receipts (Stripe journal) | 175.45 | |
-| Accounts Receivable (Lea Martens) | | 175.45 |
+\`\`\`visual-journal
+{
+  "title": "Step 1: Stripe payment of 175.45 confirmed",
+  "lines": [
+    { "account": "Outstanding Receipts (Stripe journal)", "debit": "175.45" },
+    { "account": "Accounts Receivable (Lea Martens)", "credit": "175.45" }
+  ],
+  "note": "No bank movement yet: the money sits with Stripe until the payout."
+}
+\`\`\`
 
 Until the invoice exists, this is an outstanding credit on the customer.
 
@@ -930,15 +1163,30 @@ Bank statement line imported (before reconciliation):
 
 Reconciliation (the suspense line is replaced):
 
-| Account | Debit | Credit |
-|---|---|---|
-| Bank Suspense | 172.57 | |
-| Bank Fees (expense) | 2.88 | |
-| Outstanding Receipts | | 175.45 |
+\`\`\`visual-journal
+{
+  "title": "Step 4: payout of 172.57 reconciled",
+  "lines": [
+    { "account": "Bank Suspense", "debit": "172.57" },
+    { "account": "Bank Fees (expense)", "debit": "2.88" },
+    { "account": "Outstanding Receipts", "credit": "175.45" }
+  ],
+  "note": "Stripe fee 1.5% + 0.25 = 2.88. Outstanding Receipts clears to zero and the invoice moves to Paid."
+}
+\`\`\`
 
 Invoice status moves to **Paid**. The bank reconciliation widget and reconciliation models are Enterprise; in Community the matching is more manual.
 
 > **Consultant tip:** Some providers report fees per transaction, others per payout. Decide early: one Stripe journal reconciled with the provider's payout report (fees per order), or the main bank journal with a fee reconciliation model. Both work; mixing them does not.
+
+\`\`\`visual-check
+{
+  "question": "A week after go-live, Outstanding Receipts on the Stripe journal still shows 175.45 for Lea's order although her invoice is posted. What is missing?",
+  "options": ["The automatic invoice", "The delivery validation", "Reconciliation of the Stripe payout bank line", "A credit note"],
+  "correct": 2,
+  "explanation": "The payment debits Outstanding Receipts; only reconciling the payout (172.57 net + 2.88 fee) credits it. Delivery affects stock accounts, not receipts."
+}
+\`\`\`
 
 ### Partial return (Scenario C)
 
@@ -1001,6 +1249,63 @@ No VAT; the tax grid reports the amount as an intra-Community supply (and EC sal
 | OSS VAT not applied to EU consumer | Fiscal position not auto-detected (country, VAT required flag) | Check Detect Automatically, countries and OSS mapping refresh |
 | Product invisible on shop | Not published, not saleable, website restriction | Publish; check "Can be Sold" and website field |
 
+\`\`\`visual-decision
+{
+  "title": "Web order paid but no invoice",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Is the order still a quotation?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No, it is a sales order", "next": "q3" } ] },
+    "q2": { "question": "Is the payment transaction Done (not Pending)?", "options": [ { "label": "No", "next": "r1" }, { "label": "Yes", "next": "r2" } ] },
+    "r1": { "result": "Payment not confirmed yet", "tone": "info", "detail": "Pending or authorised transactions do not confirm the order. Check the transaction in the provider dashboard." },
+    "r2": { "result": "Webhook not reaching Odoo", "tone": "danger", "detail": "Check the webhook URL, firewall, and test versus live keys in the provider logs." },
+    "q3": { "question": "Is Automatic Invoice enabled?", "options": [ { "label": "No", "next": "r3" }, { "label": "Yes", "next": "r4" } ] },
+    "r3": { "result": "Enable Automatic Invoice", "tone": "warning", "detail": "Without it a user must create invoices manually (verify the setting location in your version)." },
+    "r4": { "result": "Check the invoicing policy", "tone": "warning", "detail": "Products on Delivered quantities cannot be invoiced at payment; use Ordered quantities for prepaid web orders." }
+  }
+}
+\`\`\`
+
+\`\`\`visual-decision
+{
+  "title": "B2B e-invoice rejected or not sent",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does the error say receiver not found or Peppol unavailable?", "options": [ { "label": "Yes", "next": "r1" }, { "label": "No, it is a validation rejection", "next": "q2" } ] },
+    "r1": { "result": "Check the Peppol endpoint and registrations", "tone": "warning", "detail": "Verify scheme + ID on the customer, that the customer is on Peppol and that the company is registered. Fall back to email or PDF if agreed." },
+    "q2": { "question": "Is buyer VAT, address or country missing?", "options": [ { "label": "Yes", "next": "r2" }, { "label": "No", "next": "r3" } ] },
+    "r2": { "result": "Complete the partner master data and resend", "tone": "warning", "detail": "Make VAT mandatory for B2B partners and clean data before go-live." },
+    "r3": { "result": "Check tax categories and unit codes", "tone": "info", "detail": "Read the rejection message; fix tax category, exemption reason or UoM code; reset and resend, or issue a credit note if a corrected invoice is required." }
+  }
+}
+\`\`\`
+
+\`\`\`visual-match
+{
+  "title": "eCommerce and e-invoicing symptoms and root causes",
+  "prompt": "Match each symptom to its most likely root cause.",
+  "leftLabel": "Symptom",
+  "rightLabel": "Root cause",
+  "pairs": [
+    { "left": "Order stuck as quotation after payment", "right": "Provider webhook not reaching Odoo" },
+    { "left": "Invoice stays In Payment", "right": "Payout not imported or not matched with fees" },
+    { "left": "Wholesale price 21% lower than expected", "right": "Pricelist price stripped of VAT by the B2B fiscal position" },
+    { "left": "OSS VAT not applied to an EU consumer", "right": "Fiscal position not auto-detected for the delivery country" },
+    { "left": "Product invisible on the shop", "right": "Product not published or not Can be Sold" },
+    { "left": "Peppol receiver not found", "right": "Wrong or missing Peppol endpoint on the customer" }
+  ],
+  "explanation": "Most tickets come from prices and taxes, automatic invoicing conditions, webhooks, payouts and e-invoicing master data."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A Stripe payment is Done and the order is confirmed, Automatic Invoice is on, but no invoice is created. What is the most likely cause?",
+  "options": ["The customer has no VAT number", "The product's invoicing policy is Delivered quantities", "The payout has not arrived", "The website is unpublished"],
+  "correct": 1,
+  "explanation": "With Delivered quantities nothing is invoiceable at payment time; prepaid web shops normally use Ordered quantities."
+}
+\`\`\`
+
 ## 14. Practical assignments (task list)
 
 Complete in your training instance with Urban Thread data:
@@ -1050,6 +1355,54 @@ Complete in your training instance with Urban Thread data:
 *Model answer:* Return receipt reverses stock valuation; a credit note reverses revenue and VAT; the refund payment clears the receivable.
 
 > **Consultant tip:** In interviews, answer with business reason + Odoo mechanism + verification step. Saying "I would verify that in the version's documentation" is a strength, not a weakness, for e-invoicing topics.
+
+\`\`\`visual-roleplay
+{
+  "title": "Go-live week at Urban Thread Online",
+  "setting": "Urban Thread Online BV went live on Monday. The finance manager calls with the first issues.",
+  "client": "Finance manager",
+  "rounds": [
+    {
+      "says": "Customers paid by Stripe, but some orders have no invoice!",
+      "options": [
+        { "text": "Let's check three things: is the transaction Done, is Automatic Invoice enabled, and are the products on Ordered quantities?", "quality": "best", "feedback": "These conditions together decide whether Odoo invoices at payment." },
+        { "text": "Create the invoices by hand for now and forget the setting.", "quality": "ok", "feedback": "Clears today's backlog but with 1,800 orders a month it is not sustainable." },
+        { "text": "Stripe is broken, switch to PayPal.", "quality": "poor", "feedback": "Changing provider without diagnosis can repeat the same issue." }
+      ]
+    },
+    {
+      "says": "Ten orders are still quotations although customers say they paid.",
+      "options": [
+        { "text": "The provider webhook probably does not reach Odoo. Let's check the provider logs, the webhook URL and whether test or live keys are used.", "quality": "best", "feedback": "A paid order that stays a quotation is the classic webhook symptom." },
+        { "text": "Confirm them manually without checking.", "quality": "poor", "feedback": "You may ship goods for payments that never succeeded." }
+      ]
+    },
+    {
+      "says": "Atelier Mosa says our e-invoice was rejected.",
+      "options": [
+        { "text": "Let's read the rejection message, then check buyer VAT, address, tax category and unit codes; fix the data and resend.", "quality": "best", "feedback": "Most rejections are master data; the message tells you which rule failed." },
+        { "text": "Send them a PDF instead.", "quality": "ok", "feedback": "A fallback if they agree, but it does not fix the data for the next invoice." },
+        { "text": "Delete the posted invoice and create a new one.", "quality": "poor", "feedback": "Posted invoices are corrected by reset and resend or a credit note, not deleted." }
+      ]
+    },
+    {
+      "says": "Our wholesale customers see prices 21% lower than the list we agreed.",
+      "options": [
+        { "text": "The B2B fiscal position strips VAT from a pricelist price that was entered as net. Let's define wholesale prices consistently and retest gross and net per customer type.", "quality": "best", "feedback": "Pricelist and fiscal position interact; test both together." },
+        { "text": "Turn off tax-included prices for everyone.", "quality": "poor", "feedback": "Consumers must see gross prices; this breaks B2C." }
+      ]
+    },
+    {
+      "says": "Can every B2B web order go out by Peppol automatically?",
+      "options": [
+        { "text": "Automatic Invoice sends email, not necessarily Peppol. Options are a daily batch Send & Print (standard), an automation rule (Enterprise) or a small module; let me verify this version's behaviour and estimate.", "quality": "best", "feedback": "Separates standard from customization and verifies version behaviour." },
+        { "text": "Yes, it is automatic once Peppol is on.", "quality": "poor", "feedback": "Unverified promises on e-invoicing create compliance risk." }
+      ]
+    }
+  ],
+  "wrapup": "Payment state, Automatic Invoice and invoicing policy for missing invoices; webhooks for stuck quotations; master data for e-invoice rejections."
+}
+\`\`\`
 
 ## Key takeaways
 

@@ -186,6 +186,82 @@ with play/pause, a chapter scrubber, full screen, keyboard (Space, ← →) and 
 Stations sit on a 4×4 grid (`x`, `y` 0–3); a ring layout reads best. Each counter needs one value per scene.
 Example: the Order-to-Cash business process scenario (`src/content/processes.ts`).
 
+### visual-screen (real Odoo screenshot with callouts)
+```json
+{ "src": "/visuals/odoo-inventory/screens/inv-product.webp", "alt": "…", "title": "…", "path": "Inventory ▸ Products", "version": "Odoo 20",
+  "width": 1600, "height": 1000,
+  "callouts": [ { "x": 14.8, "y": 33.8, "w": 24.6, "h": 3.2, "tag": "top", "title": "Product Type", "text": "…" } ] }
+```
+`x`/`y` is the centre of the data in % of the image, `w`/`h` the blinking box around it; `tag` (top, bottom, left, right) is
+where the number sits so it never covers the data. Only real screenshots — never mock-ups.
+
+### visual-simulate (click-through on real screens)
+Generated from a real Odoo run (see `scratchpad` recorder scripts); not hand-authored. Each step: `src`, `alt`, `task`,
+optional `target` box (+ `label`), optional `input` (`label`, `answer`), `traps` (box + `feedback`), `explain`.
+
+## Exercise blocks (interactive practice, not graded)
+
+Rules for all exercise blocks:
+- Write the **correct** answer in the JSON; the portal shuffles it (seeded, so it is the same on every load).
+- Keep strings plain: **no backslashes, no backticks, no `${`** (the lesson body is a TypeScript template literal).
+  Use single quotes inside text and code instead of double quotes.
+- Feedback must teach: say *why* an answer is right or wrong, in one or two sentences.
+
+### visual-order (put steps in sequence)
+```json
+{ "title": "Order-to-Cash", "prompt": "Put the O2C documents in the order Odoo creates them.",
+  "items": ["Quotation", "Sales order", "Delivery", "Customer invoice", "Payment"],
+  "explanation": "Odoo cannot invoice delivered quantities before the delivery is validated." }
+```
+3–10 items, authored in the correct order.
+
+### visual-match (match pairs)
+```json
+{ "title": "Who does what", "prompt": "Match each role to its main responsibility.", "leftLabel": "Role", "rightLabel": "Responsibility",
+  "pairs": [ { "left": "Project sponsor", "right": "Owns the budget and final decisions" },
+             { "left": "Key user", "right": "Tests and signs off the process for their team" },
+             { "left": "Functional consultant", "right": "Maps the process to Odoo configuration" } ],
+  "explanation": "…" }
+```
+3–10 pairs; right-hand texts must be unique. Good for: term ↔ definition, error ↔ fix, defect ↔ severity, field ↔ purpose.
+
+### visual-gst (Indian GST calculator)
+```json
+{ "title": "Intra- vs inter-state GST", "sellerState": "Maharashtra",
+  "states": ["Maharashtra", "Karnataka", "Gujarat", "Delhi", "Tamil Nadu"], "amount": 10000, "rate": 18, "rates": [0, 5, 12, 18, 28] }
+```
+The learner changes amount, rate and place of supply; the block shows CGST + SGST (same state) or IGST (different state).
+
+### visual-sequence (step-through sequence diagram)
+```json
+{ "title": "Webhook delivery", "actors": ["Shop", "Odoo", "Middleware"],
+  "messages": [ { "from": "Shop", "to": "Middleware", "label": "POST /orders (webhook)", "note": "Signed with an HMAC header", "kind": "async" },
+                { "from": "Middleware", "to": "Odoo", "label": "create sale.order", "kind": "request" },
+                { "from": "Odoo", "to": "Middleware", "label": "id 42", "kind": "response" },
+                { "from": "Middleware", "to": "Middleware", "label": "store idempotency key", "kind": "self" } ] }
+```
+2–5 actors, up to 16 messages; `kind`: request (solid), response / async (dashed), self (loop). Learners press **Next**.
+
+### visual-codewalk (annotated code)
+```json
+{ "title": "A minimal Odoo model", "language": "python", "file": "models/library_book.py",
+  "code": ["from odoo import api, fields, models", "", "class LibraryBook(models.Model):", "    _name = 'library.book'", "    name = fields.Char(required=True)"],
+  "notes": [ { "lines": "3-4", "title": "Model name", "text": "`_name` creates the table *library_book*." },
+             { "lines": "5", "title": "A required field", "text": "…" } ] }
+```
+`code` is an array of lines (max 80); notes point to `"3"` or `"3-7"`. Use single quotes in code (Python, XML attributes
+and JSON-in-code all accept them here) and never a backslash.
+
+### visual-roleplay (consultant conversation)
+```json
+{ "title": "Scope creep in a workshop", "setting": "Sales workshop, week 3. The sales director joins late.", "client": "Sales director",
+  "rounds": [ { "says": "Can we just add a field for the competitor price? It's tiny.",
+                "options": [ { "text": "Sure, I'll add it today.", "quality": "poor", "feedback": "Untracked changes become scope creep and an untested customisation." },
+                             { "text": "Let's log it as a change request with the business reason, and check if a standard field covers it.", "quality": "best", "feedback": "Keeps scope controlled and looks for standard first." } ] } ],
+  "wrapup": "Standard first, change control always." }
+```
+1–8 rounds, 2–4 options each, at least one `best` per round (`best`, `ok`, `poor`).
+
 ## Icon names
 `database, cart, truck, warehouse, factory, landmark, users, user, file, invoice, receipt,
 payment, bank, mail, signature, check, alert, x, settings, chart, calendar, clock, globe,

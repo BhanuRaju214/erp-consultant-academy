@@ -262,6 +262,57 @@ export const visualSchemas = {
       .min(2)
       .max(16),
   }),
+  /** Exercise: put the items in the right order (items are authored in the correct order and shuffled on screen). */
+  order: z.object({ title: z.string().optional(), prompt: text, items: z.array(text).min(3).max(10), explanation: z.string().optional() }),
+  /** Exercise: match each left item to its right item (pairs authored correctly; the right side is shuffled). */
+  match: z.object({
+    title: z.string().optional(),
+    prompt: text,
+    leftLabel: z.string().optional(),
+    rightLabel: z.string().optional(),
+    pairs: z.array(z.object({ left: text, right: text })).min(3).max(10),
+    explanation: z.string().optional(),
+  }),
+  /** Indian GST calculator: intra-state (CGST + SGST) vs inter-state (IGST) from the place of supply. */
+  gst: z.object({
+    title: z.string().optional(),
+    sellerState: text,
+    states: z.array(text).min(2).max(40),
+    amount: z.number().positive().default(10000),
+    rate: z.number().min(0).max(40).default(18),
+    rates: z.array(z.number().min(0).max(40)).min(1).max(8).default([0, 5, 12, 18, 28]),
+    caption: z.string().optional(),
+  }),
+  /** Sequence diagram, stepped through message by message (REST calls, OAuth, webhooks, RPC). */
+  sequence: z.object({
+    title: z.string().optional(),
+    caption: z.string().optional(),
+    actors: z.array(text).min(2).max(5),
+    messages: z
+      .array(z.object({ from: text, to: text, label: text, note: z.string().optional(), kind: z.enum(["request", "response", "async", "self"]).default("request") }))
+      .min(1)
+      .max(16),
+  }),
+  /** Annotated code: click a note to highlight its lines. Write code with single quotes and no backslashes. */
+  codewalk: z.object({
+    title: z.string().optional(),
+    language: z.string().default("text"),
+    file: z.string().optional(),
+    code: z.array(z.string()).min(1).max(80),
+    notes: z.array(z.object({ lines: z.string().regex(/^\d+(-\d+)?$/, "lines must look like 3 or 3-7"), title: text, text: z.string().optional() })).min(1).max(12),
+    caption: z.string().optional(),
+  }),
+  /** Consultant role-play: the client speaks, the learner picks an answer, each answer gets feedback. */
+  roleplay: z.object({
+    title: z.string().optional(),
+    setting: text,
+    client: z.string().default("Client"),
+    rounds: z
+      .array(z.object({ says: text, options: z.array(z.object({ text, quality: z.enum(["best", "ok", "poor"]), feedback: text })).min(2).max(4) }))
+      .min(1)
+      .max(8),
+    wrapup: z.string().optional(),
+  }),
   takeaways: z.object({ title: z.string().optional(), items: z.array(text).min(1).max(12) }),
 } as const;
 
@@ -299,6 +350,31 @@ export function parseVisual(type: string, source: string): ParsedVisual {
     for (const [id, n] of Object.entries(d.nodes)) {
       if ("options" in n) for (const o of n.options) if (!d.nodes[o.next]) return { ok: false, type, error: `nodes.${id}: option "${o.label}" points to missing node "${o.next}"` };
     }
+  }
+  if (type === "sequence") {
+    const d = data as VisualData<"sequence">;
+    const bad = d.messages.find((m) => !d.actors.includes(m.from) || !d.actors.includes(m.to));
+    if (bad) return { ok: false, type, error: `messages: "${bad.label}" uses an actor that is not in actors (${d.actors.join(", ")})` };
+  }
+  if (type === "codewalk") {
+    const d = data as VisualData<"codewalk">;
+    for (const n of d.notes) {
+      const [a, b = a] = n.lines.split("-").map(Number);
+      if (a < 1 || b < a || b > d.code.length) return { ok: false, type, error: `notes: "${n.title}" points to lines ${n.lines} but the code has ${d.code.length} lines` };
+    }
+  }
+  if (type === "match") {
+    const d = data as VisualData<"match">;
+    if (new Set(d.pairs.map((p) => p.right)).size !== d.pairs.length) return { ok: false, type, error: "pairs: right-hand values must be unique" };
+  }
+  if (type === "roleplay") {
+    const d = data as VisualData<"roleplay">;
+    const i = d.rounds.findIndex((r) => !r.options.some((o) => o.quality === "best"));
+    if (i >= 0) return { ok: false, type, error: `rounds[${i}]: needs at least one option with quality "best"` };
+  }
+  if (type === "gst") {
+    const d = data as VisualData<"gst">;
+    if (!d.states.includes(d.sellerState)) return { ok: false, type, error: "states: must include sellerState" };
   }
   if (type === "compare") {
     const d = data as VisualData<"compare">;

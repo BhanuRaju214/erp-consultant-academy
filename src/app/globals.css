@@ -129,6 +129,7 @@ body {
   content: none;
 }
 .lesson-prose :not(pre) > code {
+  overflow-wrap: anywhere;
   background: var(--surface-2);
   padding: 0.1rem 0.35rem;
   border-radius: 0.3rem;

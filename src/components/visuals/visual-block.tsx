@@ -3,6 +3,7 @@ import { parseVisual, type VisualData } from "@/lib/visuals/schemas";
 import { BeforeAfterBlock, CardsBlock, CompareBlock, DoDontBlock, JournalBlock, LayersBlock, ScenarioBlock, StepsBlock, TakeawaysBlock, TimelineBlock, TrendBlock } from "./static-blocks";
 import { StoryPlayer } from "./story-player";
 import { SimulateBlock } from "./simulate-block";
+import { CodewalkBlock, GstBlock, MatchBlock, OrderBlock, RoleplayBlock, SequenceBlock } from "./exercise-blocks";
 import { ScreenBlock, CheckBlock, DecisionBlock, FigureBlock, FlowBlock, HeroBlock, HubBlock, MockupBlock } from "./interactive-blocks";
 
 /** Renders a ```visual-<type> fence. Invalid blocks show an authoring error instead of breaking the lesson. */
@@ -59,6 +60,18 @@ export function VisualBlock({ type, source }: { type: string; source: string }) 
       return <TrendBlock data={d} />;
     case "screen":
       return <ScreenBlock data={d} />;
+    case "order":
+      return <OrderBlock data={d} />;
+    case "match":
+      return <MatchBlock data={d} />;
+    case "gst":
+      return <GstBlock data={d} />;
+    case "sequence":
+      return <SequenceBlock data={d} />;
+    case "codewalk":
+      return <CodewalkBlock data={d} />;
+    case "roleplay":
+      return <RoleplayBlock data={d} />;
     case "simulate":
       return <SimulateBlock data={d} />;
     case "story":

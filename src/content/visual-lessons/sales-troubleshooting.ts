@@ -156,6 +156,50 @@ Answer the questions to reach the most likely cause and fix — or open the whol
 }
 \`\`\`
 
+## Role-play: a support call
+
+\`\`\`visual-roleplay
+{
+  "title": "Sales support call at Northwind",
+  "setting": "Week one after go-live. Northwind's sales coordinator calls the consultant with urgent issues.",
+  "client": "Sales coordinator",
+  "rounds": [
+    {
+      "says": "Greenfield School's order shows the list price, not the Education price. They will complain!",
+      "options": [
+        { "text": "Let's check the pricelist on the customer and the rule conditions (dates, minimum quantity, category), then click Update Prices on the order.", "quality": "best", "feedback": "Pricing issues are almost always data: the customer pricelist or a rule condition." },
+        { "text": "Type the discount manually on each line.", "quality": "ok", "feedback": "Fixes this order only; the next quotation will be wrong again." },
+        { "text": "Pricelists are buggy, let's stop using them.", "quality": "poor", "feedback": "Assuming a bug without reproducing it removes the feature that standardises prices." }
+      ]
+    },
+    {
+      "says": "AR clicks Create Invoice and gets 'There is no invoiceable line'.",
+      "options": [
+        { "text": "The policy is Delivered quantities and the delivery is not validated yet. Validate the delivery, or agree a down payment if finance needs cash first.", "quality": "best", "feedback": "Correct cause and a business-friendly alternative." },
+        { "text": "Switch every product to Ordered quantities.", "quality": "poor", "feedback": "Lets Northwind invoice goods it has not delivered, the exact problem the policy was chosen to stop." },
+        { "text": "Reinstall the Sales app.", "quality": "poor", "feedback": "Reinstalling does nothing for standard behaviour and is risky." }
+      ]
+    },
+    {
+      "says": "We confirmed an order for chairs but the warehouse sees no delivery.",
+      "options": [
+        { "text": "Check the product type: it must be tracked in stock (17: Storable; 18: Goods with Track Inventory), and Inventory must be installed.", "quality": "best", "feedback": "No stock-tracked product means no delivery order; this is the first thing to verify." },
+        { "text": "Ask the warehouse to create the delivery manually.", "quality": "ok", "feedback": "Works once but breaks the link between order, delivery and invoicing." },
+        { "text": "Cancel and confirm the order again.", "quality": "poor", "feedback": "Without fixing the product type the result is the same." }
+      ]
+    },
+    {
+      "says": "The margin on toner orders shows 100%. That cannot be right.",
+      "options": [
+        { "text": "The product cost is empty. Set the cost (or rely on inventory valuation) and the margin will be correct.", "quality": "best", "feedback": "Margin is price minus cost; a zero cost gives 100%." },
+        { "text": "Hide the margin column so nobody worries.", "quality": "poor", "feedback": "Hides a data problem that also affects valuation and reporting." }
+      ]
+    }
+  ],
+  "wrapup": "Reproduce in a test database, check the data (pricelist, product type, policy, cost), then change configuration."
+}
+\`\`\`
+
 ## Check your understanding
 
 \`\`\`visual-check

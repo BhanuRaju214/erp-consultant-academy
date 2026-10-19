@@ -63,6 +63,22 @@ Technical model: **sale.order** (header) and **sale.order.line** (lines).
 
 > **Consultant tip:** A quotation and a sales order are the same record in different states. The document number (e.g. S00042) does not change on confirmation.
 
+\`\`\`visual-cards
+{
+  "label": "Key concepts",
+  "title": "Sales building blocks",
+  "columns": 3,
+  "cards": [
+    { "icon": "file", "title": "Quotation / sales order", "body": "One sale.order record; S00042 keeps its number on confirmation." },
+    { "icon": "tag", "title": "Pricelist", "body": "Standard, Education (-8%) and Key Account prices, assigned per customer." },
+    { "icon": "clipboard", "title": "Quotation template", "body": "Default lines, optional products and validity for faster, consistent offers." },
+    { "icon": "invoice", "title": "Invoicing policy", "body": "Ordered or Delivered quantities: decides when an order can be invoiced.", "tone": "warning" },
+    { "icon": "coins", "title": "Down payment", "body": "Advance invoice, e.g. 50% on furniture, deducted from the final invoice." },
+    { "icon": "signature", "title": "Online signature and payment", "body": "The customer confirms the quotation on the portal.", "tone": "info" }
+  ]
+}
+\`\`\`
+
 ## 2. Business problems solved
 
 | Business problem at Northwind | Odoo Sales feature |
@@ -75,6 +91,32 @@ Technical model: **sale.order** (header) and **sale.order.line** (lines).
 | Cash-flow risk on furniture orders | Down payments and payment terms |
 | Upselling missed | Optional products and quotation templates |
 | No sales visibility | Sales Analysis report, sales team dashboards |
+
+\`\`\`visual-beforeafter
+{
+  "title": "Northwind sales: before and after Odoo",
+  "before": {
+    "title": "Word quotations and email",
+    "points": [
+      "Quotations typed in Word with inconsistent prices",
+      "School and key-account prices remembered by each salesperson",
+      "Unapproved discounts given freely",
+      "Invoices raised before goods are delivered",
+      "No view of open quotations or sales per team"
+    ]
+  },
+  "after": {
+    "title": "Quote-to-Cash in Odoo Sales",
+    "points": [
+      "Products with list prices and pricelists per customer",
+      "Quotation templates and optional products for upselling",
+      "Online signature and payment speed up approval",
+      "Delivered-quantities policy invoices only what was shipped",
+      "Sales Analysis and team dashboards show the whole pipeline"
+    ]
+  }
+}
+\`\`\`
 
 ## 3. Process flow
 
@@ -150,6 +192,21 @@ Technical model: **sale.order** (header) and **sale.order.line** (lines).
 
 > **Consultant tip:** Sales without Inventory is perfectly valid for service businesses. Install Inventory only when you actually ship physical goods or need stock control.
 
+\`\`\`visual-hub
+{
+  "title": "Sales and its integrations",
+  "center": { "label": "Sales (sale.order)", "icon": "file" },
+  "nodes": [
+    { "label": "Contacts", "icon": "users", "detail": "Customers and their invoice and delivery addresses." },
+    { "label": "CRM", "icon": "target", "detail": "Opportunities and sales teams (optional)." },
+    { "label": "Inventory", "icon": "truck", "detail": "Delivery orders for stock-tracked products (optional)." },
+    { "label": "Invoicing / Accounting", "icon": "invoice", "detail": "Customer invoices; installed with Sales." },
+    { "label": "Payment providers", "icon": "payment", "detail": "Online payment on quotations (optional)." },
+    { "label": "Website / eCommerce", "icon": "globe", "detail": "Online orders create sales orders (optional)." }
+  ]
+}
+\`\`\`
+
 ### Who uses Sales at Northwind
 
 | Role | Responsibility in Odoo Sales |
@@ -165,6 +222,31 @@ Technical model: **sale.order** (header) and **sale.order.line** (lines).
 On Monday morning the Corporate Sales manager opens **Sales ▸ Orders ▸ Quotations**, filters on *Quotation Sent* older than seven days and asks salespeople to follow up. The AR accountant opens the orders waiting to be invoiced and invoices every order whose goods were delivered on Friday. The sales coordinator updates the Key Account pricelist after the annual price revision. Notice that each person works in the same sale.order records, but from a different angle — this is the integration benefit of an ERP compared with separate spreadsheets.
 
 > **Consultant tip:** In discovery, ask "Who raises the invoice today and when?" The answer tells you the invoicing policy, whether down payments are needed and who needs Accounting access.
+
+\`\`\`visual-order
+{
+  "title": "Quote-to-Cash order",
+  "prompt": "Put the steps of a Northwind chair order in the right order (policy: Delivered quantities).",
+  "items": [
+    "Salesperson creates the quotation",
+    "Quotation is sent to the customer",
+    "Customer signs online and the order is confirmed",
+    "Warehouse validates the delivery",
+    "AR creates and posts the customer invoice",
+    "Payment is registered and reconciled"
+  ],
+  "explanation": "With Delivered quantities nothing is invoiceable before the delivery is validated."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "What does Odoo post in Accounting when Northwind confirms sales order S00042?",
+  "options": ["A receivable for the order total", "Nothing: entries start with the invoice (and stock entries with the delivery if valuation is automated)", "A revenue entry", "A tax liability entry"],
+  "correct": 1,
+  "explanation": "Confirmation triggers the delivery and makes the order invoiceable, but posts nothing itself."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -268,6 +350,50 @@ Payment terms on the order flow to the invoice and compute the due date(s).
 
 The setting defines the default for **new** products only. Each product has its own **Invoicing Policy** field on the **General Information** tab. Changing the setting does not update existing products.
 
+#### In Odoo 20: Product settings that drive sales
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-sales/screens/sal-product-invoicing.webp",
+  "alt": "Odoo 20 product form for A4 Copy Paper with invoicing policy, sales price and sales taxes.",
+  "title": "Product settings that drive sales",
+  "path": "Sales ▸ Products ▸ Products",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 21.4,
+      "y": 38.5,
+      "w": 19.4,
+      "h": 3.3,
+      "tag": "right",
+      "title": "Invoicing Policy",
+      "text": "Ordered quantities: invoice at confirmation. Delivered: only what shipped."
+    },
+    {
+      "x": 46.1,
+      "y": 34,
+      "w": 8.8,
+      "h": 3.3,
+      "tag": "right",
+      "title": "Sales Price",
+      "text": "Default price; pricelists can override it."
+    },
+    {
+      "x": 46.7,
+      "y": 39.6,
+      "w": 9.9,
+      "h": 6.4,
+      "tag": "right",
+      "title": "Sales Taxes",
+      "text": "Default GST on sales; fiscal positions can swap it."
+    }
+  ],
+  "caption": "Real screen from an Odoo 20 training database with fictional Northwind data; amounts in ₹ with Indian GST."
+}
+\`\`\`
+
 ## Key takeaways
 
 - Finance must deliver taxes, accounts and payment terms before Sales go-live.
@@ -319,6 +445,23 @@ Unlike Purchase, the Sales app has **no standard order-approval setting** in Odo
 | Generic approval requests | Approvals app | Enterprise |
 | Automatic invoicing after online payment | Setting in Sales/payment configuration (verify in your instance) | Configuration |
 
+\`\`\`visual-match
+{
+  "title": "Which control answers the need?",
+  "prompt": "Match each client need to the standard Odoo 17 answer.",
+  "leftLabel": "Client need",
+  "rightLabel": "Solution",
+  "pairs": [
+    { "left": "Prevent changes after confirmation", "right": "Lock Confirmed Sales setting" },
+    { "left": "Customer must accept before confirmation", "right": "Online Signature / Online Payment" },
+    { "left": "Auto-send follow-up when a quotation expires", "right": "Automation rule (developer mode)" },
+    { "left": "Discount above 10% needs manager approval", "right": "Studio approval rules or a custom module" },
+    { "left": "Generic approval requests", "right": "Approvals app (Enterprise)" }
+  ],
+  "explanation": "Locks, signatures and automation rules are configuration; a discount approval on the sales order itself needs Studio or customization because Sales has no standard order-approval setting."
+}
+\`\`\`
+
 > **Consultant tip:** When a client asks for "sales approval", clarify *what* is approved: price, discount, credit, or the order itself. Each has a different standard answer — and only some need customization.
 
 ## 10. Reports and dashboards
@@ -332,6 +475,30 @@ Unlike Purchase, the Sales app has **no standard order-approval setting** in Odo
 | Invoice Analysis | Accounting/Invoicing ▸ Reporting | Invoiced revenue (actual) |
 
 Note the difference: **Sales Analysis** is based on confirmed orders (booked revenue), while **Invoice Analysis** shows invoiced revenue. Explain this to finance users to avoid "the numbers don't match" tickets.
+
+\`\`\`visual-cards
+{
+  "label": "Key reports",
+  "title": "Which report answers which question?",
+  "columns": 3,
+  "cards": [
+    { "icon": "chart", "title": "Sales Analysis", "body": "Booked revenue, quantities and margins from confirmed orders, by product, customer, salesperson, team or period.", "tone": "info" },
+    { "icon": "list", "title": "Quotations / Orders", "body": "The pipeline of quotations and the status of each order." },
+    { "icon": "invoice", "title": "Orders to Invoice", "body": "Orders that are waiting to be invoiced.", "tone": "warning" },
+    { "icon": "users", "title": "Sales team overview", "body": "Team targets and open quotations per team." },
+    { "icon": "coins", "title": "Invoice Analysis", "body": "Invoiced (actual) revenue from posted invoices, under Accounting/Invoicing reporting.", "tone": "success" }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Northwind's finance manager says this month's Sales Analysis total is higher than Invoice Analysis. What is the most likely reason?",
+  "options": ["Sales Analysis includes taxes twice", "Some confirmed orders have not been invoiced yet", "Invoice Analysis ignores posted invoices", "The pricelist was changed"],
+  "correct": 1,
+  "explanation": "Sales Analysis is based on confirmed orders (booked revenue); Invoice Analysis only shows posted invoices. Orders still waiting in Orders to Invoice explain the gap."
+}
+\`\`\`
 
 Useful pivots for Northwind:
 
@@ -350,6 +517,19 @@ Useful pivots for Northwind:
 | Down payment invoice | None | Dr Receivable / Cr Down-payment account (as configured on the down-payment product) / Cr Tax |
 
 Exact accounts depend on the localisation and product category configuration — verify in your training instance. With periodic (manual) valuation, no stock journal entries are created on delivery.
+
+\`\`\`visual-flow
+{
+  "title": "Where each sales event hits inventory and accounting",
+  "caption": "Automated (perpetual) Anglo-Saxon valuation; exact accounts depend on localisation and product category.",
+  "steps": [
+    { "title": "Quotation / confirmation", "icon": "file", "app": "Sales", "detail": "Reserves stock on the delivery for stock-tracked goods.", "impact": "No journal entry" },
+    { "title": "Delivery validated", "icon": "truck", "app": "Inventory", "detail": "Stock moves to the Customers location.", "impact": "Dr Stock Interim (Delivered) / Cr Stock Valuation at cost" },
+    { "title": "Customer invoice posted", "icon": "invoice", "app": "Accounting", "detail": "Revenue and receivable are recognised.", "impact": "Dr Receivable / Cr Product Sales / Cr Tax Payable; plus Dr COGS / Cr Stock Interim (Delivered)" },
+    { "title": "Payment registered", "icon": "payment", "app": "Accounting", "impact": "Dr Bank (or Outstanding Receipts) / Cr Receivable" }
+  ]
+}
+\`\`\`
 
 ## 12. Integration with other apps
 

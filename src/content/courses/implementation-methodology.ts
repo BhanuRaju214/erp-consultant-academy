@@ -102,6 +102,22 @@ Most ERP partners use a hybrid: **waterfall-style governance and phases** (disco
 | Contract | Fixed price/scope | Time & materials | Fixed phases + change control |
 | Best for | Large, regulated, stable scope | Small, evolving scope | Most SME ERP projects |
 
+\`\`\`visual-decision
+{
+  "title": "Which approach fits this client?",
+  "caption": "A starting point for the conversation, not a rule. Most ERP projects end up hybrid.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does the client need a fixed price and a fixed go-live date approved up front (board, tender, regulator)?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No", "next": "q3" } ] },
+    "q2": { "question": "Are requirements well understood and unlikely to change?", "options": [ { "label": "Yes", "next": "r1" }, { "label": "No, users need to see the system first", "next": "r2" } ] },
+    "q3": { "question": "Is there a client product owner available every week to prioritise and review?", "options": [ { "label": "Yes", "next": "r3" }, { "label": "No", "next": "r2" } ] },
+    "r1": { "result": "Waterfall (with prototype demos)", "tone": "info", "detail": "Phase gates and full sign-offs suit fixed scope. Still show a prototype before design sign-off so users are not surprised at UAT." },
+    "r2": { "result": "Hybrid", "tone": "success", "detail": "Gated discovery, design sign-off and go/no-go, with iterative configure-and-review cycles inside the build. This is what Atlas Precision Engineering used." },
+    "r3": { "result": "Agile (light governance)", "tone": "success", "detail": "Short sprints delivering usable slices, like BrightPath Learning Services. Keep change control and the essential documents (RTM, configuration workbook)." }
+  }
+}
+\`\`\`
+
 ## How Odoo projects are typically run
 
 Odoo's own published guidance and most Odoo partners favour a **standard-first, iterative approach**: start from a clean database, demonstrate standard flows early, adapt processes to the standard where reasonable, configure in short cycles with key users, and keep customizations minimal. Projects commonly begin with a kickoff and discovery, followed by repeated configure-and-review cycles, data import, user training and go-live. The exact service packages and names offered change over time — check the vendor's current offering rather than relying on memory.
@@ -122,9 +138,47 @@ Odoo's own published guidance and most Odoo partners favour a **standard-first, 
 
 Phases 4–7 often overlap in iterations; phases 1–3 and 8 are usually gated by formal sign-off.
 
+\`\`\`visual-order
+{
+  "title": "The nine phases",
+  "prompt": "Put the implementation phases used in this course in the order they start.",
+  "items": ["Business Discovery", "Requirement Analysis", "TO-BE Process Design", "Solution Configuration", "Data Migration", "Development and Integration", "Testing and Training", "Go-Live", "Post-Go-Live Support"],
+  "explanation": "Each phase consumes the previous phase's deliverable: AS-IS feeds the RTM, the RTM feeds TO-BE design, and the signed design drives configuration. Configuration, migration, development and testing overlap in practice, but they start in this order."
+}
+\`\`\`
+
+\`\`\`visual-match
+{
+  "title": "Deliverable by phase",
+  "prompt": "Match each deliverable to the phase that produces it.",
+  "leftLabel": "Deliverable",
+  "rightLabel": "Phase",
+  "pairs": [
+    { "left": "AS-IS process document", "right": "Business Discovery" },
+    { "left": "Requirement Traceability Matrix", "right": "Requirement Analysis" },
+    { "left": "Fit-gap analysis with design sign-off", "right": "TO-BE Process Design" },
+    { "left": "Configuration workbook", "right": "Solution Configuration" },
+    { "left": "Signed reconciliation of loaded data", "right": "Data Migration" },
+    { "left": "UAT sign-off", "right": "Testing and Training" },
+    { "left": "Executed cutover checklist", "right": "Go-Live" },
+    { "left": "Ticket log and knowledge base", "right": "Post-Go-Live Support" }
+  ],
+  "explanation": "Naming one deliverable per phase gives every phase a clear finish line and something concrete to sign off."
+}
+\`\`\`
+
 ## Real-world scenario
 
 **Atlas Precision Engineering** used a hybrid: a four-week discovery and requirements phase ended with a signed RTM and fixed budget; configuration and development then ran in three-week cycles, each ending with a key-user demo; a formal UAT and go/no-go gate came before cutover. **BrightPath Learning Services** used a lighter agile approach: CRM and invoicing went live in week six, projects and timesheets were added in two later sprints.
+
+\`\`\`visual-check
+{
+  "question": "A client's board insists on a fixed budget, but its key users cannot describe their future processes until they see the system. Which approach is the best fit?",
+  "options": ["Pure waterfall: design everything on paper, then build", "Pure agile with no fixed scope", "Hybrid: gated discovery and budget, then iterative prototype cycles with key users", "Skip discovery and configure the standard demo"],
+  "correct": 2,
+  "explanation": "Hybrid gives the board a signed scope and budget at the gate, while prototype cycles let users shape the design by seeing it, before UAT."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -168,6 +222,20 @@ Phases 4–7 often overlap in iterations; phases 1–3 and 8 are usually gated b
 4. Collect **evidence**: forms, spreadsheets, reports, sample transactions.
 5. Produce **AS-IS documentation** that the client confirms is accurate.
 
+\`\`\`visual-flow
+{
+  "title": "Discovery at a glance",
+  "caption": "The AS-IS document is only finished when the client has corrected and confirmed it.",
+  "steps": [
+    { "title": "Prepare", "icon": "book", "detail": "Industry research, questionnaire a week ahead, workshop schedule." },
+    { "title": "Interview", "icon": "users", "detail": "Management, process owners, key users and IT, separately." },
+    { "title": "Observe and collect", "icon": "clipboard", "detail": "Collect every form and report; ask what decision it supports." },
+    { "title": "Document AS-IS", "icon": "file", "detail": "Narratives, diagrams, volumes, systems, pain points." },
+    { "title": "Validate", "icon": "check", "branch": { "when": "Errors found", "result": "Correct and re-review", "tone": "warning" } }
+  ]
+}
+\`\`\`
+
 ## Inputs
 
 - Signed proposal / statement of work and high-level scope
@@ -190,8 +258,46 @@ Phases 4–7 often overlap in iterations; phases 1–3 and 8 are usually gated b
 
 Ask open questions ("Walk me through what happens when a customer orders a product you don't have in stock") and then probe exceptions ("What if the customer cancels after delivery?").
 
+\`\`\`visual-order
+{
+  "title": "A discovery workshop agenda",
+  "prompt": "Put the agenda of a half-day sales workshop at Crescent Tiles & Stone in a sensible order.",
+  "items": ["Objectives and scope of the session", "Walk through the normal process, enquiry to payment", "Probe exceptions: cancellations, returns, credit holds", "Capture volumes, peaks and documents used", "Record pain points with impact and frequency", "Agree open points, owners and evidence to collect"],
+  "explanation": "Start with the normal flow so everyone shares one picture, then go after exceptions and numbers. Close with owners, otherwise gaps in your notes stay gaps."
+}
+\`\`\`
+
 ### 3. Observe and collect
 Sit with users while they work. Collect every form, spreadsheet and report — then ask *who uses it and what decision it supports*. Many reports are produced but never read.
+
+\`\`\`visual-roleplay
+{
+  "title": "Probing a pain point",
+  "setting": "Sales workshop at Crescent Tiles & Stone, week 1. The sales lead wants to talk about solutions.",
+  "client": "Sales lead",
+  "rounds": [
+    { "says": "Our biggest problem is returns. Can Odoo just stop that?",
+      "options": [
+        { "text": "Yes, let me show you the returns screen now.", "quality": "poor", "feedback": "A screen before the cause. Returns are a symptom; you do not yet know why they happen." },
+        { "text": "Can you walk me through the last return, from the customer's call to the tiles coming back?", "quality": "best", "feedback": "An open question on a real case surfaces the cause, the people and the documents." },
+        { "text": "How many returns do you get?", "quality": "ok", "feedback": "Volume matters, but first get the story behind the number." } ] },
+    { "says": "The shade didn't match the tiles on site. We sent boxes from two batches.",
+      "options": [
+        { "text": "So you need lot tracking. Noted.", "quality": "ok", "feedback": "Probably right, but too early: you do not know how boxes are picked today." },
+        { "text": "How does the storekeeper choose boxes, and does the delivery note show the batch?", "quality": "best", "feedback": "Probing process and evidence shows whether the gap is data, process or both." },
+        { "text": "That is a warehouse problem, not a sales one.", "quality": "poor", "feedback": "Pushing it to another department loses the end-to-end view discovery is meant to build." } ] },
+    { "says": "They pick whatever is closest. The batch is on the box but nobody records it.",
+      "options": [
+        { "text": "How many such returns per month, and what does each cost in transport and rework?", "quality": "best", "feedback": "Impact and frequency go into the pain-point register and later justify priority." },
+        { "text": "OK, let's move on to purchasing.", "quality": "poor", "feedback": "Without impact or frequency the requirement cannot be prioritised or measured after go-live." } ] },
+    { "says": "About fifteen a month, two hours and a second truck each time.",
+      "options": [
+        { "text": "Let me read it back: batches are not recorded or picked deliberately, causing about fifteen returns a month. I'll log it as PP-02. Is that accurate?", "quality": "best", "feedback": "Playing it back gets the client to validate the pain point on the spot." },
+        { "text": "Great, Odoo will fix that with lots.", "quality": "ok", "feedback": "Likely the direction, but promise solutions after requirements and design, not in discovery." } ] }
+  ],
+  "wrapup": "Ask about a real case, probe process and evidence, quantify impact, then play it back. Solutions come later."
+}
+\`\`\`
 
 ### 4. Document AS-IS
 Write process narratives and simple flow diagrams; list systems, volumes, pain points and data sources.
@@ -251,6 +357,15 @@ Write process narratives and simple flow diagrams; list systems, volumes, pain p
 - **Not collecting evidence** — "we have a report for that" means nothing until you see it.
 - **Unvalidated AS-IS** — always get the client to confirm the document.
 
+\`\`\`visual-check
+{
+  "question": "The owner says: 'We have a weekly stock report for that.' What should the consultant do?",
+  "options": ["Note it and move on", "Ask to see the report, who reads it and what decision it supports", "Promise to rebuild it in Odoo", "Skip it; reports come in a later phase"],
+  "correct": 1,
+  "explanation": "Evidence beats assertions. Many reports are produced but never read; knowing who uses it and why tells you whether it is a real requirement."
+}
+\`\`\`
+
 ## Real-world scenario
 
 At **Crescent Tiles & Stone**, discovery revealed three unit-of-measure needs (square metre, box, pallet), lot tracking for shade batches, two customer payment policies and an import landed-cost process. The AS-IS document captured these with sample documents attached. The client corrected two errors in the draft — a typical and healthy outcome.
@@ -300,6 +415,23 @@ Bad example: "System should handle credit properly."
 - **Reporting** — outputs needed by management or authorities.
 - **Integration** — data exchanged with external systems.
 
+\`\`\`visual-match
+{
+  "title": "Requirement type by example",
+  "prompt": "Match each Crescent Tiles & Stone requirement to its type.",
+  "leftLabel": "Requirement",
+  "rightLabel": "Type",
+  "pairs": [
+    { "left": "Quote in square metres and deliver in boxes", "right": "Functional" },
+    { "left": "30 users working at the same time with response under 2 seconds", "right": "Non-functional" },
+    { "left": "Bring in open customer invoices and 2 years of item history", "right": "Data" },
+    { "left": "Monthly margin by product category for the MD", "right": "Reporting" },
+    { "left": "Import orders from the B2B portal every 15 minutes", "right": "Integration" }
+  ],
+  "explanation": "The type decides who estimates it and how it is tested: performance needs load tests, data needs reconciliation, integrations need both systems."
+}
+\`\`\`
+
 ## Classification
 
 Each requirement gets one primary classification:
@@ -312,6 +444,25 @@ Each requirement gets one primary classification:
 | Integration | Requires data exchange with an external system | Medium–high |
 | Reporting | New or adapted report/dashboard | Low–medium |
 
+\`\`\`visual-decision
+{
+  "title": "Fit-gap: how should this requirement be classified?",
+  "caption": "Walk the questions in order; customisation is the last answer, not the first.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does the standard product already do it with no setup?", "options": [ { "label": "Yes", "next": "std" }, { "label": "No", "next": "q2" } ] },
+    "q2": { "question": "Can a standard setting, rule or option achieve it?", "options": [ { "label": "Yes", "next": "cfg" }, { "label": "No", "next": "q3" } ] },
+    "q3": { "question": "Would the business accept a reasonable process change instead?", "options": [ { "label": "Yes", "next": "proc" }, { "label": "No", "next": "q4" } ] },
+    "q4": { "question": "Is it a Must with a clear business case (legal, core process, big time saving)?", "options": [ { "label": "Yes", "next": "cust" }, { "label": "No", "next": "defer" } ] },
+    "std": { "result": "Standard", "tone": "success", "detail": "Fit. Effort is training only." },
+    "cfg": { "result": "Configuration", "tone": "success", "detail": "Fit after setup, e.g. SAL-001 units of measure. Record it in the configuration workbook." },
+    "proc": { "result": "Process change (standard)", "tone": "info", "detail": "Document the agreed change in the TO-BE and train users." },
+    "cust": { "result": "Customisation", "tone": "warning", "detail": "Gap. Record options, estimate and approval, e.g. SAL-002 hard credit block." },
+    "defer": { "result": "Defer or Won't (this time)", "tone": "neutral", "detail": "Log it with the reason so it is not re-discussed, e.g. INT-001 moved to Phase 2." }
+  }
+}
+\`\`\`
+
 ## Prioritisation — MoSCoW
 
 | Priority | Meaning | Guideline |
@@ -320,6 +471,34 @@ Each requirement gets one primary classification:
 | **Should** | Important, but a workaround exists for a while | Planned for go-live if possible |
 | **Could** | Nice to have | Only if time/budget allow |
 | **Won't (this time)** | Explicitly out of scope for this phase | Recorded to avoid re-discussion |
+
+\`\`\`visual-roleplay
+{
+  "title": "MoSCoW with a demanding stakeholder",
+  "setting": "Prioritisation workshop at Crescent Tiles & Stone. 70% of requirements are marked Must; the managing director is short of time.",
+  "client": "Managing director",
+  "rounds": [
+    { "says": "Everything on this list is a Must. We are paying for a complete system.",
+      "options": [
+        { "text": "Understood, we'll mark them all Must.", "quality": "poor", "feedback": "If everything is Must, nothing is prioritised, and budget and timeline will break." },
+        { "text": "Let's test each one: could you go live and run for one month without it, with a workaround?", "quality": "best", "feedback": "A concrete, neutral test lets the client reclassify items himself instead of feeling overruled." },
+        { "text": "The budget only covers half of these.", "quality": "ok", "feedback": "True and relevant, but leading with money sounds like a refusal. Start with business impact." } ] },
+    { "says": "The B2B portal integration must be there on day one.",
+      "options": [
+        { "text": "How many orders come through the portal today, and how are they handled now?", "quality": "best", "feedback": "Facts decide priority. If volume is low and manual entry works, it may be a Should for Phase 2." },
+        { "text": "Integrations are always Could.", "quality": "poor", "feedback": "A blanket rule ignores the business. Some integrations really are Musts." } ] },
+    { "says": "About twenty orders a week. Sales types them in now. Fine, but I don't want to lose it.",
+      "options": [
+        { "text": "Let's mark it Won't for this phase, record the reason and plan it as a Phase 2 candidate with an estimate.", "quality": "best", "feedback": "Won't (this time) is recorded, not forgotten. The client keeps visibility and the scope stays controlled." },
+        { "text": "We'll see if we have time at the end.", "quality": "poor", "feedback": "Vague promises become disputes. Decide and log it." } ] },
+    { "says": "And the credit-limit hard block, that one is really a Must.",
+      "options": [
+        { "text": "Agreed, bad debt is a real risk. I'll check first how much the standard credit warning covers before we estimate development.", "quality": "best", "feedback": "Accept a justified Must, but still apply standard first before classifying it as customisation." },
+        { "text": "Then we'll develop a custom approval module.", "quality": "ok", "feedback": "May end up right, but skipping the standard check can cost days of unnecessary development." } ] }
+  ],
+  "wrapup": "Challenge Musts with a workaround test, use facts, record every Won't, and check standard before customising."
+}
+\`\`\`
 
 ## Gaps and risks
 
@@ -370,6 +549,15 @@ The RTM is **traceable** in both directions: from requirement to design to test 
 - No source reference — later nobody knows who asked for it.
 - Not baselining — after sign-off, all changes must go through change requests.
 
+\`\`\`visual-check
+{
+  "question": "Which is a well-written requirement?",
+  "options": ["System should handle credit properly", "Add a red button to the sales order", "SAL-002: Block sales order confirmation when the customer exceeds the credit limit, unless the Sales Manager approves", "Make it work like the old system"],
+  "correct": 2,
+  "explanation": "It is numbered, specific, testable and states the business need, not a screen design."
+}
+\`\`\`
+
 ## Real-world scenario
 
 Crescent's draft RTM had 112 requirements, 70% marked Must. In a prioritisation workshop, the consultant asked for a workaround for each Must. The result: 48 Must, 36 Should, 18 Could, 10 Won't. The B2B portal integration moved to Phase 2, saving 15% of the budget and four weeks.
@@ -416,6 +604,14 @@ Crescent's draft RTM had 112 requirements, 70% marked Must. In a prioritisation 
 3. Prefer the ERP's standard flow; change the process where reasonable.
 4. Add controls at the right points (approvals, mandatory fields, blocking checks).
 5. Walk the flow with key users using a prototype, not only on paper.
+
+\`\`\`visual-beforeafter
+{
+  "title": "Maple Leaf Office Interiors: AS-IS vs TO-BE",
+  "before": { "title": "AS-IS", "points": ["Quotation in a spreadsheet", "Owner approves every quote by email", "Buyer re-types items into vendor emails", "Installation planned on a whiteboard", "Profit per project known only at the end"] },
+  "after": { "title": "TO-BE", "points": ["Quotation in Sales from the product catalogue", "Owner approves only discounts above 10%", "Purchase orders per vendor created from the confirmed order", "Installation tasks scheduled in Project", "Analytic account per project shows cost vs revenue live"] }
+}
+\`\`\`
 
 ### Example — TO-BE quote-to-install flow
 
@@ -553,6 +749,15 @@ Consultants (lead design), process owners (decide and sign), key users (validate
 - Too many approval levels that slow the business down.
 - Forgetting exceptions (returns, cancellations, partial receipts).
 - Starting configuration before sign-off, then redoing work.
+
+\`\`\`visual-check
+{
+  "question": "Maple Leaf's owner wants three approval levels on every quotation. What is the best design response?",
+  "options": ["Configure all three levels as requested", "Check the data: how many quotes really need approval, then add a control only where the risk is", "Remove all approvals", "Build a custom approval engine"],
+  "correct": 1,
+  "explanation": "Controls should sit where the risk is. 85% of quotes had no discount above 10%, so only those needed approval."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -699,9 +904,35 @@ Functional/techno-functional consultants (configure), key users (validate), clie
 - Wrong UoM categories or tax setup discovered after transactions exist — changes become hard.
 - Ignoring localisation packages and recreating accounts manually.
 
+\`\`\`visual-order
+{
+  "title": "Configuration order",
+  "prompt": "Riverbend Distributors: put these configuration areas in the order you should set them up.",
+  "items": ["Company and localisation", "Users and access", "Chart of accounts, taxes and journals", "Warehouses and locations", "Products and units of measure", "Automation, approvals and reports"],
+  "explanation": "Each area references the ones before it: products need units, taxes and warehouses; automation needs the documents and roles to exist."
+}
+\`\`\`
+
+\`\`\`visual-dodont
+{
+  "title": "Configuration discipline",
+  "do": ["Configure and verify in TEST first", "Log every setting in the workbook with its Req ID", "Review the localisation package before adding accounts", "Log in as each role to test access"],
+  "dont": ["Configure directly in production", "Give everyone admin rights temporarily", "Create products before units of measure are final", "Treat Studio changes as plain configuration"]
+}
+\`\`\`
+
 ## Real-world scenario
 
 At Riverbend, the consultant initially set up branches as separate companies. During a configuration walkthrough, finance explained branches share one tax registration and one set of books. The design was changed to one company with three warehouses and analytic accounts per branch — caught early because the workbook was reviewed before data loading.
+
+\`\`\`visual-check
+{
+  "question": "Why is the configuration workbook a core deliverable rather than optional paperwork?",
+  "options": ["Auditors require it by law", "Most UI configuration lives in the database, so the workbook is how production is rebuilt and later supported", "It replaces user training", "Odoo cannot run without it"],
+  "correct": 1,
+  "explanation": "Settings made in the UI do not travel with code. The workbook lets you reproduce TEST in production and explains every setting to support later."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -803,12 +1034,30 @@ Records referring to other records must be loaded after them:
 | 7 | Open documents (open orders, if migrated) | Customers, products |
 | 8 | Opening balances (trial balance, open AR/AP) | Accounts, journals, contacts |
 
+\`\`\`visual-order
+{
+  "title": "Load in dependency order",
+  "prompt": "Summit Hardware Supplies: put the data loads in an order that avoids missing-reference errors.",
+  "items": ["Configuration (taxes, UoM, warehouses, payment terms)", "Product categories", "Customers and vendors", "Products", "Opening stock", "Open AR/AP and opening trial balance"],
+  "explanation": "A record can only point to records that already exist: products need categories, stock needs products and locations, open invoices need contacts."
+}
+\`\`\`
+
 ## Opening balances and opening stock
 
 - **Opening stock**: load quantity per product per location (and lot/serial if tracked) as at cut-off date, valued at agreed cost. Use an inventory adjustment or import (verify method for your valuation setup).
 - **Open receivables/payables**: load each open invoice/bill individually (customer, document number, date, due date, amount) so they can be collected/paid and aged correctly.
 - **General ledger balances**: load a trial balance as an opening journal entry, using a temporary/suspense account where receivables, payables and stock are loaded separately — so they are not doubled.
 - History (old closed invoices) is usually **not** migrated; keep the old system read-only or archive reports.
+
+\`\`\`visual-check
+{
+  "question": "Summit loads 412 open customer invoices individually. How should receivables be handled in the opening trial balance?",
+  "options": ["Include the full AR balance on the receivable account as well", "Post the AR part of the trial balance to a suspense account that the invoice load clears to zero", "Leave AR out of migration", "Load only the total AR as one invoice"],
+  "correct": 1,
+  "explanation": "Loading AR in both places doubles it. The suspense approach counts each balance once and keeps invoices available for ageing and collection."
+}
+\`\`\`
 
 ## Template — Data mapping sheet
 
@@ -1017,6 +1266,21 @@ Integrations exchange data with external systems: e-commerce, EDI providers, ban
 | Security | API keys, dedicated integration user with minimal rights |
 | Volume | ~600 orders/day peak |
 
+\`\`\`visual-sequence
+{
+  "title": "Lakeside Fresh Foods: EDI order import",
+  "caption": "Unmatched lines are logged and flagged, never silently dropped.",
+  "actors": ["Retail chain EDI", "Middleware", "Odoo", "IT support"],
+  "messages": [
+    { "from": "Retail chain EDI", "to": "Middleware", "label": "Purchase order message", "kind": "async" },
+    { "from": "Middleware", "to": "Middleware", "label": "Map product codes and customer", "kind": "self" },
+    { "from": "Middleware", "to": "Odoo", "label": "Create sales order (integration user)", "kind": "request" },
+    { "from": "Odoo", "to": "Middleware", "label": "Order reference", "kind": "response" },
+    { "from": "Middleware", "to": "IT support", "label": "Alert: unknown product code on line 3", "note": "Line kept and flagged for review; retried after the mapping table is updated", "kind": "async" }
+  ]
+}
+\`\`\`
+
 ## Unit and integration testing
 
 - **Unit tests** — developer verifies each function/rule in isolation (e.g. BL-1 to BL-3).
@@ -1047,6 +1311,15 @@ Techno-functional consultant (specs, verification), developers (build, unit test
 - Ignoring error handling in integrations — silent data loss.
 - Forgetting security: integration users with administrator rights.
 - No test data from the external partner until the last week.
+
+\`\`\`visual-check
+{
+  "question": "A developer offers to start the pallet-label report before the fit-gap decision is approved, to save time. What is the right answer?",
+  "options": ["Yes, it is a small report", "No: only approved gaps with a signed specification are built, so effort is traceable to an RTM ID and billable", "Yes, but edit the standard report directly", "Only if Studio is used"],
+  "correct": 1,
+  "explanation": "Unapproved builds become unbillable rework or scope creep. Trace every build to an approved gap and a specification."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -1098,6 +1371,20 @@ The EDI integration for Lakeside was specified with a payload mapping table and 
 | User acceptance testing (UAT) | Business confirms the system supports its processes | Key users | Before go-live |
 | Performance testing (if needed) | Response times at expected volume | Technical team | Before go-live |
 
+\`\`\`visual-flow
+{
+  "title": "Test layers",
+  "loop": "After every fix or deployment: retest the failed case and run regression on related cases.",
+  "steps": [
+    { "title": "Unit", "icon": "code", "actor": "Developer", "detail": "Each customisation in isolation." },
+    { "title": "Functional", "icon": "settings", "actor": "Consultant", "detail": "Each feature works as designed." },
+    { "title": "Integration", "icon": "link", "actor": "Consultant + key users", "detail": "End-to-end flows across apps and systems." },
+    { "title": "UAT", "icon": "users", "actor": "Key users", "detail": "Real scenarios, migrated data." },
+    { "title": "Sign-off", "icon": "signature", "actor": "Process owners", "detail": "Business acceptance." }
+  ]
+}
+\`\`\`
+
 ## Writing test cases
 
 Each test case must trace back to a requirement (RTM) and be executable by someone who did not write it.
@@ -1121,6 +1408,22 @@ Status values: **Not run, Pass, Fail, Blocked**.
 
 Severity guide: **Critical** (process stopped, no workaround), **High** (major function wrong, workaround hard), **Medium** (workaround exists), **Low** (cosmetic). After a fix: **retest** the failed case and run **regression** on related cases.
 
+\`\`\`visual-match
+{
+  "title": "Defect severity",
+  "prompt": "Pinecrest Building Materials UAT: match each defect to its severity.",
+  "leftLabel": "Defect",
+  "rightLabel": "Severity",
+  "pairs": [
+    { "left": "Warehouse users cannot see any delivery orders; nothing can ship", "right": "Critical" },
+    { "left": "Invoices for partial deliveries show the wrong quantity; manual credit notes needed", "right": "High" },
+    { "left": "Purchase approval asks twice, but the manager can still approve", "right": "Medium" },
+    { "left": "Company logo slightly misaligned on the quotation PDF", "right": "Low" }
+  ],
+  "explanation": "Severity is about business impact and workaround, not about how hard the fix is."
+}
+\`\`\`
+
 ## UAT
 
 - Use **real business scenarios** with migrated (trial) data, not demo data.
@@ -1135,6 +1438,30 @@ Severity guide: **Critical** (process stopped, no workaround), **High** (major f
 - Role-based sessions: a storekeeper does not need the accounting configuration.
 - Hands-on in a training database with realistic data.
 - Provide **user manuals / quick-reference guides** per role.
+
+\`\`\`visual-roleplay
+{
+  "title": "The sponsor wants to skip training",
+  "setting": "Steering committee at Pinecrest Building Materials. Testing ran three weeks late and the go-live date is close.",
+  "client": "Executive sponsor",
+  "rounds": [
+    { "says": "We lost three weeks in testing. Let's cancel end-user training and let people learn on the job.",
+      "options": [
+        { "text": "Fine, users will pick it up.", "quality": "poor", "feedback": "Untrained users create wrong data from day one, and fixing posted documents is far more expensive than training." },
+        { "text": "I understand the pressure. Can I show what untrained users would cost us in the first month, and propose a shorter plan?", "quality": "best", "feedback": "Acknowledge the constraint, make the risk concrete and come with an alternative instead of a flat no." },
+        { "text": "Training is in the contract, we can't change it.", "quality": "ok", "feedback": "Technically true, but it ends the conversation instead of solving the sponsor's problem." } ] },
+    { "says": "What would a shorter plan look like?",
+      "options": [
+        { "text": "Key users train their own teams by role in half-day sessions in the training database, using the role manuals, in the last week before go-live.", "quality": "best", "feedback": "Train-the-trainer and role-based sessions cut time without dropping the critical skills." },
+        { "text": "One big demo for all 60 users on a Friday afternoon.", "quality": "poor", "feedback": "A demo is not hands-on practice; a storekeeper does not need to watch accounting setup." } ] },
+    { "says": "And if people still make mistakes after go-live?",
+      "options": [
+        { "text": "Hypercare: floor-walkers in busy departments, a daily stand-up and quick-reference guides at each desk for the first weeks.", "quality": "best", "feedback": "Training continues into hypercare, where mistakes are caught early and fed back into the manuals." },
+        { "text": "We'll fix them as support tickets.", "quality": "ok", "feedback": "Tickets are needed, but without floor support errors pile up before anyone logs them." } ] }
+  ],
+  "wrapup": "Never trade away training silently. Quantify the risk, offer a shorter role-based plan, and back it with hypercare."
+}
+\`\`\`
 
 ### Template — User manual outline (per role/process)
 
@@ -1170,6 +1497,15 @@ Consultants (test design, functional/integration testing, training), developers 
 - Skipping regression after fixes.
 - Training too early (users forget) or too late (no practice time).
 - Generic manuals that don't match the configured system.
+
+\`\`\`visual-check
+{
+  "question": "TC-020 fails: the credit block is not triggered. The developer fixes the rule. What must happen next?",
+  "options": ["Close the defect", "Retest TC-020 and run regression on related sales and accounting cases", "Move straight to go-live", "Ask the developer to mark it Pass"],
+  "correct": 1,
+  "explanation": "A fix is proven only by retesting the failed case, and regression shows the change did not break anything nearby."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -1212,15 +1548,20 @@ Pinecrest's revised UAT used 85 test cases traced to 62 Must/Should requirements
 
 ## Cutover timeline
 
-\`\`\`text
- T-4 weeks  Final UAT sign-off, training complete, cutover plan approved
- T-2 weeks  Full dress rehearsal (final trial migration on staging, timed)
- T-1 week   Go/no-go meeting #1, user accounts verified, communications sent
- T-2 days   Final master-data extract and load; freeze master-data changes
- T-0 (Fri)  Transaction freeze in old system, stock count, final balances
- T+0 (Sat)  Load opening stock and balances, reconcile, smoke test
- T+1 (Sun)  Go/no-go meeting #2 (final), enable users
- T+2 (Mon)  GO-LIVE — hypercare starts
+\`\`\`visual-timeline
+{
+  "title": "Bluewater Marine Supplies cutover",
+  "items": [
+    { "when": "T-4 weeks", "title": "Readiness", "detail": "Final UAT sign-off, training complete, cutover plan approved.", "icon": "signature" },
+    { "when": "T-2 weeks", "title": "Dress rehearsal", "detail": "Final trial migration on staging, timed.", "icon": "refresh" },
+    { "when": "T-1 week", "title": "Go/no-go #1", "detail": "User accounts verified, communications sent.", "icon": "users" },
+    { "when": "T-2 days", "title": "Master data", "detail": "Final master-data extract and load; freeze master-data changes.", "icon": "database" },
+    { "when": "T-0 (Fri)", "title": "Freeze", "detail": "Transaction freeze in old system, stock count, final balances.", "icon": "lock" },
+    { "when": "T+0 (Sat)", "title": "Load and reconcile", "detail": "Load opening stock and balances, reconcile, smoke test.", "icon": "scale" },
+    { "when": "T+1 (Sun)", "title": "Go/no-go #2 (final)", "detail": "Decision, then enable users.", "icon": "flag" },
+    { "when": "T+2 (Mon)", "title": "GO-LIVE", "detail": "Hypercare starts.", "icon": "rocket" }
+  ]
+}
 \`\`\`
 
 ## Readiness criteria
@@ -1235,6 +1576,23 @@ Pinecrest's revised UAT used 85 test cases traced to 62 Must/Should requirements
 | Infrastructure | Printers, scanners, email, backups, network checked |
 | Support | Hypercare team, ticket process and escalation contacts published |
 | Business | Old-system freeze communicated to customers/vendors where needed |
+
+\`\`\`visual-decision
+{
+  "title": "Go / no-go",
+  "caption": "The sponsor decides, on evidence prepared by the project managers.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Is UAT signed with no open critical or high defects?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No", "next": "q4" } ] },
+    "q2": { "question": "Are stock and balances reconciled within the agreed tolerance (e.g. 0.5%)?", "options": [ { "label": "Yes", "next": "q3" }, { "label": "No", "next": "nogo" } ] },
+    "q3": { "question": "Did the smoke test pass, and are users, training and hypercare ready?", "options": [ { "label": "Yes", "next": "go" }, { "label": "No", "next": "nogo" } ] },
+    "q4": { "question": "Are the open defects High only (no Critical), each with a tested workaround the process owner accepts in writing?", "options": [ { "label": "Yes", "next": "cond" }, { "label": "No", "next": "nogo" } ] },
+    "go": { "result": "GO", "tone": "success", "detail": "Enable users, send the go-live communication, start hypercare." },
+    "cond": { "result": "Conditional GO", "tone": "warning", "detail": "Only with written workarounds, fix dates and owners recorded in the decision log. Use rarely." },
+    "nogo": { "result": "NO-GO: postpone", "tone": "danger", "detail": "Trigger the rollback plan, keep the old system running and set a new date once criteria are met." }
+  }
+}
+\`\`\`
 
 ## Template — Cutover checklist
 
@@ -1256,6 +1614,15 @@ Pinecrest's revised UAT used 85 test cases traced to 62 Must/Should requirements
 | 14 | Start hypercare; daily stand-up | PM | T+2 | 2–4 weeks | 13 | | | |
 | R | Rollback trigger & steps documented | PM | T-1w | — | — | | Sponsor | Criteria + who decides |
 
+\`\`\`visual-order
+{
+  "title": "Cutover weekend",
+  "prompt": "Put Bluewater's cutover steps in the order they must happen.",
+  "items": ["Freeze transactions in the old system", "Physical stock count", "Load opening stock, open AR/AP and trial balance", "Reconcile stock value and balances with the source", "Smoke test key transactions", "Final go/no-go decision", "Enable all users and start hypercare"],
+  "explanation": "Freeze before counting so numbers stop moving; reconcile before testing; decide only on evidence; enable users last."
+}
+\`\`\`
+
 ## Data validation at cutover
 
 - Record counts per object match the reconciliation sheet.
@@ -1273,6 +1640,14 @@ For the first 2–4 weeks:
 - Monitor: open tickets, stuck documents (unvalidated deliveries, draft invoices), integration errors, scheduled actions, performance.
 - Track a few daily health metrics: orders created, deliveries validated, invoices posted, bank reconciliation progress.
 - Exit hypercare when tickets fall to an agreed level and month-end close succeeds.
+
+\`\`\`visual-dodont
+{
+  "title": "Hypercare",
+  "do": ["Hold a daily stand-up with key users", "Floor-walk in busy departments", "Watch stuck documents and integration errors daily", "Log every issue as a ticket, even quick fixes", "Exit only after a successful month-end close"],
+  "dont": ["Let consultants leave on go-live day", "Fix data directly in the database", "Allow transactions back in the old system", "Exit hypercare on a fixed date regardless of tickets"]
+}
+\`\`\`
 
 ## Inputs
 
@@ -1299,9 +1674,42 @@ Sponsor (go/no-go), client and partner PMs (coordinate), consultants (loads, val
 - Going live just before a peak season or year-end without contingency.
 - Consultants leaving immediately after go-live.
 
+\`\`\`visual-roleplay
+{
+  "title": "Go/no-go with open critical defects",
+  "setting": "Final go/no-go meeting at Bluewater Marine Supplies, Sunday 16:00. One critical defect is open: delivery orders for lot-tracked items cannot be validated.",
+  "client": "Executive sponsor",
+  "rounds": [
+    { "says": "Customers and vendors have been told we go live tomorrow. We go, whatever happens.",
+      "options": [
+        { "text": "Understood, we'll go and fix it on Monday.", "quality": "poor", "feedback": "Going live with a Critical defect means the warehouse cannot ship. The date is not worth stopping the business." },
+        { "text": "Let's check it against the go-live criteria we all signed: no open critical defects. Here is what this one stops.", "quality": "best", "feedback": "Bring the decision back to agreed, evidence-based criteria rather than opinions." },
+        { "text": "It's your decision, not mine.", "quality": "ok", "feedback": "Correct about accountability, but the sponsor needs your clear recommendation and its consequences." } ] },
+    { "says": "How bad is it really? Can't the warehouse work around it?",
+      "options": [
+        { "text": "About 70% of our deliveries are lot-tracked. Without validation we cannot ship them or invoice them. There is no tested workaround.", "quality": "best", "feedback": "Quantified business impact makes the severity undeniable and keeps the meeting factual." },
+        { "text": "It's a technical issue in the lot module.", "quality": "poor", "feedback": "Technical language hides the business consequence the sponsor needs to decide." } ] },
+    { "says": "Then what do you recommend?",
+      "options": [
+        { "text": "No-go today. The developer has a fix in test; we retest and regress tomorrow, and reconvene Wednesday. The old system stays live under the rollback plan, and we inform customers today.", "quality": "best", "feedback": "A clear recommendation with a fix plan, a new decision point, rollback and communication." },
+        { "text": "Go live with non-lot items only and see.", "quality": "ok", "feedback": "A partial go-live can work, but only if it was planned and tested; improvising it on Sunday adds risk." } ] }
+  ],
+  "wrapup": "Decide on criteria, not dates. Quantify the impact, recommend clearly, and pair a no-go with a fix plan, rollback and communication."
+}
+\`\`\`
+
 ## Real-world scenario
 
 At Bluewater, the rehearsal showed the opening stock load took 5 hours instead of 2 because of 3,000 lot numbers. The plan was adjusted to load lots on Saturday morning. A rollback trigger was defined: if stock value differed by more than 0.5% by Sunday 14:00, go-live would be postponed one week. Actual difference: 0.02%, explained by rounding. Go-live proceeded.
+
+\`\`\`visual-check
+{
+  "question": "Saturday night: two sales staff entered orders in the old system after the freeze. What is the right action?",
+  "options": ["Ignore them; they are only two orders", "Capture them on the freeze list and re-enter them in the new system after reconciliation, then remind everyone of the freeze", "Re-open the old system for the weekend", "Delete them from the old system"],
+  "correct": 1,
+  "explanation": "Post-freeze transactions must be captured and re-entered deliberately, otherwise stock and balances no longer reconcile."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -1397,6 +1805,24 @@ Every issue goes through one channel (helpdesk tool, ticket portal or a dedicate
 | Defect — customization | Custom report shows wrong total | Developer (partner) |
 | Defect — standard | Standard behaviour suspected wrong | Vendor support |
 | Change request | "Can we add a new approval?" | PM → backlog |
+
+\`\`\`visual-match
+{
+  "title": "Categorise the ticket",
+  "prompt": "Orchid Event Rentals: match each ticket to its category.",
+  "leftLabel": "Ticket",
+  "rightLabel": "Category",
+  "pairs": [
+    { "left": "How do I return a chair to the vendor?", "right": "How-to / training" },
+    { "left": "Every product in the Linen category gets the wrong default tax", "right": "Configuration" },
+    { "left": "Opening stock for CHAIR-WHT loaded to the wrong location", "right": "Data" },
+    { "left": "New warehouse clerk cannot see delivery orders", "right": "Access" },
+    { "left": "Custom rental report shows a wrong total", "right": "Defect — customization" },
+    { "left": "Please add a second approval for large events", "right": "Change request" }
+  ],
+  "explanation": "The category decides who resolves the ticket and how: training gets a KB article, data gets a correcting document, change requests go to the backlog."
+}
+\`\`\`
 
 ### Priority matrix
 
@@ -1523,6 +1949,15 @@ Key users (first line), consultants (second line), developers and vendor (third 
 - Direct database changes that break the audit trail.
 - Treating every request as urgent; no priority definitions.
 - Not measuring adoption; shadow spreadsheets grow silently.
+
+\`\`\`visual-check
+{
+  "question": "A user reports that invoicing has stopped for all customers and there is no workaround. Which priority applies?",
+  "options": ["P1 Critical", "P2 High", "P3 Medium", "P4 Low"],
+  "correct": 0,
+  "explanation": "Business is stopped with no workaround, so it is P1: response within the hour, resolution the same day (per the example SLA)."
+}
+\`\`\`
 
 ## Real-world scenario
 

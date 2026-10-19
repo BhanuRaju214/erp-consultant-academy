@@ -64,6 +64,24 @@ Odoo is a **three-tier application**:
 
 The browser never talks to PostgreSQL directly. Every read and write goes through the server, which applies **access rights, record rules and business logic** first. That is why writing directly into the database is dangerous: you bypass all of it.
 
+\`\`\`visual-layers
+{
+  "title": "The Odoo stack, top to bottom",
+  "caption": "Select a layer to see what lives there. Every request passes through each layer in turn; nothing skips the ORM.",
+  "layers": [
+    { "title": "Web client", "subtitle": "JavaScript (OWL) single-page app in the browser", "icon": "globe", "items": ["Form, list, kanban views", "Actions and menus", "JSON-RPC calls"], "detail": "Renders the view XML it receives from the server and asks the server for data. It never opens a database connection." },
+    { "title": "HTTP and RPC layer", "subtitle": "odoo-bin, port 8069", "icon": "plug", "items": ["Web controllers", "JSON-RPC / XML-RPC", "Sessions and login"], "detail": "Receives each browser or API call, identifies the user and database, and hands the call to the model method." },
+    { "title": "ORM and business logic", "subtitle": "Python models from every installed module", "icon": "layers", "items": ["Access rights", "Record rules", "Computed fields", "Constraints", "Method overrides"], "detail": "Checks security, runs the standard method plus every override in dependency order, recomputes fields and turns the result into SQL." },
+    { "title": "Modules on the addons path", "subtitle": "sale, stock, account, academy_sale_extension", "icon": "box", "items": ["__manifest__.py", "models/", "views/", "security/"], "detail": "Folders the server scans at start-up. Installing or upgrading loads their XML and CSV into the database." },
+    { "title": "PostgreSQL and filestore", "subtitle": "The single source of truth", "icon": "database", "items": ["Business tables (sale_order)", "Metadata (ir_model, ir_ui_view)", "Attachments in the filestore"], "detail": "Records and metadata live in PostgreSQL; binary attachments live in the filestore folder. A backup needs both." }
+  ],
+  "connects": [
+    { "title": "External API clients", "detail": "Integrations call the same RPC layer and pass the same ORM security checks.", "icon": "link" },
+    { "title": "Scheduled actions", "detail": "Cron workers call model methods inside the server, also through the ORM.", "icon": "clock" }
+  ]
+}
+\`\`\`
+
 ### The Odoo server
 
 The server is a Python process started with \`odoo-bin\`. It reads a configuration file (usually \`odoo.conf\`) that tells it:
@@ -98,6 +116,24 @@ The ORM also handles:
 
 All business data and most configuration lives in PostgreSQL. Odoo also stores *metadata* there: \`ir_model\` (models), \`ir_model_fields\` (fields), \`ir_ui_view\` (views), \`ir_ui_menu\` (menus), \`ir_model_access\` (access rights). This is why installing or upgrading a module changes the database - the module's XML and CSV files are loaded into these tables.
 
+\`\`\`visual-match
+{
+  "title": "Where Odoo keeps its own metadata",
+  "prompt": "Match each PostgreSQL table to what it stores.",
+  "leftLabel": "Table",
+  "rightLabel": "Stores",
+  "pairs": [
+    { "left": "ir_model", "right": "One row per model, e.g. sale.order" },
+    { "left": "ir_model_fields", "right": "Every field of every model, with its type" },
+    { "left": "ir_ui_view", "right": "The XML architecture of form, list and search views" },
+    { "left": "ir_ui_menu", "right": "The menu tree users click through" },
+    { "left": "ir_model_access", "right": "Model-level read, write, create and delete rights per group" },
+    { "left": "sale_order", "right": "The business records themselves: quotations and orders" }
+  ],
+  "explanation": "Modules load their XML and CSV files into the ir_* tables on install and upgrade, which is why an upgrade changes the database even when no business data changes."
+}
+\`\`\`
+
 ### The web client
 
 The web client is a single-page application. When a user opens a menu, the client loads the **action** behind it, which tells it which model and which views to show. Views are XML stored in the database; the client renders them and calls the server for data.
@@ -124,6 +160,23 @@ Everything in Odoo is a **module** (also called an addon): Sales is \`sale\`, In
 
 > **Consultant tip:** When a client asks for a change, always classify it first: standard, configuration, Studio, custom module or third-party app. The classification drives cost, upgrade risk and who owns maintenance.
 
+\`\`\`visual-decision
+{
+  "title": "Classify the request: 'a small change on the quotation screen'",
+  "caption": "Walk the questions in this order before you estimate anything.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does standard Odoo already do it, perhaps with a setting switched on?", "options": [ { "label": "Yes", "next": "r_config" }, { "label": "No", "next": "q2" } ] },
+    "q2": { "question": "Is a maintained app (Odoo or a trusted third party) available that fits?", "options": [ { "label": "Yes", "next": "r_app" }, { "label": "No", "next": "q3" } ] },
+    "q3": { "question": "Is it only a simple field, label or layout change, and is the client on Enterprise?", "options": [ { "label": "Yes", "next": "r_studio" }, { "label": "No, it needs logic, rules or integration", "next": "r_module" } ] },
+    "r_config": { "result": "Configuration", "tone": "success", "detail": "Cheapest and survives upgrades. Document the setting in the configuration workbook." },
+    "r_app": { "result": "Install and evaluate the app", "tone": "info", "detail": "Check its version support, licence and who maintains it before recommending it." },
+    "r_studio": { "result": "Studio customization", "tone": "warning", "detail": "Fast to deliver, but still a customization: test it on every upgrade." },
+    "r_module": { "result": "Custom module (academy_sale_extension)", "tone": "warning", "detail": "Highest cost and must be migrated per major version. Write a specification and tests, and keep it in Git." }
+  }
+}
+\`\`\`
+
 ## How a request flows through Odoo
 
 1. A salesperson clicks **Confirm** on a quotation.
@@ -134,6 +187,35 @@ Everything in Odoo is a **module** (also called an addon): Sales is \`sale\`, In
 6. The client reloads the record and shows the new state.
 
 Point 5 is important: an error raised from your code cancels the whole operation. That is how validations safely block bad data.
+
+\`\`\`visual-sequence
+{
+  "title": "One click on Confirm, step by step",
+  "caption": "Press Next to follow the request from the browser down to PostgreSQL and back.",
+  "actors": ["Browser", "Odoo server", "ORM", "PostgreSQL"],
+  "messages": [
+    { "from": "Browser", "to": "Odoo server", "label": "RPC call: sale.order / action_confirm / id 42", "kind": "request", "note": "The web client only sends the model, method and record id." },
+    { "from": "Odoo server", "to": "Odoo server", "label": "Identify session, user and database", "kind": "self" },
+    { "from": "Odoo server", "to": "ORM", "label": "Call action_confirm on the recordset", "kind": "request" },
+    { "from": "ORM", "to": "ORM", "label": "Check access rights and record rules", "kind": "self", "note": "If the user may not write this order, an AccessError stops everything here." },
+    { "from": "ORM", "to": "ORM", "label": "Run standard code + overrides in dependency order", "kind": "self", "note": "sale, sale_stock, academy_sale_extension... each override calls super()." },
+    { "from": "ORM", "to": "PostgreSQL", "label": "UPDATE sale_order, INSERT stock_picking ...", "kind": "request" },
+    { "from": "PostgreSQL", "to": "ORM", "label": "COMMIT (or ROLLBACK on any error)", "kind": "response", "note": "One transaction: a raised UserError undoes every write of this call." },
+    { "from": "ORM", "to": "Odoo server", "label": "Return value (True or an action)", "kind": "response" },
+    { "from": "Odoo server", "to": "Browser", "label": "JSON response", "kind": "response" },
+    { "from": "Browser", "to": "Browser", "label": "Reload record, show state Sales Order", "kind": "self" }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A validation in academy_sale_extension raises a UserError after the standard code already created the delivery order in the same call. What is left in the database?",
+  "options": ["The delivery order, but the sales order stays a quotation", "Nothing from this call: the whole transaction is rolled back", "Everything, because the error came after the writes", "Only the chatter message"],
+  "correct": 1,
+  "explanation": "Each RPC call runs in one database transaction. Any exception rolls back every write made during that call, which is why raising errors is a safe way to block bad data."
+}
+\`\`\`
 
 ## Editions
 
@@ -204,18 +286,33 @@ class SaleOrder(models.Model):
             print(order.name, order.partner_id.name, order.amount_total)
 \`\`\`
 
-Useful recordset operations:
+Useful recordset operations (select a note to highlight the lines it explains):
 
-\`\`\`python
-orders = self.env["sale.order"].search([("state", "=", "sale")], limit=50)
-
-big = orders.filtered(lambda o: o.amount_total > 10000)   # subset
-partners = orders.mapped("partner_id")                     # related records
-totals = orders.mapped("amount_total")                     # list of floats
-latest_first = orders.sorted(key="date_order", reverse=True)
-
-order = orders[:1]          # first record (or empty recordset)
-order.ensure_one()          # raises an error if not exactly one record
+\`\`\`visual-codewalk
+{
+  "title": "Recordset operations you will read every day",
+  "language": "python",
+  "file": "Odoo shell or any model method",
+  "code": [
+    "orders = self.env['sale.order'].search([('state', '=', 'sale')], limit=50)",
+    "",
+    "big = orders.filtered(lambda o: o.amount_total > 10000)   # subset",
+    "partners = orders.mapped('partner_id')                     # related records",
+    "totals = orders.mapped('amount_total')                     # list of floats",
+    "latest_first = orders.sorted(key='date_order', reverse=True)",
+    "",
+    "order = orders[:1]          # first record (or empty recordset)",
+    "order.ensure_one()          # raises an error if not exactly one record"
+  ],
+  "notes": [
+    { "lines": "1", "title": "search returns a recordset", "text": "self.env['sale.order'] gives the model; search takes a domain and returns up to 50 confirmed orders as one recordset, never a Python list." },
+    { "lines": "3", "title": "filtered keeps a subset", "text": "Runs the lambda on each record in memory and returns a smaller recordset of the same model." },
+    { "lines": "4", "title": "mapped on a relational field", "text": "Returns a res.partner recordset with duplicates removed: the distinct customers of these orders." },
+    { "lines": "5", "title": "mapped on a simple field", "text": "Returns a plain Python list of values, one per record, so it can be summed." },
+    { "lines": "6", "title": "sorted", "text": "Returns a new recordset ordered by date_order, newest first. The database is not queried again." },
+    { "lines": "8-9", "title": "Exactly one record", "text": "Slicing with [:1] never fails, even on an empty set. ensure_one() raises Expected singleton unless there is exactly one record: use it at the top of methods that work on one document." }
+  ]
+}
 \`\`\`
 
 ### The environment: \`self.env\`
@@ -251,6 +348,15 @@ Conditions are joined with AND by default. Prefix operators \`"|"\` (OR) and \`"
 \`\`\`python
 # state = draft OR amount_total > 5000
 domain = ["|", ("state", "=", "draft"), ("amount_total", ">", 5000)]
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Which domain finds orders that are in state 'sale' AND belong to a customer from India OR the US?",
+  "options": ["[('state', '=', 'sale'), '|', ('partner_id.country_id.code', '=', 'IN'), ('partner_id.country_id.code', '=', 'US')]", "['|', ('state', '=', 'sale'), ('partner_id.country_id.code', '=', 'IN'), ('partner_id.country_id.code', '=', 'US')]", "[('state', '=', 'sale'), ('partner_id.country_id.code', '=', 'IN'), ('partner_id.country_id.code', '=', 'US')]"],
+  "correct": 0,
+  "explanation": "The '|' operator applies to the two conditions written right after it, and the remaining conditions are joined with AND. Option 2 means sale OR IN, then AND US. Option 3 asks for a country that is both IN and US, which never matches."
+}
 \`\`\`
 
 ## CRUD with the ORM
@@ -293,6 +399,25 @@ if not order.partner_id.email:
 
 Wrap user-facing strings in \`_()\` so they can be translated.
 
+\`\`\`visual-match
+{
+  "title": "The right tool for the job",
+  "prompt": "Match each Python or ORM construct to what it does.",
+  "leftLabel": "Construct",
+  "rightLabel": "Effect",
+  "pairs": [
+    { "left": "UserError", "right": "Blocks an action with a dialog and rolls the transaction back" },
+    { "left": "ValidationError", "right": "Raised from an @api.constrains method when saved data is invalid" },
+    { "left": "sudo()", "right": "Runs the next operations as superuser, bypassing access rights" },
+    { "left": "with_context(key=value)", "right": "Passes flags such as default values to downstream code" },
+    { "left": "Command.create({...})", "right": "Adds a new line to a One2many field inside create or write" },
+    { "left": "Command.link(id)", "right": "Attaches an existing record to a Many2many field" },
+    { "left": "_()", "right": "Marks a user-facing string for translation" }
+  ],
+  "explanation": "Reading code quickly means recognising these building blocks: errors for business rules, environment helpers for security and context, and Command helpers for relational writes."
+}
+\`\`\`
+
 ## Trying code safely: the Odoo shell
 
 \`\`\`bash
@@ -329,6 +454,15 @@ The shell does not commit unless you call \`env.cr.commit()\`. In training, pref
 | \`AttributeError: 'sale.order' object has no attribute ...\` | Field/method name typo or module not upgraded | Check spelling, run \`-u\` |
 | \`IndentationError\` | Mixed tabs/spaces | Use 4 spaces consistently |
 
+\`\`\`visual-check
+{
+  "question": "A method does print(self.name) and fails with 'Expected singleton: sale.order(1, 2)' when a user runs it from the list on two selected orders. What is the best fix?",
+  "options": ["Use self[0].name", "Loop with for order in self and use order.name", "Wrap the line in try/except", "Call sudo() first"],
+  "correct": 1,
+  "explanation": "self is a recordset that may hold many records. Looping handles one, two or a hundred orders; self[0] silently ignores the others and sudo() has nothing to do with it."
+}
+\`\`\`
+
 ## Key takeaways
 
 - \`self\` is a recordset; always loop.
@@ -360,6 +494,14 @@ During a support call, the finance manager of Sunrise Office Supplies says "some
 | Any query on a duplicated/neutralized test database | Yes |
 
 Ask the database administrator for a **read-only role**, for example created with \`GRANT SELECT\` only, or run your queries on a recent copy of the database.
+
+\`\`\`visual-dodont
+{
+  "title": "SQL on an Odoo database",
+  "do": ["Use a read-only role or a recent neutralized copy", "Always add LIMIT and a WHERE filter while exploring", "Filter on active and company_id where relevant", "Fix data through the UI, imports or tested ORM scripts"],
+  "dont": ["Run UPDATE, INSERT or DELETE on production", "ALTER tables: the ORM owns the schema", "Run long unfiltered queries during business hours", "Assume a computed field exists as a column"]
+}
+\`\`\`
 
 ## How Odoo names tables and columns
 
@@ -394,13 +536,27 @@ LIMIT 10;
 
 ### Invoices without a salesperson
 
-\`\`\`sql
-SELECT am.name, am.invoice_date, am.amount_total
-FROM account_move am
-WHERE am.move_type = 'out_invoice'
-  AND am.state = 'posted'
-  AND am.invoice_user_id IS NULL
-ORDER BY am.invoice_date DESC;
+\`\`\`visual-codewalk
+{
+  "title": "Answering the finance manager in one query",
+  "language": "sql",
+  "file": "read-only psql session",
+  "code": [
+    "SELECT am.name, am.invoice_date, am.amount_total",
+    "FROM account_move am",
+    "WHERE am.move_type = 'out_invoice'",
+    "  AND am.state = 'posted'",
+    "  AND am.invoice_user_id IS NULL",
+    "ORDER BY am.invoice_date DESC;"
+  ],
+  "notes": [
+    { "lines": "2", "title": "Model account.move", "text": "Invoices, bills and journal entries all live in account_move; the alias am keeps the query short." },
+    { "lines": "3", "title": "Only customer invoices", "text": "move_type separates customer invoices (out_invoice) from credit notes, vendor bills and plain entries." },
+    { "lines": "4", "title": "Only posted documents", "text": "Drafts and cancelled invoices are excluded, so finance sees only what counts." },
+    { "lines": "5", "title": "The actual question", "text": "invoice_user_id is the Many2one to the salesperson; NULL means the field is empty. Use IS NULL, never = NULL." },
+    { "lines": "6", "title": "Newest first", "text": "Sorting by date lets the manager see whether the problem is recent." }
+  ]
+}
 \`\`\`
 
 ### Sales per customer (aggregation)
@@ -445,12 +601,39 @@ LIMIT 20;
 | \`ORDER BY\` / \`LIMIT\` | Sort and restrict output - always use \`LIMIT\` when exploring |
 | \`EXPLAIN\` | Show how a query will run (performance) |
 
+\`\`\`visual-match
+{
+  "title": "SQL clauses",
+  "prompt": "Match each SQL clause to its meaning.",
+  "leftLabel": "Clause",
+  "rightLabel": "Meaning",
+  "pairs": [
+    { "left": "LEFT JOIN", "right": "Combine tables but keep rows that have no match" },
+    { "left": "WHERE", "right": "Filter individual rows before grouping" },
+    { "left": "GROUP BY", "right": "Collapse rows into one row per group for COUNT or SUM" },
+    { "left": "HAVING", "right": "Filter groups after aggregation" },
+    { "left": "LIMIT", "right": "Cap the number of rows returned" },
+    { "left": "EXPLAIN", "right": "Show the query plan without changing data" }
+  ],
+  "explanation": "WHERE works on rows and HAVING works on groups: the duplicate-email query needs HAVING COUNT(*) > 1 because the count only exists after grouping."
+}
+\`\`\`
+
 ## Reading results with care
 
 - Odoo uses an \`active\` boolean for archiving. Archived records are still in the table - filter with \`active\` when relevant.
 - Multi-company databases: always check \`company_id\`.
 - Monetary amounts are stored in the document currency; company-currency columns (e.g. \`amount_total_signed\` on invoices) may differ.
 - Computed, non-stored fields do **not** exist as columns at all.
+
+\`\`\`visual-check
+{
+  "question": "You look for the column order_line in the table sale_order and cannot find it. Why?",
+  "options": ["It was archived", "order_line is a One2many: the link is stored as order_id in sale_order_line", "Your read-only role hides it", "It is stored as jsonb"],
+  "correct": 1,
+  "explanation": "A One2many has no column. The reverse Many2one (order_id on sale_order_line) holds the link, so you JOIN sale_order_line ON order_id = sale_order.id."
+}
+\`\`\`
 
 ## Exercise
 
@@ -544,6 +727,18 @@ Note \`.env\` - files with credentials never go into Git.
 
 Many partners name branches after the Odoo version because a module is migrated per major version. On Odoo.sh, branches are mapped to *development*, *staging* and *production* stages; the same discipline applies.
 
+\`\`\`visual-flow
+{
+  "title": "How code travels between branches and databases",
+  "steps": [
+    { "title": "Feature branch", "icon": "code", "app": "Git", "detail": "17.0-feature-delivery-windows, tested on a developer database." },
+    { "title": "Pull request and review", "icon": "users", "app": "Git", "detail": "A second person checks the change against the specification and the review checklist." },
+    { "title": "Staging", "icon": "shield", "app": "17.0-staging", "detail": "Release candidate tested by the consultant and client on a neutralized copy of production." },
+    { "title": "Production", "icon": "rocket", "app": "17.0", "detail": "Merged, tagged and deployed. The tag tells support exactly which code is live." }
+  ]
+}
+\`\`\`
+
 ## The daily workflow
 
 \`\`\`bash
@@ -560,6 +755,15 @@ git push -u origin 17.0-feature-delivery-windows
 \`\`\`
 
 Then open a pull request, ask for review, and merge only after tests pass on staging.
+
+\`\`\`visual-order
+{
+  "title": "A feature from branch to production",
+  "prompt": "Put the steps of the daily workflow in the right order.",
+  "items": ["git checkout 17.0 and git pull", "git checkout -b 17.0-feature-delivery-windows", "Edit files, upgrade the module on the dev database and test", "git add and git commit with an [ADD] message", "git push -u origin to the feature branch", "Open a pull request and get it reviewed", "Merge after tests pass on staging, then tag the release"],
+  "explanation": "Start from an up-to-date main branch, isolate the work on a feature branch, test before committing, and only merge reviewed code that passed staging."
+}
+\`\`\`
 
 ### Commit message convention
 
@@ -601,9 +805,36 @@ The manifest \`version\` follows \`<odoo major>.<module major>.<minor>.<patch>\`
 
 Avoid \`git push --force\` on shared branches - it rewrites history others depend on.
 
+\`\`\`visual-match
+{
+  "title": "Git commands and their effect",
+  "prompt": "Match each command to what it does.",
+  "leftLabel": "Command",
+  "rightLabel": "Effect",
+  "pairs": [
+    { "left": "git restore path/to/file", "right": "Discards uncommitted changes to one file" },
+    { "left": "git revert <commit>", "right": "Adds a new commit that undoes a pushed one, keeping history" },
+    { "left": "git blame path/to/file", "right": "Shows who last changed each line" },
+    { "left": "git diff 17.0..my-branch", "right": "Compares a branch with production code" },
+    { "left": "git log --oneline", "right": "Lists commits one per line" },
+    { "left": "git push --force", "right": "Rewrites remote history: avoid on shared branches" }
+  ],
+  "explanation": "On shared branches, undo with revert rather than force-push: everybody else keeps a consistent history."
+}
+\`\`\`
+
 ## If a secret was committed
 
 Removing the file in a new commit is **not enough**: it stays in history. Immediately **revoke/rotate the credential**, then clean history with your platform's guidance. Treat the secret as compromised.
+
+\`\`\`visual-check
+{
+  "question": "A developer pushed odoo.conf with the production admin password to the shared repository. What comes first?",
+  "options": ["Delete the file in a new commit", "Rotate the password immediately and treat it as compromised", "Force-push to hide the commit", "Add odoo.conf to .gitignore"],
+  "correct": 1,
+  "explanation": "Anyone who cloned or fetched already has the secret in history. Rotating it removes the risk; cleaning history and .gitignore come after."
+}
+\`\`\`
 
 ## Exercise
 
@@ -650,6 +881,14 @@ A developer at a partner once "just tested" a scheduled action on production. It
 3. Keep credentials out of code and repositories.
 4. Every change reaches production through version control and a staging test.
 
+\`\`\`visual-dodont
+{
+  "title": "Safety rules for every environment",
+  "do": ["Develop and test on a duplicated, neutralized database", "Check mail servers and scheduled actions are inactive before testing", "Read credentials from environment variables or a secrets manager", "Back up the database and the filestore before every upgrade", "Practise restoring a backup"],
+  "dont": ["Run a scheduled action 'just to see' on production", "Commit passwords or API keys to Git", "Reuse production API keys in dev or test", "Use --dev=all on a production server", "Demo on a copy you have not verified as neutralized"]
+}
+\`\`\`
+
 ## Environment ladder
 
 | Environment | Data | Who uses it | Purpose |
@@ -658,6 +897,19 @@ A developer at a partner once "just tested" a scheduled action on production. It
 | Test / training | Neutralized copy | Consultant, key users | Functional testing, training |
 | Staging | Recent neutralized copy of production | Consultant, client | Final acceptance before release |
 | Production | Real | End users | Live business |
+
+\`\`\`visual-flow
+{
+  "title": "The environment ladder",
+  "caption": "A change climbs one rung at a time; only the last rung touches real customers.",
+  "steps": [
+    { "title": "Local dev", "icon": "code", "actor": "Developer", "detail": "Demo data or a neutralized copy. Build and unit test.", "impact": "No real customers" },
+    { "title": "Test / training", "icon": "graduation", "actor": "Consultant, key users", "detail": "Neutralized copy for functional testing and training.", "impact": "No real customers" },
+    { "title": "Staging", "icon": "shield", "actor": "Consultant, client", "detail": "Recent neutralized copy of production. Final acceptance.", "impact": "No real customers" },
+    { "title": "Production", "icon": "building", "actor": "End users", "detail": "Live business. Only reviewed, tested, versioned changes arrive here.", "impact": "Real emails, payments and stock" }
+  ]
+}
+\`\`\`
 
 ## What "neutralized" means
 
@@ -726,6 +978,22 @@ During development, use the developer flags so XML and Python changes reload fas
 | Manifest \`data\` list | Upgrade (\`-u\`) |
 | New module folder | Restart, *Update Apps List*, then install |
 
+\`\`\`visual-match
+{
+  "title": "Restart or upgrade?",
+  "prompt": "Match each change to the action that makes it visible in Odoo.",
+  "leftLabel": "You changed",
+  "rightLabel": "Required action",
+  "pairs": [
+    { "left": "Logic inside an existing Python method", "right": "Restart the server only" },
+    { "left": "A new field in a Python model", "right": "Restart and upgrade with -u" },
+    { "left": "View XML or the security CSV", "right": "Upgrade with -u" },
+    { "left": "A brand-new module folder", "right": "Restart, Update Apps List, then install" }
+  ],
+  "explanation": "Python code is loaded when the server starts; XML, CSV and new columns reach the database only during install or upgrade."
+}
+\`\`\`
+
 ## Secrets
 
 - Database passwords and API keys come from environment variables or a secrets manager, not the repository.
@@ -735,6 +1003,15 @@ During development, use the developer flags so XML and Python changes reload fas
 ## Backups and restore
 
 Take a backup before every upgrade, even on test. A backup consists of the PostgreSQL dump **and** the filestore (attachments). Practise restoring - an untested backup is not a backup.
+
+\`\`\`visual-check
+{
+  "question": "You restored only the PostgreSQL dump of academy_test on a new server. Users open invoices and the PDF attachments are missing. Why?",
+  "options": ["The dump was corrupted", "Attachments live in the filestore, which was not restored", "Neutralization deleted them", "The module was not upgraded"],
+  "correct": 1,
+  "explanation": "A complete Odoo backup is the database dump plus the filestore folder. Restoring only the dump gives records whose attachments point to missing files."
+}
+\`\`\`
 
 ## Exercise
 
@@ -821,26 +1098,43 @@ academy_sale_extension/
 
 ### __manifest__.py
 
-\`\`\`python
+\`\`\`visual-codewalk
 {
-    "name": "Academy Sale Extension",
-    "version": "17.0.1.0.0",
-    "summary": "Training module: sales extensions for Sunrise Office Supplies",
-    "category": "Sales",
-    "author": "ERP Consultant Academy",
-    "license": "LGPL-3",
-    "depends": ["sale_management"],
-    "data": [
-        "security/academy_security.xml",
-        "security/ir.model.access.csv",
-        "views/academy_delivery_window_views.xml",
-        "views/sale_order_views.xml",
-        "views/menus.xml",
-    ],
-    "installable": True,
-    "application": False,
+  "title": "The manifest of academy_sale_extension",
+  "language": "python",
+  "file": "academy_sale_extension/__manifest__.py",
+  "code": [
+    "{",
+    "    'name': 'Academy Sale Extension',",
+    "    'version': '17.0.1.0.0',",
+    "    'summary': 'Training module: sales extensions for Sunrise Office Supplies',",
+    "    'category': 'Sales',",
+    "    'author': 'ERP Consultant Academy',",
+    "    'license': 'LGPL-3',",
+    "    'depends': ['sale_management'],",
+    "    'data': [",
+    "        'security/academy_security.xml',",
+    "        'security/ir.model.access.csv',",
+    "        'views/academy_delivery_window_views.xml',",
+    "        'views/sale_order_views.xml',",
+    "        'views/menus.xml',",
+    "    ],",
+    "    'installable': True,",
+    "    'application': False,",
+    "}"
+  ],
+  "notes": [
+    { "lines": "2", "title": "Name shown in Apps", "text": "The technical name is the folder name, academy_sale_extension; this is only the label." },
+    { "lines": "3", "title": "Version", "text": "Odoo major (17.0) + module major.minor.patch. Bump it when data structures change; migration scripts depend on it." },
+    { "lines": "7", "title": "License", "text": "Required. Without it Odoo logs a warning on load." },
+    { "lines": "8", "title": "Dependencies", "text": "sale_management brings sale and the Sales menus. Odoo installs dependencies first and loads our overrides after theirs." },
+    { "lines": "9-15", "title": "Data files, loaded in order", "text": "Security first (groups the CSV references), then views (which define actions), then menus (which reference those actions). A wrong order gives External ID not found." },
+    { "lines": "16-17", "title": "Installable, not an app", "text": "installable must be True; application False keeps it out of the main Apps filter because it extends Sales." }
+  ]
 }
 \`\`\`
+
+(In a real file the strings may use double quotes; Python accepts both.)
 
 Key points:
 
@@ -863,20 +1157,36 @@ from . import sale_order
 
 ### models/academy_delivery_window.py
 
-\`\`\`python
-from odoo import fields, models
-
-
-class AcademyDeliveryWindow(models.Model):
-    _name = "academy.delivery.window"
-    _description = "Customer Delivery Window"
-    _order = "date_from"
-
-    name = fields.Char(required=True)
-    sale_order_id = fields.Many2one("sale.order", string="Sales Order", ondelete="cascade")
-    date_from = fields.Datetime(string="From", required=True)
-    date_to = fields.Datetime(string="To", required=True)
-    note = fields.Text()
+\`\`\`visual-codewalk
+{
+  "title": "A new model: academy.delivery.window",
+  "language": "python",
+  "file": "academy_sale_extension/models/academy_delivery_window.py",
+  "code": [
+    "from odoo import fields, models",
+    "",
+    "",
+    "class AcademyDeliveryWindow(models.Model):",
+    "    _name = 'academy.delivery.window'",
+    "    _description = 'Customer Delivery Window'",
+    "    _order = 'date_from'",
+    "",
+    "    name = fields.Char(required=True)",
+    "    sale_order_id = fields.Many2one('sale.order', string='Sales Order', ondelete='cascade')",
+    "    date_from = fields.Datetime(string='From', required=True)",
+    "    date_to = fields.Datetime(string='To', required=True)",
+    "    note = fields.Text()"
+  ],
+  "notes": [
+    { "lines": "4", "title": "A model is a Python class", "text": "It inherits models.Model, so the ORM creates and manages a database table for it." },
+    { "lines": "5", "title": "_name creates a new model", "text": "The ORM creates table academy_delivery_window and the external id model_academy_delivery_window used in the CSV." },
+    { "lines": "6", "title": "_description", "text": "Human-readable name shown in error messages and technical menus. Odoo warns when it is missing." },
+    { "lines": "7", "title": "Default sort order", "text": "Lists show windows by start time unless the user sorts differently." },
+    { "lines": "9", "title": "name is special", "text": "Odoo uses the name field as the display name of each record, for example in Many2one dropdowns." },
+    { "lines": "10", "title": "Link to the sales order", "text": "A Many2one column sale_order_id; ondelete cascade deletes the windows when the order is deleted." },
+    { "lines": "11-12", "title": "Datetimes", "text": "Stored in UTC and shown in each user's timezone." }
+  ]
+}
 \`\`\`
 
 ### models/sale_order.py
@@ -991,6 +1301,25 @@ access_academy_delivery_window_manager,academy.delivery.window.manager,model_aca
 - External ids such as \`model_academy_delivery_window\` are generated automatically for every model (\`model_\` + model name with dots replaced by underscores).
 - \`sale.view_order_form\` and \`sale.sale_menu_root\` are external ids defined by the \`sale\` module (\`module.xml_id\`).
 
+\`\`\`visual-sequence
+{
+  "title": "What happens when you install academy_sale_extension",
+  "caption": "Press Next to follow odoo-bin -i academy_sale_extension.",
+  "actors": ["Administrator", "Odoo server", "Module files", "PostgreSQL"],
+  "messages": [
+    { "from": "Administrator", "to": "Odoo server", "label": "Install (Apps or -i academy_sale_extension)", "kind": "request" },
+    { "from": "Odoo server", "to": "Module files", "label": "Read __manifest__.py", "kind": "request", "note": "Checks depends: sale_management must be installed first, or is installed now." },
+    { "from": "Odoo server", "to": "Module files", "label": "Import Python via __init__.py", "kind": "request", "note": "Model classes register in the registry; a missing import means the model never exists." },
+    { "from": "Odoo server", "to": "PostgreSQL", "label": "Create table academy_delivery_window, add column to sale_order", "kind": "request" },
+    { "from": "Odoo server", "to": "Module files", "label": "Load data files in manifest order", "kind": "request", "note": "Security XML, access CSV, views, menus." },
+    { "from": "Odoo server", "to": "PostgreSQL", "label": "Write ir_model_access, ir_ui_view, ir_ui_menu rows", "kind": "request" },
+    { "from": "Odoo server", "to": "Odoo server", "label": "Validate views against the models", "kind": "self", "note": "A field missing in Python fails here with Field does not exist." },
+    { "from": "PostgreSQL", "to": "Odoo server", "label": "Commit: module state installed", "kind": "response" },
+    { "from": "Odoo server", "to": "Administrator", "label": "Menu Sales > Delivery Windows appears", "kind": "response" }
+  ]
+}
+\`\`\`
+
 ## Exercise steps
 
 1. Create the folder in your custom addons path with all files above.
@@ -998,6 +1327,15 @@ access_academy_delivery_window_manager,academy.delivery.window.manager,model_aca
 3. Search "Academy Sale Extension" and install it (or \`-i academy_sale_extension\`).
 4. Open *Sales > Delivery Windows* and create a window.
 5. Open a quotation and fill **Customer PO**.
+
+\`\`\`visual-order
+{
+  "title": "Build and install the module",
+  "prompt": "Put the steps to get a new module running in the right order.",
+  "items": ["Create the folder academy_sale_extension in the custom addons path", "Write __manifest__.py and the __init__.py imports", "Add models, security CSV and view XML files", "Restart the Odoo server", "Activate developer mode and click Update Apps List", "Install Academy Sale Extension", "Test the new menu and field as a salesperson"],
+  "explanation": "The server only sees a new folder after a restart, and Apps only lists it after Update Apps List. Testing as a real user catches missing access rights that an administrator would not notice."
+}
+\`\`\`
 
 ## Expected output
 
@@ -1014,6 +1352,15 @@ access_academy_delivery_window_manager,academy.delivery.window.manager,model_aca
 | \`Field "academy_customer_po" does not exist in model "sale.order"\` | Python not loaded: missing import in \`__init__.py\`, or server not restarted | Fix imports, restart, upgrade |
 | \`External ID not found in the system: academy_sale_extension.academy_delivery_window_action\` | Menu file loaded before the views file | Reorder \`data\` in the manifest |
 | Module not found in Apps | Not in addons path or apps list not updated | Check path, *Update Apps List* |
+
+\`\`\`visual-check
+{
+  "question": "Installation fails with 'External ID not found in the system: academy_sale_extension.academy_delivery_window_action'. The action exists in academy_delivery_window_views.xml. What is wrong?",
+  "options": ["The action needs a group", "views/menus.xml is listed before the views file in the manifest data", "The model has no access rights", "The server was not restarted"],
+  "correct": 1,
+  "explanation": "Data files load in the listed order. A menu can only reference an action that has already been loaded, so the views file must come before menus.xml."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -1053,6 +1400,25 @@ Sunrise wants to capture more on each delivery window: the **delivery type**, th
 
 Common attributes: \`string\`, \`required\`, \`readonly\`, \`default\`, \`help\`, \`index\`, \`copy\`, \`tracking\` (with \`mail.thread\`), \`groups\`.
 
+\`\`\`visual-match
+{
+  "title": "Pick the field type",
+  "prompt": "Match each Sunrise requirement to the best field type.",
+  "leftLabel": "Requirement",
+  "rightLabel": "Field type",
+  "pairs": [
+    { "left": "Number of pallets on a delivery window", "right": "fields.Integer" },
+    { "left": "Delivery type: standard, express or pickup", "right": "fields.Selection" },
+    { "left": "Tail-lift required or not", "right": "fields.Boolean" },
+    { "left": "Deposit amount in the order currency", "right": "fields.Monetary" },
+    { "left": "Window start date and time", "right": "fields.Datetime" },
+    { "left": "Free-form delivery instructions", "right": "fields.Text" },
+    { "left": "Shipment weight in kg with decimals", "right": "fields.Float" }
+  ],
+  "explanation": "The type decides how data is stored, searched, grouped and imported. A Selection, for example, gives clean groupable values where a Char would collect spelling variants."
+}
+\`\`\`
+
 ## Relational field types
 
 | Field | Meaning | Database |
@@ -1064,6 +1430,21 @@ Common attributes: \`string\`, \`required\`, \`readonly\`, \`default\`, \`help\`
 \`\`\`text
 sale.order (1) ----< academy.delivery.window (many)   One2many / Many2one
 academy.delivery.window >----< academy.delivery.tag    Many2many
+\`\`\`
+
+\`\`\`visual-decision
+{
+  "title": "Which relational field?",
+  "caption": "Ask these questions for every 'list of X on Y' requirement.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does each Y point to exactly one X (for example the dock contact of a window)?", "options": [ { "label": "Yes", "next": "r_m2o" }, { "label": "No, Y shows a list of X", "next": "q2" } ] },
+    "q2": { "question": "Can one X belong to several Y at the same time?", "options": [ { "label": "Yes, e.g. the tag Fragile on many windows", "next": "r_m2m" }, { "label": "No, e.g. a window belongs to one order", "next": "r_o2m" } ] },
+    "r_m2o": { "result": "Many2one", "tone": "success", "detail": "An integer column with a foreign key, e.g. dock_contact_id to res.partner." },
+    "r_m2m": { "result": "Many2many", "tone": "info", "detail": "Odoo creates a relation table between both models, e.g. tag_ids to academy.delivery.tag." },
+    "r_o2m": { "result": "One2many + its inverse Many2one", "tone": "info", "detail": "The Many2one sale_order_id on the window stores the link; delivery_window_ids on the order is the virtual reverse." }
+  }
+}
 \`\`\`
 
 ## Starter code
@@ -1107,20 +1488,33 @@ class AcademyDeliveryWindow(models.Model):
 
 ### models/sale_order.py
 
-\`\`\`python
-from odoo import fields, models
-
-
-class SaleOrder(models.Model):
-    _inherit = "sale.order"
-
-    academy_customer_po = fields.Char(string="Customer PO", copy=False)
-    academy_priority = fields.Selection(
-        [("0", "Normal"), ("1", "Urgent")], string="Delivery Priority", default="0"
-    )
-    delivery_window_ids = fields.One2many(
-        "academy.delivery.window", "sale_order_id", string="Delivery Windows"
-    )
+\`\`\`visual-codewalk
+{
+  "title": "Extending sale.order with new fields",
+  "language": "python",
+  "file": "academy_sale_extension/models/sale_order.py",
+  "code": [
+    "from odoo import fields, models",
+    "",
+    "",
+    "class SaleOrder(models.Model):",
+    "    _inherit = 'sale.order'",
+    "",
+    "    academy_customer_po = fields.Char(string='Customer PO', copy=False)",
+    "    academy_priority = fields.Selection(",
+    "        [('0', 'Normal'), ('1', 'Urgent')], string='Delivery Priority', default='0'",
+    "    )",
+    "    delivery_window_ids = fields.One2many(",
+    "        'academy.delivery.window', 'sale_order_id', string='Delivery Windows'",
+    "    )"
+  ],
+  "notes": [
+    { "lines": "5", "title": "_inherit without _name", "text": "Extends the existing model: the new fields become columns of the sale_order table, no new table is created." },
+    { "lines": "7", "title": "copy=False", "text": "Duplicating a quotation does not copy the customer PO, because each PO belongs to one order." },
+    { "lines": "8-10", "title": "Selection keys are stored", "text": "The database stores '0' or '1'; the labels are translated. Keys must not change after go-live." },
+    { "lines": "11-13", "title": "One2many needs its inverse", "text": "The second argument, sale_order_id, is the Many2one on the window. No column is created on sale_order." }
+  ]
+}
 \`\`\`
 
 ### security/ir.model.access.csv (add the tag model)
@@ -1195,6 +1589,15 @@ access_academy_delivery_tag_manager,academy.delivery.tag.manager,model_academy_d
 | \`KeyError: 'sale_order_id'\` | Wrong inverse name in One2many | Use the exact Many2one field name |
 | Tag list read-only for salespeople | CSV gives them read only | Intended; adjust rights if requirement differs |
 
+\`\`\`visual-check
+{
+  "question": "The warehouse wants to stop anyone deleting a customer who still has delivery windows as dock contact. Which ondelete fits dock_contact_id?",
+  "options": ["cascade", "set null", "restrict"],
+  "correct": 2,
+  "explanation": "restrict blocks deleting the partner while windows reference it. cascade would delete the windows and set null would silently empty the field."
+}
+\`\`\`
+
 ## Key takeaways
 
 - Pick field types for reporting and import, not just display.
@@ -1216,27 +1619,41 @@ The Sunrise warehouse needs the **total weight** of each order to choose a vehic
 
 A computed field is calculated by a method instead of typed by a user.
 
-\`\`\`python
-from odoo import api, fields, models
-
-
-class SaleOrder(models.Model):
-    _inherit = "sale.order"
-
-    academy_weight_total = fields.Float(
-        string="Total Weight (kg)",
-        compute="_compute_academy_weight_total",
-        store=True,
-        digits=(16, 2),
-    )
-
-    @api.depends("order_line.product_uom_qty", "order_line.product_id.weight")
-    def _compute_academy_weight_total(self):
-        for order in self:
-            order.academy_weight_total = sum(
-                line.product_uom_qty * line.product_id.weight
-                for line in order.order_line
-            )
+\`\`\`visual-codewalk
+{
+  "title": "Stored computed field: total weight",
+  "language": "python",
+  "file": "academy_sale_extension/models/sale_order.py",
+  "code": [
+    "from odoo import api, fields, models",
+    "",
+    "",
+    "class SaleOrder(models.Model):",
+    "    _inherit = 'sale.order'",
+    "",
+    "    academy_weight_total = fields.Float(",
+    "        string='Total Weight (kg)',",
+    "        compute='_compute_academy_weight_total',",
+    "        store=True,",
+    "        digits=(16, 2),",
+    "    )",
+    "",
+    "    @api.depends('order_line.product_uom_qty', 'order_line.product_id.weight')",
+    "    def _compute_academy_weight_total(self):",
+    "        for order in self:",
+    "            order.academy_weight_total = sum(",
+    "                line.product_uom_qty * line.product_id.weight",
+    "                for line in order.order_line",
+    "            )"
+  ],
+  "notes": [
+    { "lines": "9", "title": "compute names the method", "text": "The field has no user input; the ORM calls this method to fill it." },
+    { "lines": "10", "title": "store=True", "text": "The value is saved in a column, so it can be searched, grouped and used in reports. It costs a recompute when dependencies change." },
+    { "lines": "14", "title": "@api.depends", "text": "Every field the method reads, including dotted paths. Change a quantity or a product weight and Odoo recomputes the order. A missing path means stale stored values." },
+    { "lines": "16", "title": "Loop over self", "text": "Odoo computes many orders in one call, so always iterate." },
+    { "lines": "17-20", "title": "Assign for every record", "text": "sum() of no lines is 0, so every order gets a value. Skipping a record raises Compute method failed to assign." }
+  ]
+}
 \`\`\`
 
 | Option | Effect |
@@ -1250,6 +1667,36 @@ Rules:
 - **Assign a value for every record** in the loop, even when it is zero - otherwise Odoo raises an error that the field was not computed.
 - List every field you read in \`@api.depends\`, including dotted paths. Missing dependencies cause stale stored values.
 - Do not call \`write\` inside a compute method.
+
+\`\`\`visual-sequence
+{
+  "title": "A quantity changes: how the stored total is recomputed",
+  "actors": ["Salesperson", "ORM", "Compute method", "PostgreSQL"],
+  "messages": [
+    { "from": "Salesperson", "to": "ORM", "label": "write product_uom_qty = 3 on an order line", "kind": "request" },
+    { "from": "ORM", "to": "ORM", "label": "Look up fields that depend on order_line.product_uom_qty", "kind": "self", "note": "Built from every @api.depends declaration at start-up." },
+    { "from": "ORM", "to": "ORM", "label": "Mark academy_weight_total of that order as to recompute", "kind": "self" },
+    { "from": "ORM", "to": "Compute method", "label": "_compute_academy_weight_total(order)", "kind": "request" },
+    { "from": "Compute method", "to": "ORM", "label": "order.academy_weight_total = 45.50", "kind": "response" },
+    { "from": "ORM", "to": "PostgreSQL", "label": "UPDATE sale_order_line and sale_order in the same transaction", "kind": "request" },
+    { "from": "ORM", "to": "Salesperson", "label": "Form shows Total Weight 45.50", "kind": "response" }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-decision
+{
+  "title": "Store the computed field or not?",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Must users search, filter, group or report on the value?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No, only shown on the form", "next": "r_nostore" } ] },
+    "q2": { "question": "Can every input be listed in @api.depends (no dependency on today's date or the current user)?", "options": [ { "label": "Yes", "next": "r_store" }, { "label": "No", "next": "r_rethink" } ] },
+    "r_nostore": { "result": "store=False", "tone": "success", "detail": "Computed on read, always current, no column and no recompute cost." },
+    "r_store": { "result": "store=True", "tone": "info", "detail": "Saved in a column and recomputed when a dependency changes. Plan for the initial recompute on large tables during upgrade." },
+    "r_rethink": { "result": "Do not store it", "tone": "warning", "detail": "A stored value that depends on time or user would go stale. Use a non-stored field, a search method or a scheduled update instead." }
+  }
+}
+\`\`\`
 
 ## Related fields
 
@@ -1295,6 +1742,22 @@ class AcademyDeliveryWindow(models.Model):
 (In a real module you would put these methods directly into the class that defines the model; \`_inherit\` is shown to illustrate extension.)
 
 Constraints run on \`create\` and \`write\` when one of the listed fields is in the values. They only accept simple field names, not dotted paths.
+
+\`\`\`visual-match
+{
+  "title": "Computed, related or constraint?",
+  "prompt": "Match each Sunrise requirement to the ORM feature that implements it.",
+  "leftLabel": "Requirement",
+  "rightLabel": "ORM feature",
+  "pairs": [
+    { "left": "Total weight of the order for vehicle planning", "right": "Computed field with @api.depends" },
+    { "left": "Group quotations by customer country", "right": "Stored related field on partner_id.country_id" },
+    { "left": "A window must end after it starts", "right": "@api.constrains raising ValidationError" },
+    { "left": "Window names unique per order", "right": "SQL constraint (unique)" }
+  ],
+  "explanation": "Computed and related fields derive values; constraints refuse invalid data. Uniqueness is best enforced by the database itself."
+}
+\`\`\`
 
 ### SQL constraints
 
@@ -1362,6 +1825,15 @@ And in the quotation list view (\`sale.view_quotation_tree\`, verify the externa
 
 > **Consultant tip:** Stored computed fields are great for reports, but each one costs recomputation. For values only shown on the form, \`store=False\` is often enough.
 
+\`\`\`visual-check
+{
+  "question": "The weight total stays the same when a product's weight is changed on the product form, but updates when a quantity changes. What is the cause?",
+  "options": ["store=True should be False", "order_line.product_id.weight is missing from @api.depends", "The compute method must call write", "The field needs readonly=False"],
+  "correct": 1,
+  "explanation": "A stored compute only reruns for changes to the paths listed in @api.depends. Add the missing path, upgrade, and recompute existing records if needed."
+}
+\`\`\`
+
 ## Key takeaways
 
 - \`@api.depends\` drives recomputation; list every dependency.
@@ -1404,6 +1876,22 @@ Users judge a system by its screens. Sunrise's dispatchers need a kanban board o
 
 - Fields used in these expressions must be present in the view (they can be added with \`invisible="1"\`).
 - Odoo 18 renames the list root tag to \`<list>\` and \`view_mode\` values from \`tree\` to \`list\`.
+
+\`\`\`visual-compare
+{
+  "title": "View syntax across versions",
+  "columns": ["Odoo 16", "Odoo 17", "Odoo 18"],
+  "rows": [
+    { "label": "Conditional visibility", "values": ["attrs with a domain", "invisible='state != draft' expression", "Expression (same as 17)"] },
+    { "label": "states attribute on buttons", "values": [true, false, false] },
+    { "label": "List view root tag", "values": ["tree", "tree", "list"] },
+    { "label": "view_mode value", "values": ["tree,form", "tree,form", "list,form"] },
+    { "label": "Kanban card template", "values": ["kanban-box", "kanban-box", "card"] }
+  ],
+  "highlight": 1,
+  "caption": "This course targets Odoo 17. Copying a tutorial written for another version is the most common source of view errors."
+}
+\`\`\`
 
 ## Starter code: views/academy_delivery_window_views.xml
 
@@ -1512,6 +2000,38 @@ Users judge a system by its screens. Sunrise's dispatchers need a kanban board o
 
 Inheriting views lets you change standard screens **without copying them**. You point at a parent view with \`inherit_id\`, locate a node with XPath, and say where your content goes.
 
+\`\`\`visual-codewalk
+{
+  "title": "Inheriting the sales order form",
+  "language": "xml",
+  "file": "academy_sale_extension/views/sale_order_views.xml",
+  "code": [
+    "<record id='view_order_form_academy' model='ir.ui.view'>",
+    "    <field name='name'>sale.order.form.academy</field>",
+    "    <field name='model'>sale.order</field>",
+    "    <field name='inherit_id' ref='sale.view_order_form'/>",
+    "    <field name='arch' type='xml'>",
+    "        <field name='payment_term_id' position='after'>",
+    "            <field name='academy_customer_po'/>",
+    "        </field>",
+    "        <field name='client_order_ref' position='attributes'>",
+    "            <attribute name='string'>Customer Reference (legacy)</attribute>",
+    "        </field>",
+    "    </field>",
+    "</record>"
+  ],
+  "notes": [
+    { "lines": "1", "title": "A view is a record", "text": "Stored in ir_ui_view. The id becomes the external id academy_sale_extension.view_order_form_academy." },
+    { "lines": "4", "title": "inherit_id", "text": "Points at the standard form defined by the sale module. Odoo merges our changes into it at render time; the original stays untouched." },
+    { "lines": "6", "title": "Locate the anchor", "text": "This shorthand finds the payment terms field, exactly like an xpath on field name payment_term_id. If the anchor does not exist in this version, the upgrade fails with cannot be located in parent view." },
+    { "lines": "7", "title": "Insert after it", "text": "Our field appears below Payment Terms. The full version below also makes it read-only once the order is confirmed." },
+    { "lines": "9-11", "title": "Change attributes only", "text": "position attributes relabels the existing field without removing it, so other modules relying on it keep working." }
+  ]
+}
+\`\`\`
+
+The same view written with explicit XPath and a read-only expression:
+
 \`\`\`xml
 <record id="view_order_form_academy" model="ir.ui.view">
     <field name="name">sale.order.form.academy</field>
@@ -1539,6 +2059,23 @@ Shorthand: \`<field name="payment_term_id" position="after">...</field>\` is equ
 
 > **Consultant tip:** Prefer \`after\`, \`inside\` and \`attributes\` over \`replace\`. Replacing a node removes anchors other modules rely on and is the most common cause of "view broken after installing app X".
 
+\`\`\`visual-match
+{
+  "title": "Which position do you need?",
+  "prompt": "Match each requirement on the sales order form to the inheritance position.",
+  "leftLabel": "Requirement",
+  "rightLabel": "position",
+  "pairs": [
+    { "left": "Show Customer PO just below Payment Terms", "right": "after" },
+    { "left": "Add a Delivery Windows tab at the end of the notebook", "right": "inside" },
+    { "left": "Rename the label of Customer Reference", "right": "attributes" },
+    { "left": "Put a warning banner above the customer field", "right": "before" },
+    { "left": "Swap a standard field for a completely different widget block (last resort)", "right": "replace" }
+  ],
+  "explanation": "after, before, inside and attributes keep the original node, so other modules can still anchor on it. replace removes it and should be rare."
+}
+\`\`\`
+
 ## Exercise steps
 
 1. Replace your delivery window views with the code above.
@@ -1564,6 +2101,15 @@ Shorthand: \`<field name="payment_term_id" position="after">...</field>\` is equ
 | \`Invalid view type: 'list'\` on 17 | Using 18 syntax on 17 | Use \`tree\` on 17 |
 | Changes not visible | Module not upgraded or browser cache | \`-u\`, then hard refresh |
 
+\`\`\`visual-check
+{
+  "question": "In a compact delivery window form you put tail_lift with an invisible expression on delivery_type, but delivery_type itself is not in that view. The upgrade fails. What do you add?",
+  "options": ["An attrs attribute", "The field delivery_type to the view, with invisible set to 1 if it should stay hidden", "A groups attribute", "A new record rule"],
+  "correct": 1,
+  "explanation": "In Odoo 17 every field referenced in an invisible, readonly or required expression must be present in the view. Adding it as an invisible field satisfies the check without showing it."
+}
+\`\`\`
+
 ## Key takeaways
 
 - Odoo 17 uses expressions in \`invisible\`/\`readonly\`/\`required\`; \`attrs\`/\`states\` are gone.
@@ -1581,6 +2127,20 @@ Shorthand: \`<field name="payment_term_id" position="after">...</field>\` is equ
           body: `## Business context
 
 Sunrise's rule: **salespeople** may see and edit delivery windows only for their own orders; **sales managers** see everything; the **warehouse** may read windows but not change them. Menus must appear only for people who need them. This lesson connects actions, menus, groups, access rights and record rules.
+
+\`\`\`visual-layers
+{
+  "title": "The layers between a user and a delivery window",
+  "caption": "Each layer answers a different question. Only the lower three are real security.",
+  "layers": [
+    { "title": "Menus and buttons with groups", "subtitle": "Can the user see the entry point?", "icon": "list", "items": ["menuitem groups", "button groups"], "detail": "Hides navigation only. A user can still reach the model through a link, the API or another menu." },
+    { "title": "Groups (res.groups)", "subtitle": "Who is the user?", "icon": "users", "items": ["Sales: User - own documents", "Sales: Administrator", "Delivery Windows: Read Only"], "detail": "Users get rights through the groups they belong to." },
+    { "title": "Access rights (ir.model.access.csv)", "subtitle": "Which operations on which models?", "icon": "key", "items": ["read", "write", "create", "unlink"], "detail": "Model-level CRUD per group. Additive: one group granting a right is enough." },
+    { "title": "Record rules (ir.rule)", "subtitle": "Which records?", "icon": "filter", "items": ["Own orders only", "All windows"], "detail": "Domains that filter records. Group rules combine with OR, global rules with AND." },
+    { "title": "PostgreSQL", "subtitle": "Reached only through the ORM", "icon": "database", "items": ["academy_delivery_window"], "detail": "The ORM applies the layers above before any SQL runs." }
+  ]
+}
+\`\`\`
 
 ## Actions
 
@@ -1657,6 +2217,29 @@ access_academy_delivery_tag_manager,academy.delivery.tag.manager,model_academy_d
 
 Rights are **additive**: if any of a user's groups grants a permission, the user has it.
 
+\`\`\`visual-codewalk
+{
+  "title": "Reading the access CSV line by line",
+  "language": "csv",
+  "file": "academy_sale_extension/security/ir.model.access.csv",
+  "code": [
+    "id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink",
+    "access_academy_delivery_window_user,academy.delivery.window.user,model_academy_delivery_window,sales_team.group_sale_salesman,1,1,1,0",
+    "access_academy_delivery_window_manager,academy.delivery.window.manager,model_academy_delivery_window,sales_team.group_sale_manager,1,1,1,1",
+    "access_academy_delivery_window_wh,academy.delivery.window.warehouse,model_academy_delivery_window,group_academy_warehouse_viewer,1,0,0,0",
+    "access_academy_delivery_tag_user,academy.delivery.tag.user,model_academy_delivery_tag,sales_team.group_sale_salesman,1,0,0,0",
+    "access_academy_delivery_tag_manager,academy.delivery.tag.manager,model_academy_delivery_tag,sales_team.group_sale_manager,1,1,1,1"
+  ],
+  "notes": [
+    { "lines": "1", "title": "Header must be exact", "text": "A typo or extra space in the header makes the file load without applying anything." },
+    { "lines": "2", "title": "Salespeople: no delete", "text": "Read, write and create on windows, but unlink is 0. Which windows they see is decided by the record rule." },
+    { "lines": "3", "title": "Managers: full rights", "text": "All four permissions, including delete." },
+    { "lines": "4", "title": "Warehouse: read only", "text": "Our own group, referenced without module prefix because it is defined in this module. Saving a change gives an access error." },
+    { "lines": "5-6", "title": "Tags", "text": "Salespeople may only pick existing tags; managers maintain the list." }
+  ]
+}
+\`\`\`
+
 ## Security layer 3: record rules (security/academy_security.xml)
 
 Record rules restrict **which records** a user can access:
@@ -1691,6 +2274,40 @@ Record rules restrict **which records** a user can access:
 
 > **Consultant tip:** Test security by logging in as each persona, not as administrator. The admin bypasses most restrictions, so "it works for me" proves nothing.
 
+\`\`\`visual-sequence
+{
+  "title": "Sam Sales opens a delivery window on Mia's order",
+  "actors": ["Sam (browser)", "ORM", "Security", "PostgreSQL"],
+  "messages": [
+    { "from": "Sam (browser)", "to": "ORM", "label": "read academy.delivery.window id 7", "kind": "request" },
+    { "from": "ORM", "to": "Security", "label": "Access rights: may group_sale_salesman read this model?", "kind": "request" },
+    { "from": "Security", "to": "ORM", "label": "Yes (CSV line perm_read = 1)", "kind": "response" },
+    { "from": "ORM", "to": "Security", "label": "Record rules for Sam's groups", "kind": "request" },
+    { "from": "Security", "to": "ORM", "label": "Domain: sale_order_id.user_id = Sam", "kind": "response", "note": "Sam is not in the manager or warehouse group, so only the own-orders rule applies." },
+    { "from": "ORM", "to": "PostgreSQL", "label": "SELECT ... WHERE id = 7 AND rule domain", "kind": "request" },
+    { "from": "PostgreSQL", "to": "ORM", "label": "No row: the order belongs to Mia", "kind": "response" },
+    { "from": "ORM", "to": "Sam (browser)", "label": "AccessError: not allowed to access this record", "kind": "response" }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-match
+{
+  "title": "Security pieces and their purpose",
+  "prompt": "Match each security element to what it controls.",
+  "leftLabel": "Element",
+  "rightLabel": "Controls",
+  "pairs": [
+    { "left": "ir.model.access.csv", "right": "Which operations a group may perform on a model" },
+    { "left": "ir.rule with groups", "right": "Which records a group sees, combined with OR" },
+    { "left": "ir.rule without groups (global)", "right": "A filter applied to everyone, combined with AND" },
+    { "left": "groups attribute on a menuitem", "right": "Whether the menu entry is shown" },
+    { "left": "res.groups record", "right": "A named set of users that rights are granted to" }
+  ],
+  "explanation": "Menus hide, access rights allow operations, record rules filter rows. Only the last two protect data."
+}
+\`\`\`
+
 ## Exercise steps
 
 1. Add the group, CSV lines and record rules above; upgrade the module.
@@ -1715,6 +2332,15 @@ Record rules restrict **which records** a user can access:
 | \`Due to security restrictions, you are not allowed to modify ...\` | Record rule excludes the record | Check \`domain_force\` and the user's groups |
 | \`No matching record found for external id 'model_academy_delivery_window'\` | Model not loaded (Python import missing) | Fix imports, restart, upgrade |
 | CSV loads but nothing applies | Wrong column header or extra spaces | Copy the exact header line |
+
+\`\`\`visual-check
+{
+  "question": "Mia is in both Sales: Administrator and Sales: User - own documents. The own-orders rule and the all-windows rule both apply to her groups. What does she see?",
+  "options": ["Only windows on her own orders, because the stricter rule wins", "All windows, because group rules are combined with OR", "Nothing, because the rules conflict", "Only the first rule by sequence is applied"],
+  "correct": 1,
+  "explanation": "Group-specific record rules are combined with OR across the user's groups, so the all-windows rule grants her everything. Only global rules are combined with AND."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -1752,6 +2378,26 @@ sale.order.action_confirm()   (standard, module "sale")
 \`\`\`
 
 Every module in the chain calls \`super()\`, so all of them run. If one override forgets \`super()\`, everything after it in the chain is silently skipped - pickings are not created, projects are not generated, and nobody notices until it is too late.
+
+\`\`\`visual-sequence
+{
+  "title": "The super() chain when Confirm is clicked",
+  "caption": "The last installed override runs first and passes control down with super().",
+  "actors": ["Browser", "academy_sale_extension", "sale_stock", "sale"],
+  "messages": [
+    { "from": "Browser", "to": "academy_sale_extension", "label": "action_confirm()", "kind": "request" },
+    { "from": "academy_sale_extension", "to": "academy_sale_extension", "label": "Check Customer PO on company customers", "kind": "self", "note": "Raising here stops the call before anything is written." },
+    { "from": "academy_sale_extension", "to": "sale_stock", "label": "super().action_confirm()", "kind": "request" },
+    { "from": "sale_stock", "to": "sale", "label": "super().action_confirm()", "kind": "request" },
+    { "from": "sale", "to": "sale", "label": "state = sale, lock lines", "kind": "self" },
+    { "from": "sale", "to": "sale_stock", "label": "return", "kind": "response" },
+    { "from": "sale_stock", "to": "sale_stock", "label": "Create the delivery order", "kind": "self" },
+    { "from": "sale_stock", "to": "academy_sale_extension", "label": "return res", "kind": "response" },
+    { "from": "academy_sale_extension", "to": "academy_sale_extension", "label": "message_post: Confirmed against customer PO", "kind": "self" },
+    { "from": "academy_sale_extension", "to": "Browser", "label": "return res", "kind": "response" }
+  ]
+}
+\`\`\`
 
 ## Starter code
 
@@ -1841,6 +2487,38 @@ class SaleOrder(models.Model):
 
 ## Explanation
 
+\`\`\`visual-codewalk
+{
+  "title": "The action_confirm override, step by step",
+  "language": "python",
+  "file": "academy_sale_extension/models/sale_order.py",
+  "code": [
+    "    def action_confirm(self):",
+    "        for order in self:",
+    "            if order.academy_po_required and not order.academy_customer_po:",
+    "                raise UserError(",
+    "                    _('Order %s: enter the Customer PO before confirming.', order.name)",
+    "                )",
+    "        res = super().action_confirm()",
+    "        for order in self:",
+    "            if order.academy_customer_po:",
+    "                order.message_post(",
+    "                    body=_('Confirmed against customer PO %s.', order.academy_customer_po)",
+    "                )",
+    "            _logger.info('Academy: order %s confirmed by %s', order.name, self.env.user.login)",
+    "        return res"
+  ],
+  "notes": [
+    { "lines": "1", "title": "Same name, same signature", "text": "Overriding means defining the parent's method again in a class with _inherit = 'sale.order'. Changing the arguments breaks callers." },
+    { "lines": "2-6", "title": "Validate every record first", "text": "If any selected order lacks a PO, the UserError rolls back the whole call before anything is confirmed." },
+    { "lines": "7", "title": "Call super() and keep the result", "text": "Runs standard sale code and every other module's override: deliveries, projects, and so on." },
+    { "lines": "8-12", "title": "Post-process after super()", "text": "The orders are now confirmed, so the chatter message describes a fact." },
+    { "lines": "13", "title": "Log with placeholders", "text": "Lazy %s formatting; never log secrets or personal data." },
+    { "lines": "14", "title": "Return the parent's result", "text": "action_confirm can return an action such as a wizard; dropping it would break that flow." }
+  ]
+}
+\`\`\`
+
 1. **Validate before \`super()\`** - if we raise, nothing has happened yet and the transaction rolls back cleanly.
 2. **Call \`super()\` and keep its return value** - \`action_confirm\` may return an action (e.g. a wizard); returning \`res\` preserves it.
 3. **Post-processing after \`super()\`** - the order is now in state \`sale\`, so we log to the chatter.
@@ -1873,6 +2551,24 @@ class SaleOrder(models.Model):
 | PO field visible but never required | \`academy_po_required\` not in view | Add it (invisible) - needed by the expression |
 | \`Field "academy_customer_po" does not exist\` after editing | Forgot restart/upgrade | Restart, \`-u academy_sale_extension\` |
 | Error raised but some orders already confirmed | Validation done after \`super()\` | Validate all records first, then call \`super()\` |
+
+\`\`\`visual-order
+{
+  "title": "Anatomy of a safe override",
+  "prompt": "Put the parts of an overridden action_confirm in the order they must run.",
+  "items": ["Loop over self and raise UserError for any invalid order", "Call super().action_confirm() and store the result", "Post the chatter message and write the log line", "Return the stored result"],
+  "explanation": "Validate first so nothing is half-done, let the standard chain run, then add your follow-up and return what the parent returned."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "After installing a colleague's module, confirmed orders no longer create delivery orders, but no error appears. What do you check first?",
+  "options": ["The access CSV of the stock module", "Whether the colleague's action_confirm override calls super()", "The wkhtmltopdf version", "The manifest version number"],
+  "correct": 1,
+  "explanation": "An override without super() silently skips the standard code and every override below it, including the one in sale_stock that creates the delivery."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -1936,6 +2632,34 @@ class SaleOrder(models.Model):
 
 For large volumes, compute counts in one query with \`_read_group\` instead of \`len()\` per record (verify the exact \`_read_group\` signature for your version, it changed in 17.0).
 
+\`\`\`visual-codewalk
+{
+  "title": "The method behind the button",
+  "language": "python",
+  "file": "academy_sale_extension/models/sale_order.py",
+  "code": [
+    "    def action_view_delivery_windows(self):",
+    "        self.ensure_one()",
+    "        return {",
+    "            'type': 'ir.actions.act_window',",
+    "            'name': _('Delivery Windows'),",
+    "            'res_model': 'academy.delivery.window',",
+    "            'view_mode': 'tree,form',",
+    "            'domain': [('sale_order_id', '=', self.id)],",
+    "            'context': {'default_sale_order_id': self.id},",
+    "        }"
+  ],
+  "notes": [
+    { "lines": "1", "title": "Name matches the button", "text": "A button with type object and this name calls the method on the record shown in the form." },
+    { "lines": "2", "title": "One order at a time", "text": "The button always works on one record; ensure_one documents and enforces that." },
+    { "lines": "3-4", "title": "Return an action", "text": "The dictionary has the same shape as an ir.actions.act_window record; the web client opens it." },
+    { "lines": "7", "title": "Views to show", "text": "tree,form in Odoo 17; list,form in Odoo 18." },
+    { "lines": "8", "title": "domain filters the list", "text": "Only this order's windows. Without it the user sees every window." },
+    { "lines": "9", "title": "context pre-fills new records", "text": "default_sale_order_id sets the order when the user clicks New in that list." }
+  ]
+}
+\`\`\`
+
 ### views/sale_order_views.xml (additions)
 
 \`\`\`xml
@@ -1965,6 +2689,25 @@ For large volumes, compute counts in one query with \`_read_group\` instead of \
 - \`widget="statinfo"\` displays the number and label in the standard style.
 - \`invisible="delivery_window_count == 0"\` hides the button when empty (a design choice - some clients prefer to always show it).
 - In Odoo 18 use \`"view_mode": "list,form"\`.
+
+\`\`\`visual-sequence
+{
+  "title": "A click on '2 Delivery Windows'",
+  "actors": ["Salesperson", "Web client", "Odoo server", "PostgreSQL"],
+  "messages": [
+    { "from": "Web client", "to": "Odoo server", "label": "Load form: read delivery_window_count", "kind": "request", "note": "Non-stored compute: counted at every read, so it is always current." },
+    { "from": "Odoo server", "to": "Web client", "label": "delivery_window_count = 2", "kind": "response" },
+    { "from": "Salesperson", "to": "Web client", "label": "Click the stat button", "kind": "request" },
+    { "from": "Web client", "to": "Odoo server", "label": "call_button: action_view_delivery_windows on order 42", "kind": "request" },
+    { "from": "Odoo server", "to": "Web client", "label": "Action dict: model, views, domain, context", "kind": "response" },
+    { "from": "Web client", "to": "Odoo server", "label": "search_read academy.delivery.window with the domain", "kind": "request" },
+    { "from": "Odoo server", "to": "PostgreSQL", "label": "SELECT ... WHERE sale_order_id = 42 (plus record rules)", "kind": "request" },
+    { "from": "PostgreSQL", "to": "Odoo server", "label": "2 rows", "kind": "response" },
+    { "from": "Odoo server", "to": "Web client", "label": "Records", "kind": "response" },
+    { "from": "Web client", "to": "Salesperson", "label": "List of the order's 2 windows", "kind": "response" }
+  ]
+}
+\`\`\`
 
 ### Alternative: open a single record directly
 
@@ -2016,6 +2759,23 @@ This mirrors how standard Odoo opens one invoice directly but a list when there 
 | List shows all windows | Missing \`domain\` | Add the domain |
 | Button count wrong | Missing \`@api.depends\` or computed stored without dependency | Add dependency |
 
+\`\`\`visual-match
+{
+  "title": "Smart button errors",
+  "prompt": "Match each symptom to its fix.",
+  "leftLabel": "Symptom",
+  "rightLabel": "Fix",
+  "pairs": [
+    { "left": "The list opened by the button shows every window in the database", "right": "Add the domain on sale_order_id to the action" },
+    { "left": "New windows created from the list have no order", "right": "Add default_sale_order_id to the context" },
+    { "left": "Element div button_box cannot be located", "right": "Inspect the parent view and correct the XPath" },
+    { "left": "Expected singleton when the method runs", "right": "Keep self.ensure_one() and call it per record" },
+    { "left": "Has no attribute action_view_delivery_windows", "right": "Match the button name to the method and restart" }
+  ],
+  "explanation": "Most smart button bugs are in the returned action: the domain controls what is shown and the context controls defaults."
+}
+\`\`\`
+
 ## Design guidelines
 
 | Guideline | Reason |
@@ -2027,6 +2787,15 @@ This mirrors how standard Odoo opens one invoice directly but a list when there 
 | Reuse standard icons (Font Awesome \`fa-*\`) | Consistent look with standard buttons |
 
 When the target model has record rules, the count computed by \`len()\` reflects only the records the current user may see, which is usually what users expect. Mention this in your functional specification so testers are not surprised when a salesperson and a manager see different numbers on the same order.
+
+\`\`\`visual-check
+{
+  "question": "Why is delivery_window_count deliberately a non-stored computed field?",
+  "options": ["Stored fields cannot be integers", "Counts are cheap to compute and stay current without recompute triggers", "Stat buttons only accept non-stored fields", "Stored fields ignore record rules"],
+  "correct": 1,
+  "explanation": "A count is quick to compute on read and always reflects the current data. Storing it adds a column and recompute work with no benefit unless you need to search or group on it."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -2053,6 +2822,19 @@ Sunrise wants **manager approval for quotations above 10,000** before they can b
 | \`to_approve\` | Waiting for manager | Sales manager | Approve, Reject |
 | \`approved\` | Can be confirmed | Salesperson | Confirm |
 | \`rejected\` | Needs rework | Salesperson | Reset to Draft |
+
+\`\`\`visual-flow
+{
+  "title": "Approval lifecycle of a quotation above 10,000",
+  "caption": "Select a step to see who acts and which button moves the order on.",
+  "steps": [
+    { "title": "To Request", "icon": "file", "actor": "Salesperson", "document": "academy_approval_state = draft", "detail": "Amount is above the threshold. Confirm is blocked in Python.", "odoo": "Button: Request Approval" },
+    { "title": "Waiting Approval", "icon": "clock", "actor": "Sales manager", "document": "to_approve", "detail": "Chatter logs the request. Only managers see Approve and Reject, and the methods check has_group.", "odoo": "Buttons: Approve / Reject", "branch": { "when": "Rejected", "result": "Rework, then Reset Approval", "tone": "danger" } },
+    { "title": "Approved", "icon": "check", "actor": "Sales manager", "document": "approved", "detail": "Approved By is set to the manager." },
+    { "title": "Confirmed", "icon": "handshake", "actor": "Salesperson", "document": "Sales order", "detail": "action_confirm now passes the approval guard and calls super().", "odoo": "Button: Confirm" }
+  ]
+}
+\`\`\`
 
 ## Starter code
 
@@ -2121,6 +2903,38 @@ class SaleOrder(models.Model):
 
 If you already overrode \`action_confirm\` in the previous lesson, merge both checks into **one** override in the same class.
 
+\`\`\`visual-codewalk
+{
+  "title": "Where the approval is really enforced",
+  "language": "python",
+  "file": "academy_sale_extension/models/sale_order.py (excerpt)",
+  "code": [
+    "    def _academy_threshold(self):",
+    "        value = self.env['ir.config_parameter'].sudo().get_param(APPROVAL_PARAM, '10000')",
+    "        return float(value)",
+    "",
+    "    def action_academy_approve(self):",
+    "        if not self.env.user.has_group('sales_team.group_sale_manager'):",
+    "            raise UserError(_('Only sales managers can approve quotations.'))",
+    "        self.write({'academy_approval_state': 'approved', 'academy_approved_by_id': self.env.user.id})",
+    "",
+    "    def action_confirm(self):",
+    "        for order in self:",
+    "            if order._academy_needs_approval() and order.academy_approval_state != 'approved':",
+    "                raise UserError(_('Order %s needs manager approval before confirmation.', order.name))",
+    "        return super().action_confirm()"
+  ],
+  "notes": [
+    { "lines": "2", "title": "Configurable threshold", "text": "Read from a system parameter, so the client changes it without code. sudo() is justified: salespeople cannot read system parameters, and the value is not user input." },
+    { "lines": "3", "title": "Text to number", "text": "Parameters are stored as text. A non-numeric value raises could not convert string to float." },
+    { "lines": "6-7", "title": "Permission check in Python", "text": "groups on the button only hides it. This check also protects calls from the API, server actions and imports." },
+    { "lines": "8", "title": "One write for all records", "text": "write on the recordset updates every selected order and records the approver." },
+    { "lines": "12-13", "title": "The guard", "text": "Above the threshold and not approved means no confirmation, whatever path the call came from." },
+    { "lines": "14", "title": "Return super()", "text": "The standard confirmation runs only after the guard passes." }
+  ]
+}
+\`\`\`
+
 ### data/academy_data.xml (default threshold, add to manifest data)
 
 \`\`\`xml
@@ -2175,6 +2989,32 @@ If you already overrode \`action_confirm\` in the previous lesson, merge both ch
 
 > **Consultant tip:** Before building approvals, map the full lifecycle: what happens on rejection, on amount change after approval, on duplication, and on cancellation? Most approval bugs come from these edge cases, not the happy path.
 
+\`\`\`visual-roleplay
+{
+  "title": "Scoping the approval workflow",
+  "setting": "Specification workshop at Sunrise Office Supplies. The sales director wants approvals live next week.",
+  "client": "Sales director",
+  "rounds": [
+    {
+      "says": "Just hide the Confirm button for big quotations unless a manager approved them. That is enough, right?",
+      "options": [
+        { "text": "Yes, hiding the button with groups is quick.", "quality": "poor", "feedback": "Hidden buttons are not security: imports, the API or the list Actions menu could still confirm." },
+        { "text": "We will hide it for usability, but the rule itself will be checked in Python so no path can bypass it.", "quality": "best", "feedback": "The view improves the experience, the server enforces the rule." }
+      ]
+    },
+    {
+      "says": "And if the salesperson changes the amount after approval?",
+      "options": [
+        { "text": "That should not happen, salespeople are trustworthy.", "quality": "poor", "feedback": "Edge cases are where approval workflows fail audits." },
+        { "text": "Let's decide now: reset approval when the total changes, or re-check the approved amount at confirmation. I will write it into the specification and the tests.", "quality": "best", "feedback": "You turn an edge case into an explicit, testable requirement." },
+        { "text": "We can handle that in phase two.", "quality": "ok", "feedback": "Acceptable if documented as a known gap, but the client must sign off on the risk." }
+      ]
+    }
+  ],
+  "wrapup": "Map rejection, amount changes, duplication and cancellation before coding, and enforce every rule in Python."
+}
+\`\`\`
+
 ## Exercise steps
 
 1. Add the code, the data file (listed in the manifest after security), and upgrade.
@@ -2200,6 +3040,15 @@ If you already overrode \`action_confirm\` in the previous lesson, merge both ch
 | Buttons never show | Expression references a field not in the view, or wrong state value | Ensure fields are in view; check selection keys |
 | \`ValueError: could not convert string to float\` | System parameter contains text | Fix the parameter value |
 | Threshold reset after upgrade | Data file without \`noupdate="1"\` | Add \`noupdate\` |
+
+\`\`\`visual-check
+{
+  "question": "The client changed the approval threshold to 25,000 in System Parameters. After the next module upgrade it is back to 10,000. What fixes this?",
+  "options": ["Mark the data file with noupdate='1'", "Store the threshold in Python as a constant", "Give the parameter a group", "Run the upgrade with --dev=all"],
+  "correct": 0,
+  "explanation": "Records in a noupdate data file are created on install but not overwritten on upgrade, so values the client changed are preserved."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -2232,6 +3081,22 @@ These map to scheduled actions (\`ir.cron\`), activities, server actions and aut
 | Ask a person to do something | Activity (\`mail.activity\`) | Optional |
 | Button in the *Actions* menu | Server action (\`ir.actions.server\`) | Optional |
 | React to record events (create, update, time-based) | Automation rule (\`base_automation\`, called *Automation Rules* in 17) | Optional |
+
+\`\`\`visual-match
+{
+  "title": "Pick the automation tool",
+  "prompt": "Match each Sunrise need to the Odoo tool that fits it best.",
+  "leftLabel": "Need",
+  "rightLabel": "Tool",
+  "pairs": [
+    { "left": "Every morning, remind managers about waiting quotations", "right": "Scheduled action (ir.cron)" },
+    { "left": "Ask a specific person to approve a quotation", "right": "Activity (mail.activity)" },
+    { "left": "Request approval for many selected quotations at once", "right": "Server action bound to the list" },
+    { "left": "Notify the dispatcher when an express window is created", "right": "Automation rule (base_automation)" }
+  ],
+  "explanation": "Time-driven work goes to a cron, event-driven work to an automation rule, user-triggered mass work to a server action, and to-dos for people to activities."
+}
+\`\`\`
 
 ## Scheduled action: starter code
 
@@ -2269,20 +3134,35 @@ class SaleOrder(models.Model):
 
 ### data/academy_cron.xml
 
-\`\`\`xml
-<?xml version="1.0" encoding="utf-8"?>
-<odoo noupdate="1">
-    <record id="ir_cron_academy_pending_approvals" model="ir.cron">
-        <field name="name">Academy: remind pending approvals</field>
-        <field name="model_id" ref="sale.model_sale_order"/>
-        <field name="state">code</field>
-        <field name="code">model._cron_academy_remind_pending_approvals()</field>
-        <field name="interval_number">1</field>
-        <field name="interval_type">days</field>
-        <field name="numbercall">-1</field>
-        <field name="active">True</field>
-    </record>
-</odoo>
+\`\`\`visual-codewalk
+{
+  "title": "Declaring the scheduled action",
+  "language": "xml",
+  "file": "academy_sale_extension/data/academy_cron.xml",
+  "code": [
+    "<?xml version='1.0' encoding='utf-8'?>",
+    "<odoo noupdate='1'>",
+    "    <record id='ir_cron_academy_pending_approvals' model='ir.cron'>",
+    "        <field name='name'>Academy: remind pending approvals</field>",
+    "        <field name='model_id' ref='sale.model_sale_order'/>",
+    "        <field name='state'>code</field>",
+    "        <field name='code'>model._cron_academy_remind_pending_approvals()</field>",
+    "        <field name='interval_number'>1</field>",
+    "        <field name='interval_type'>days</field>",
+    "        <field name='numbercall'>-1</field>",
+    "        <field name='active'>True</field>",
+    "    </record>",
+    "</odoo>"
+  ],
+  "notes": [
+    { "lines": "2", "title": "noupdate", "text": "Created on install, not overwritten on upgrade, so an administrator's changes to the schedule survive." },
+    { "lines": "3", "title": "A cron is a record", "text": "Model ir.cron, visible under Settings > Technical > Scheduled Actions." },
+    { "lines": "5-7", "title": "What it runs", "text": "Python code on the sale.order model; model is the empty sale.order recordset, so the method searches the orders itself." },
+    { "lines": "8-9", "title": "How often", "text": "Every 1 day. The next execution date is shown and can be changed in the UI." },
+    { "lines": "10", "title": "Odoo 17 only", "text": "numbercall -1 means run forever. The field was removed in Odoo 18: drop this line there." },
+    { "lines": "11", "title": "Active", "text": "Neutralized databases deactivate crons; test with Run Manually." }
+  ]
+}
 \`\`\`
 
 > Odoo 18 note: the \`numbercall\` field was removed from \`ir.cron\`; drop that line on 18 (verify against the documentation for your version).
@@ -2293,6 +3173,23 @@ Explanation:
 - \`activity_schedule\` is provided by \`mail.activity.mixin\`, which \`sale.order\` inherits. The first argument is the external id of an activity type.
 - The duplicate check makes the cron **idempotent**: running it twice does not create two activities.
 - Test immediately from *Settings > Technical > Scheduled Actions > Run Manually*.
+
+\`\`\`visual-sequence
+{
+  "title": "One run of the reminder cron",
+  "actors": ["Cron scheduler", "sale.order", "mail.activity", "PostgreSQL"],
+  "messages": [
+    { "from": "Cron scheduler", "to": "Cron scheduler", "label": "Next execution date reached: lock the job", "kind": "self", "note": "Only one worker runs a given job at a time." },
+    { "from": "Cron scheduler", "to": "sale.order", "label": "model._cron_academy_remind_pending_approvals()", "kind": "request" },
+    { "from": "sale.order", "to": "PostgreSQL", "label": "search: to_approve and write_date older than 1 day", "kind": "request" },
+    { "from": "PostgreSQL", "to": "sale.order", "label": "Orders S00051, S00057", "kind": "response" },
+    { "from": "sale.order", "to": "sale.order", "label": "Skip orders that already have an 'Approve quotation' activity", "kind": "self", "note": "This check makes the job idempotent." },
+    { "from": "sale.order", "to": "mail.activity", "label": "activity_schedule(To-Do, user = team leader)", "kind": "request" },
+    { "from": "mail.activity", "to": "PostgreSQL", "label": "INSERT activity rows", "kind": "request" },
+    { "from": "Cron scheduler", "to": "PostgreSQL", "label": "Commit and set the next execution date", "kind": "request" }
+  ]
+}
+\`\`\`
 
 ## Server action: mass "Request approval"
 
@@ -2359,6 +3256,15 @@ You can also ship automation rules in a module's XML, but the field names of \`b
 | Duplicate activities | No idempotency check | Filter existing activities first |
 | Cron data change ignored after upgrade | \`noupdate="1"\` | Edit in UI or remove the record's noupdate flag consciously |
 
+\`\`\`visual-check
+{
+  "question": "The reminder cron is run manually twice in a row on academy_test. With the code in this lesson, how many 'Approve quotation' activities does each waiting quotation get?",
+  "options": ["One", "Two", "None, manual runs do not create activities", "It depends on the interval"],
+  "correct": 0,
+  "explanation": "The method skips orders that already have an activity with that summary, so the second run creates nothing new. That is what idempotent means."
+}
+\`\`\`
+
 ## Key takeaways
 
 - \`ir.cron\` for periodic jobs; make them idempotent.
@@ -2385,6 +3291,19 @@ Sunrise's drivers need a printed **Delivery Window sheet** per order. Customers 
 | QWeb template | XML/HTML template rendered for the records (\`docs\`) |
 | Layout (\`web.external_layout\`) | Company header/footer from *Settings > Document Layout* |
 | wkhtmltopdf | Converts the HTML to PDF (must be installed on the server with the supported version) |
+
+\`\`\`visual-flow
+{
+  "title": "From Print to PDF",
+  "steps": [
+    { "title": "Print menu", "icon": "file", "actor": "User", "detail": "The report appears because binding_model_id links the report action to sale.order." },
+    { "title": "ir.actions.report", "icon": "settings", "app": "Server", "detail": "Finds the template named in report_name and the selected records (docs)." },
+    { "title": "QWeb rendering", "icon": "code", "app": "Server", "detail": "Loops over docs, calls web.external_layout for header and footer, fills t-field values in the user's or partner's language." },
+    { "title": "wkhtmltopdf", "icon": "layers", "app": "Server", "detail": "Converts the HTML to PDF, fetching CSS from web.base.url." },
+    { "title": "Download", "icon": "check", "actor": "User", "detail": "File name from print_report_name, e.g. Delivery Windows - S00042.pdf." }
+  ]
+}
+\`\`\`
 
 ## Starter code: new report
 
@@ -2446,6 +3365,43 @@ Sunrise's drivers need a printed **Delivery Window sheet** per order. Customers 
 
 Add \`"report/academy_delivery_window_report.xml"\` to the manifest \`data\`.
 
+\`\`\`visual-codewalk
+{
+  "title": "The template, trimmed to its skeleton",
+  "language": "xml",
+  "file": "report/academy_delivery_window_report.xml (excerpt)",
+  "code": [
+    "<template id='report_delivery_windows'>",
+    "    <t t-call='web.html_container'>",
+    "        <t t-foreach='docs' t-as='o'>",
+    "            <t t-call='web.external_layout'>",
+    "                <div class='page'>",
+    "                    <h2>Delivery Windows - <span t-field='o.name'/></h2>",
+    "                    <table class='table table-sm'>",
+    "                        <tr t-foreach='o.delivery_window_ids' t-as='w'>",
+    "                            <td><span t-field='w.name'/></td>",
+    "                            <td><span t-field='w.date_from'/></td>",
+    "                        </tr>",
+    "                    </table>",
+    "                    <p t-if='not o.delivery_window_ids'>No delivery windows planned.</p>",
+    "                </div>",
+    "            </t>",
+    "        </t>",
+    "    </t>",
+    "</template>"
+  ],
+  "notes": [
+    { "lines": "1", "title": "Template id = report_name", "text": "academy_sale_extension.report_delivery_windows is what the report action points to." },
+    { "lines": "2", "title": "HTML container", "text": "Provides the HTML page and assets every PDF report needs." },
+    { "lines": "3", "title": "One page per record", "text": "docs holds the selected orders; o is the current one." },
+    { "lines": "4", "title": "Company layout", "text": "Header, footer and logo from Configure Document Layout: configuration, not code." },
+    { "lines": "6", "title": "t-field formats values", "text": "Dates follow the language and timezone, Many2one fields show the display name." },
+    { "lines": "8", "title": "Loop over the windows", "text": "One table row per delivery window of this order." },
+    { "lines": "13", "title": "Conditional text", "text": "t-if shows the line only for orders without windows." }
+  ]
+}
+\`\`\`
+
 ## Starter code: inheriting the sales order report
 
 The quotation/order PDF body is the template \`sale.report_saleorder_document\`, where the record variable is \`doc\`.
@@ -2479,6 +3435,24 @@ The \`informations\` block holds the reference/date/salesperson boxes in 17.0; t
 | \`t-call="template"\` | Include another template |
 | \`t-set="var" t-value="expr"\` | Variables |
 
+\`\`\`visual-match
+{
+  "title": "QWeb directives",
+  "prompt": "Match each directive to its job in a report.",
+  "leftLabel": "Directive",
+  "rightLabel": "Job",
+  "pairs": [
+    { "left": "t-field", "right": "Print a field with Odoo formatting (dates, currency, names)" },
+    { "left": "t-out / t-esc", "right": "Print the escaped value of an expression" },
+    { "left": "t-if", "right": "Render the element only when a condition is true" },
+    { "left": "t-foreach + t-as", "right": "Repeat the element for each item" },
+    { "left": "t-call", "right": "Include another template such as web.external_layout" },
+    { "left": "t-set + t-value", "right": "Store an intermediate value in a variable" }
+  ],
+  "explanation": "Prefer t-field for record fields: it formats according to the field type and language, which t-out does not."
+}
+\`\`\`
+
 > **Consultant tip:** Before customizing a report, check *Settings > Companies > Configure Document Layout* - logo, colours, fonts and footer are configuration, not code. Many "report change" requests end there.
 
 ## Exercise steps
@@ -2503,6 +3477,20 @@ The \`informations\` block holds the reference/date/salesperson boxes in 17.0; t
 | PDF without header/styles | wkhtmltopdf cannot reach the server URL (\`web.base.url\`) or wrong version | Check \`web.base.url\` and the wkhtmltopdf version |
 | \`ParseError\` on report XML | Unescaped \`&\` or \`<\` in text | Use \`&amp;\` / \`&lt;\` |
 | Report missing in Print menu | No \`binding_model_id\`/\`binding_type\` | Add them, upgrade |
+
+\`\`\`visual-decision
+{
+  "title": "Handling a 'change the quotation PDF' request",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Is it about logo, colours, fonts, address or footer?", "options": [ { "label": "Yes", "next": "r_layout" }, { "label": "No, content changes", "next": "q2" } ] },
+    "q2": { "question": "Is it a new document, or a change to the standard quotation?", "options": [ { "label": "New document", "next": "r_new" }, { "label": "Change to the standard one", "next": "r_inherit" } ] },
+    "r_layout": { "result": "Configure Document Layout", "tone": "success", "detail": "Pure configuration under Settings > Companies. No code, no upgrade risk." },
+    "r_new": { "result": "New ir.actions.report + QWeb template", "tone": "info", "detail": "Like the Delivery Windows sheet: bound to the model's Print menu." },
+    "r_inherit": { "result": "Inherit sale.report_saleorder_document", "tone": "warning", "detail": "Add content with XPath; never copy the whole template. Verify the anchor in your version." }
+  }
+}
+\`\`\`
 
 ## Requirement checklist for report requests
 
@@ -2544,6 +3532,15 @@ Agree on a sample (a marked-up PDF of the standard report works well) before cod
 4. **Isolate** - does it happen without the custom module? With another user?
 5. **Fix and verify** - then add a test so it does not come back.
 
+\`\`\`visual-order
+{
+  "title": "Debug a ticket like a professional",
+  "prompt": "Put the debugging steps in the right order.",
+  "items": ["Reproduce on a test database with the same version and modules", "Read the last lines of the traceback: exception and message", "Locate the module and file in the traceback: standard or custom?", "Isolate: without the custom module, with another user", "Fix, verify, and add a test so it does not come back"],
+  "explanation": "Without a reproduction you cannot prove a fix; without isolating you may fix the wrong module."
+}
+\`\`\`
+
 ## Developer mode tools
 
 Activate with *Settings > Activate the developer mode* or \`?debug=1\` in the URL (\`?debug=assets\` also loads unminified JavaScript).
@@ -2566,6 +3563,24 @@ Logs are your primary evidence.
 \`\`\`
 
 Format: timestamp, process id, level, database, logger (Python module), message.
+
+\`\`\`visual-codewalk
+{
+  "title": "Anatomy of a log line",
+  "language": "text",
+  "file": "odoo server log",
+  "code": [
+    "2024-05-14 08:12:03,902 4242 WARNING academy_dev odoo.modules.loading: The model academy.delivery.tag has no access rules, consider adding one."
+  ],
+  "notes": [
+    { "lines": "1", "title": "Timestamp and process id", "text": "2024-05-14 08:12:03,902 and 4242: when it happened and which worker. Match it to the time the user clicked." },
+    { "lines": "1", "title": "Level", "text": "WARNING: unexpected but handled. ERROR and tracebacks are failures." },
+    { "lines": "1", "title": "Database", "text": "academy_dev: essential on servers hosting several databases." },
+    { "lines": "1", "title": "Logger", "text": "odoo.modules.loading is the Python module that wrote the line. Your own code logs as odoo.addons.academy_sale_extension...." },
+    { "lines": "1", "title": "Message", "text": "Tells you the fix: add an ir.model.access.csv line for academy.delivery.tag." }
+  ]
+}
+\`\`\`
 
 ### Logging from your code
 
@@ -2600,6 +3615,22 @@ class SaleOrder(models.Model):
 | \`warning\` | Unexpected but handled |
 | \`error\` / \`exception\` | Failures |
 
+\`\`\`visual-match
+{
+  "title": "Which log level?",
+  "prompt": "Match each situation to the log level you would use.",
+  "leftLabel": "Situation",
+  "rightLabel": "Level",
+  "pairs": [
+    { "left": "Tracing every loop iteration while developing", "right": "debug" },
+    { "left": "Order S00042 confirmed by a user", "right": "info" },
+    { "left": "External API slow, retried successfully", "right": "warning" },
+    { "left": "Confirmation failed, traceback needed", "right": "exception" }
+  ],
+  "explanation": "Production usually runs at info, so debug lines stay silent. _logger.exception adds the traceback automatically and is used inside an except block."
+}
+\`\`\`
+
 Control verbosity:
 
 \`\`\`bash
@@ -2621,6 +3652,14 @@ import pdb; pdb.set_trace()   # remove before committing!
 
 Never use \`--dev\` in production.
 
+\`\`\`visual-dodont
+{
+  "title": "Debugging and logging hygiene",
+  "do": ["Reproduce on a test copy before changing anything", "Log with %s placeholders and arguments", "Re-raise after _logger.exception so the transaction rolls back", "Send version, modules, steps, user and full traceback when escalating", "Remove pdb breakpoints before committing"],
+  "dont": ["Debug on production with --dev=all", "Log passwords, tokens or full personal data", "Swallow exceptions silently with a bare except", "Test only as administrator", "Report 'it does not work' without a traceback"]
+}
+\`\`\`
+
 ## Error catalogue for this course
 
 | Message | Root cause | Fix |
@@ -2634,6 +3673,15 @@ Never use \`--dev\` in production.
 | \`Compute method failed to assign\` | Compute branch without assignment | Assign in all branches |
 | \`AccessError\` for a user but not admin | Rights or record rules | Test as user, review CSV and rules |
 | \`psycopg2.errors.UniqueViolation\` | SQL constraint triggered | Check data / constraint |
+
+\`\`\`visual-check
+{
+  "question": "A salesperson gets an AccessError on delivery windows, but the consultant logged in as admin cannot reproduce it. What is the next step?",
+  "options": ["Close the ticket: it works", "Log in as that user (or a user with the same groups) and review the CSV lines and record rules", "Give the salesperson admin rights", "Restart the server"],
+  "correct": 1,
+  "explanation": "The administrator bypasses most restrictions. Reproduce with the user's groups, then check access rights and record rules."
+}
+\`\`\`
 
 > **Consultant tip:** When escalating to a developer, send: Odoo version and edition, module list (or commit hash), exact steps, user used, full traceback from the server log, and whether it reproduces on a fresh test copy. This turns a two-day ping-pong into a one-hour fix.
 
@@ -2772,6 +3820,42 @@ class TestAcademySale(TransactionCase):
 
 ## Explanation
 
+\`\`\`visual-codewalk
+{
+  "title": "Reading one test like a specification",
+  "language": "python",
+  "file": "academy_sale_extension/tests/test_academy_sale.py (excerpt)",
+  "code": [
+    "@tagged('post_install', '-at_install', 'academy')",
+    "class TestAcademySale(TransactionCase):",
+    "",
+    "    @classmethod",
+    "    def setUpClass(cls):",
+    "        super().setUpClass()",
+    "        cls.company_customer = cls.env['res.partner'].create({",
+    "            'name': 'Test Company Customer',",
+    "            'is_company': True,",
+    "        })",
+    "",
+    "    def test_po_required_for_company(self):",
+    "        order = self._create_order()",
+    "        with self.assertRaises(UserError):",
+    "            order.action_confirm()",
+    "        order.academy_customer_po = 'PO-TEST-1'",
+    "        order.action_confirm()",
+    "        self.assertEqual(order.state, 'sale')"
+  ],
+  "notes": [
+    { "lines": "1", "title": "When the tests run", "text": "post_install and not at_install: after all modules are installed, so every override of action_confirm is present. academy is a custom tag for filtering." },
+    { "lines": "2", "title": "TransactionCase", "text": "Each test runs in a transaction that is rolled back, so tests never leave data behind." },
+    { "lines": "4-10", "title": "Shared test data", "text": "Created once for the class. Tests create their own data and never rely on demo or production records." },
+    { "lines": "12", "title": "Name starts with test_", "text": "Only methods named test_... are run. The name reads as the requirement." },
+    { "lines": "13-15", "title": "Given / when / then: the failure", "text": "A company customer without PO: confirming must raise UserError." },
+    { "lines": "16-18", "title": "The success path", "text": "With a PO the order confirms and its state becomes sale." }
+  ]
+}
+\`\`\`
+
 - \`@tagged("post_install", "-at_install")\` runs the tests after **all** modules are installed (so other modules' overrides of \`action_confirm\` are present). The custom tag \`academy\` lets you filter.
 - \`setUpClass\` creates shared data once; each test's changes are rolled back.
 - Tests use \`assertEqual\`, \`assertAlmostEqual\` (floats), \`assertRaises\` (expected errors).
@@ -2804,6 +3888,41 @@ By custom tag:
 | \`--test-tags\` | Filter: \`/module\`, \`tag\`, \`/module:Class.method\` (implies test-enable in recent versions) |
 | \`--stop-after-init\` | Exit when done (CI-friendly) |
 
+\`\`\`visual-sequence
+{
+  "title": "What happens during a test run",
+  "caption": "odoo-bin -d academy_test -u academy_sale_extension --test-tags /academy_sale_extension --stop-after-init",
+  "actors": ["odoo-bin", "Test runner", "TestAcademySale", "academy_test DB"],
+  "messages": [
+    { "from": "odoo-bin", "to": "academy_test DB", "label": "Upgrade academy_sale_extension", "kind": "request" },
+    { "from": "odoo-bin", "to": "Test runner", "label": "All modules loaded: run post_install tests matching the tags", "kind": "request" },
+    { "from": "Test runner", "to": "TestAcademySale", "label": "setUpClass: create customer and product", "kind": "request" },
+    { "from": "TestAcademySale", "to": "academy_test DB", "label": "test_po_required_for_company: create order, confirm", "kind": "request" },
+    { "from": "academy_test DB", "to": "TestAcademySale", "label": "Rollback after the test", "kind": "response", "note": "Each test starts from the same clean data." },
+    { "from": "Test runner", "to": "TestAcademySale", "label": "Next test method ...", "kind": "request" },
+    { "from": "Test runner", "to": "odoo-bin", "label": "0 failed, 0 error(s) of 4 tests", "kind": "response" },
+    { "from": "odoo-bin", "to": "odoo-bin", "label": "Stop after init (exit code for CI)", "kind": "self" }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-match
+{
+  "title": "Test command options",
+  "prompt": "Match each command-line option to its meaning.",
+  "leftLabel": "Option",
+  "rightLabel": "Meaning",
+  "pairs": [
+    { "left": "-u academy_sale_extension", "right": "Upgrade the module; its tests run during this" },
+    { "left": "--test-enable", "right": "Turn test execution on" },
+    { "left": "--test-tags /academy_sale_extension", "right": "Only run this module's tests" },
+    { "left": "--stop-after-init", "right": "Exit when done instead of serving HTTP" },
+    { "left": "-d academy_test", "right": "Use the dedicated test database, never production" }
+  ],
+  "explanation": "Together these give a fast, repeatable, CI-friendly run that cannot touch live data."
+}
+\`\`\`
+
 ## Expected output
 
 \`\`\`text
@@ -2825,6 +3944,15 @@ INFO academy_test odoo.tests.result: 0 failed, 0 error(s) of 4 tests when loadin
 | \`FAIL: ... AssertionError: 0.0 != 25.0\` | Compute dependency missing, or product weight not set | Check \`@api.depends\` and test data |
 | \`ERROR: ... UserError: Order ... needs manager approval\` in a test that should pass | Threshold or data different than you think | Set the parameter explicitly in \`setUpClass\` |
 | Tests pass locally but fail in CI | Depends on demo data or existing records | Create all data in the test |
+
+\`\`\`visual-check
+{
+  "question": "You wrote tests/test_academy_sale.py but the run reports 0 tests for your module. Which cause is most likely?",
+  "options": ["The tests package is not imported from the module root __init__.py", "tests/__init__.py does not import test_academy_sale", "TransactionCase needs a database argument", "The test methods are not decorated with @api.model"],
+  "correct": 1,
+  "explanation": "The runner discovers the tests package itself, but that package must import each test file. The module root must not import tests."
+}
+\`\`\`
 
 > **Consultant tip:** Write test scenarios in plain language in the functional spec ("Given a company customer without PO, when confirming, then an error appears"). Developers can turn them almost one-to-one into test methods.
 
@@ -2872,6 +4000,29 @@ These thirteen assignments take you from a first field to a tested feature set. 
 | 11 | Scheduled notification | \`ir.cron\`, activities | 60 min |
 | 12 | Import external data via authorized API | External API, test database | 90 min |
 | 13 | Automated tests | \`TransactionCase\` | 90 min |
+
+\`\`\`visual-timeline
+{
+  "title": "Your path through the assignments",
+  "items": [
+    { "when": "1-2", "title": "Fields, model and menu", "detail": "Customer PO on sale.order; academy.delivery.window with views, action, menu and CSV.", "icon": "box" },
+    { "when": "3-5", "title": "Data quality and derived values", "detail": "Constraints, stored computed weight, related customer country.", "icon": "check" },
+    { "when": "6-7", "title": "Navigation and business logic", "detail": "Smart button; action_confirm override that calls super().", "icon": "workflow" },
+    { "when": "8-9", "title": "Documents and approvals", "detail": "QWeb report and report inheritance; approval workflow enforced in Python.", "icon": "file" },
+    { "when": "10-11", "title": "Insight and automation", "detail": "Graph and pivot dashboard; idempotent daily cron with activities.", "icon": "chart" },
+    { "when": "12-13", "title": "Integration and proof", "detail": "API import with an integration user on the test database; automated tests with 0 failed.", "icon": "shield" }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-order
+{
+  "title": "The rhythm of every assignment",
+  "prompt": "Put the steps you repeat for each assignment in order.",
+  "items": ["Write the requirement and why standard does not cover it", "Create a feature branch", "Code, restart and upgrade on the development database", "Test as a non-admin user and capture evidence", "Add or update automated tests", "Commit with an [ADD] or [IMP] message and push for review"],
+  "explanation": "Requirement first, isolated branch, verified as a real user, protected by tests, then reviewed. That is the deliverable, not just the code."
+}
+\`\`\`
 
 ## 1. Add a custom field
 
@@ -2980,6 +4131,33 @@ Tests for assignments 3, 4, 7 and 9. *Accept:* \`0 failed, 0 error(s)\` with \`-
 | Field not found in view | 1, 4, 5 | Restart + \`-u\` |
 | \`attrs\` no longer used | 6, 9 | Odoo 17 expressions |
 | \`<list>\` not valid | 2, 10 | Use \`<tree>\` on 17 |
+
+\`\`\`visual-match
+{
+  "title": "Error to fix, across the course",
+  "prompt": "Match each error you will meet in the assignments to its fix.",
+  "leftLabel": "Error",
+  "rightLabel": "Fix",
+  "pairs": [
+    { "left": "The model has no access rules, consider adding one", "right": "Add a CSV line per new model and list the file in the manifest" },
+    { "left": "ParseError while parsing a view file", "right": "Fix the malformed XML on the reported line" },
+    { "left": "Field does not exist in model sale.order", "right": "Check __init__.py imports, restart, then upgrade" },
+    { "left": "attrs and states attributes are no longer used", "right": "Rewrite with Odoo 17 invisible and readonly expressions" },
+    { "left": "Compute method failed to assign", "right": "Assign the field for every record in the loop" },
+    { "left": "Element cannot be located in parent view", "right": "Inspect the parent view and correct the XPath anchor" }
+  ],
+  "explanation": "These six messages cover most failed upgrades in this course. Reading the message carefully usually tells you the fix."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Assignment 12 imports delivery windows through the external API. Which setup meets the acceptance criteria?",
+  "options": ["Admin login and password written in the script, run on production", "A dedicated integration user with an API key read from an environment variable, run on the test database, looking up existing windows first", "Direct INSERT statements into academy_delivery_window", "An API key committed in a config file in the repository"],
+  "correct": 1,
+  "explanation": "A dedicated user limits rights, the environment variable keeps secrets out of Git, the test database protects live data, and the lookup makes re-runs idempotent."
+}
+\`\`\`
 
 ## Key takeaways
 

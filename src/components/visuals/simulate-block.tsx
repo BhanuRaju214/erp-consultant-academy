@@ -110,10 +110,14 @@ function InteractiveSimulate({ data }: { data: Sim }) {
     const r = e.currentTarget.getBoundingClientRect();
     const x = ((e.clientX - r.left) / r.width) * 100;
     const y = ((e.clientY - r.top) / r.height) * 100;
-    const ok = [step.target, ...step.also].some((b) => inBox(b, x, y));
+    const exact = (b: Box) => x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h;
+    const targets = [step.target, ...step.also];
+    // An exact hit on a trap wins over the tolerance margin around a neighbouring target (e.g. adjacent dropdown items).
+    const exactTrap = targets.some(exact) ? undefined : step.traps.find(exact);
+    const ok = !exactTrap && targets.some((b) => inBox(b, x, y));
     setRipple({ x, y, ok, k: Date.now() });
     if (ok) return solved();
-    const trap = step.traps.find((t) => inBox(t, x, y));
+    const trap = exactTrap ?? step.traps.find((t) => inBox(t, x, y));
     setFeedback(trap ? { tone: "trap", text: trap.feedback } : { tone: "miss", text: `Not there. Click the highlighted spot: **${step.target.label}**.` });
   };
   const checkInput = (e: React.FormEvent) => {

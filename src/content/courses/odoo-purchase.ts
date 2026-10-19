@@ -62,6 +62,22 @@ Technical model: **purchase.order** and **purchase.order.line**. Vendor prices a
 
 > **Consultant tip:** As with Sales, an RFQ and a PO are the same record in different states. The reference (P00012) stays the same on confirmation.
 
+\`\`\`visual-cards
+{
+  "label": "Key concepts",
+  "title": "Purchase building blocks",
+  "columns": 3,
+  "cards": [
+    { "icon": "file", "title": "RFQ / PO", "body": "One purchase.order record: RFQ while draft, Purchase Order once confirmed. Same reference." },
+    { "icon": "tag", "title": "Vendor pricelist", "body": "product.supplierinfo on the product's Purchase tab: price, minimum quantity, lead time, validity." },
+    { "icon": "shield", "title": "Order Approval", "body": "POs above INR 5,00,000 wait in To Approve for a Purchase Administrator.", "tone": "warning" },
+    { "icon": "refresh", "title": "Reordering rule", "body": "Min/max rule that creates RFQs when forecast stock drops below the minimum." },
+    { "icon": "receipt", "title": "Bill control", "body": "Bill ordered or received quantities. Northwind pays only for what was received." },
+    { "icon": "scale", "title": "3-way matching", "body": "PO, receipt and vendor bill must agree before AP pays.", "tone": "info" }
+  ]
+}
+\`\`\`
+
 ## 2. Business problems solved
 
 | Business problem at Northwind | Odoo Purchase feature |
@@ -74,6 +90,32 @@ Technical model: **purchase.order** and **purchase.order.line**. Vendor prices a
 | Annual contracts with negotiated prices | Purchase agreements (blanket orders) |
 | Comparing several vendor quotes | Call for tenders / RFQ alternatives (version dependent) |
 | No spend visibility | Purchase Analysis report, vendor performance |
+
+\`\`\`visual-beforeafter
+{
+  "title": "Northwind purchasing: before and after Odoo",
+  "before": {
+    "title": "Emails and phone orders",
+    "points": [
+      "Buyers order at whatever price the vendor quotes",
+      "Large furniture orders placed without manager sign-off",
+      "Paper runs out because nobody watches stock levels",
+      "Vendors are paid for full orders that arrived short",
+      "No view of spend per vendor"
+    ]
+  },
+  "after": {
+    "title": "Procure-to-Pay in Odoo",
+    "points": [
+      "Vendor pricelists propose the negotiated price on every RFQ",
+      "Orders above INR 5,00,000 wait for Purchase Manager approval",
+      "Reordering rules create RFQs before paper runs out",
+      "Bills controlled on received quantities with 3-way matching",
+      "Purchase Analysis shows spend and vendor performance"
+    ]
+  }
+}
+\`\`\`
 
 ## 3. Process flow
 
@@ -155,6 +197,21 @@ Technical model: **purchase.order** and **purchase.order.line**. Vendor prices a
 
 > **Consultant tip:** The PO "Order Approval" setting (standard) and the **Approvals** app (Enterprise) are different things. Clients often confuse them — clarify in the workshop.
 
+\`\`\`visual-hub
+{
+  "title": "Purchase and its integrations",
+  "center": { "label": "Purchase (purchase.order)", "icon": "cart" },
+  "nodes": [
+    { "label": "Contacts", "icon": "users", "detail": "Vendors such as Sunrise Paper Mills and PrintTech Distributors." },
+    { "label": "Product", "icon": "box", "detail": "Products, vendor pricelists and units of measure." },
+    { "label": "Inventory", "icon": "warehouse", "detail": "Receipts, reordering rules and routes (Buy, MTO, Dropship)." },
+    { "label": "Accounting", "icon": "receipt", "detail": "Vendor bills, payment terms, taxes and payments." },
+    { "label": "Sales", "icon": "file", "detail": "MTO and dropship flows start from sales orders." },
+    { "label": "Manufacturing", "icon": "factory", "detail": "Components bought for manufacturing orders." }
+  ]
+}
+\`\`\`
+
 ### Who uses Purchase at Northwind
 
 | Role | Responsibility in Odoo Purchase |
@@ -170,6 +227,36 @@ Technical model: **purchase.order** and **purchase.order.line**. Vendor prices a
 Every morning the planner opens the Replenishment screen and orders products below their minimum. Buyers send the generated RFQs and update prices when vendors reply. On Wednesday the Purchase Manager filters orders *To Approve* and approves the large furniture orders. When trucks arrive, the warehouse validates receipts and records shortages as backorders. On Friday AP creates bills from the confirmed POs; because bills are controlled on received quantities, a vendor who invoices the full order before delivering everything is only billed for what the warehouse received.
 
 > **Consultant tip:** Ask the client "What happens today when a vendor invoices more than you received?" The answer tells you how strict the bill control and matching configuration must be.
+
+\`\`\`visual-order
+{
+  "title": "Procure-to-Pay order",
+  "prompt": "Put Northwind's purchase steps in the order they happen.",
+  "items": [
+    "Reordering rule detects A4 paper below minimum",
+    "RFQ created and sent to Sunrise Paper Mills",
+    "Buyer confirms the RFQ as a purchase order",
+    "Warehouse validates the receipt",
+    "AP creates the vendor bill for received quantities",
+    "AP pays the vendor"
+  ],
+  "explanation": "With bill control on received quantities, the bill can only be created for what the receipt validated, so the receipt comes before the bill."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Northwind's buyer confirms a PO for INR 7,00,000 and it shows To Approve. Why?",
+  "options": [
+    "The vendor has no pricelist",
+    "Order Approval is on and the amount is above the INR 5,00,000 threshold for a user without Purchase Administrator rights",
+    "The Approvals app is installed",
+    "The product is not storable"
+  ],
+  "correct": 1,
+  "explanation": "The standard Order Approval setting sends POs above the minimum amount to To Approve when the user is not a Purchase Administrator. It is separate from the Enterprise Approvals app."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -269,6 +356,41 @@ Go to **Purchase ▸ Configuration ▸ Settings**. Odoo 17 labels (verify in you
 - **Inventory ▸ Configuration ▸ Settings**: Multi-Step Routes (if receipts need quality/storage steps), Storage Locations.
 - **Routes**: the **Buy** route is available on products once Purchase is installed. The **Replenish on Order (MTO)** route is archived by default in recent versions; unarchive it under **Inventory ▸ Configuration ▸ Routes** (developer mode / archived filter — verify).
 
+#### In Odoo 20: Vendor price list and bill control
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-purchase/screens/pur-product-vendors.webp",
+  "alt": "Odoo 20 product Purchase tab with the vendor price list and the control policy.",
+  "title": "Vendor price list and bill control",
+  "path": "Product ▸ Purchase tab",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 31.9,
+      "y": 43.2,
+      "w": 58.7,
+      "h": 21.8,
+      "tag": "top",
+      "title": "Vendors",
+      "text": "Vendor, minimum quantity, price and lead time: RFQs and replenishment use the first matching line."
+    },
+    {
+      "x": 20.9,
+      "y": 65.3,
+      "w": 20.1,
+      "h": 7.5,
+      "tag": "right",
+      "title": "Control Policy",
+      "text": "Received quantities: you can only bill what arrived."
+    }
+  ],
+  "caption": "Real screen from an Odoo 20 training database with fictional Northwind data; amounts in ₹ with Indian GST."
+}
+\`\`\`
+
 ## Key takeaways
 
 - Collect approval matrix, billing policy and replenishment policy before configuring.
@@ -317,6 +439,124 @@ Go to **Purchase ▸ Configuration ▸ Settings**. Odoo 17 labels (verify in you
 Odoo picks the price matching vendor, quantity and validity on the RFQ line. Replenishment uses the first applicable vendor line (sequence matters).
 
 > **Consultant tip:** Product type matters. In 17 use **Storable Product** for stock-tracked items. In 18 use **Goods** with **Track Inventory** ticked. Reordering rules and stock valuation need stock-tracked products.
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Add a vendor price list to a product",
+  "intro": "PrintTech Supplies quoted ₹52 per toner cartridge for orders of 10 or more. Record it on the product so RFQs use it automatically.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "Toner now has a vendor line for PrintTech: RFQs and replenishment pick this vendor and price automatically for 10 or more cartridges.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-purchase/sims/cfg-pur-vendor-price-01.webp",
+      "alt": "Product form for Toner Cartridge HP 26A with the Purchase tab.",
+      "path": "Inventory ▸ Products ▸ Toner Cartridge HP 26A",
+      "task": "Vendor prices live on the **Purchase** tab. Open it.",
+      "target": {
+        "x": 17.95,
+        "y": 26.25,
+        "w": 6.7,
+        "h": 4.8,
+        "label": "Purchase"
+      },
+      "explain": "The Purchase tab lists vendors, their prices, minimum quantities and lead times."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/cfg-pur-vendor-price-02.webp",
+      "alt": "Purchase tab of the toner product with the vendor list and Add a line.",
+      "path": "Product ▸ Purchase",
+      "task": "**Add a vendor line.**",
+      "target": {
+        "x": 3.25,
+        "y": 40.35,
+        "w": 5,
+        "h": 3.1,
+        "label": "Add a line"
+      },
+      "explain": "A new vendor line opens."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/cfg-pur-vendor-price-03.webp",
+      "alt": "Vendor dropdown on the new line showing PrintTech Supplies.",
+      "path": "Product ▸ Purchase ▸ Vendor",
+      "task": "**Pick the vendor** PrintTech Supplies.",
+      "target": {
+        "x": 3.65,
+        "y": 43.25,
+        "w": 21.8,
+        "h": 3.5,
+        "label": "PrintTech Supplies"
+      },
+      "explain": "The vendor is set; now its conditions."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/cfg-pur-vendor-price-04.webp",
+      "alt": "Vendor line for PrintTech with the minimum quantity column.",
+      "path": "Product ▸ Purchase",
+      "task": "The price applies from **10** cartridges. Set the minimum quantity.",
+      "target": {
+        "x": 25.65,
+        "y": 39.45,
+        "w": 7.6,
+        "h": 5,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Minimum quantity",
+        "answer": "10",
+        "placeholder": "units"
+      },
+      "explain": "Below 10 cartridges Odoo will look for another vendor line (or this one without a break)."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/cfg-pur-vendor-price-05.webp",
+      "alt": "Vendor line for PrintTech with the price column.",
+      "path": "Product ▸ Purchase",
+      "task": "The quoted price is **52**. Enter it.",
+      "target": {
+        "x": 45.95,
+        "y": 39.45,
+        "w": 8.5,
+        "h": 5,
+        "label": "the Price cell"
+      },
+      "input": {
+        "label": "Unit price",
+        "answer": "52",
+        "placeholder": "₹"
+      },
+      "explain": "RFQs to PrintTech for 10 or more cartridges will propose ₹52."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/cfg-pur-vendor-price-06.webp",
+      "alt": "Product form with the new vendor line and the save button.",
+      "path": "Product ▸ Purchase",
+      "task": "**Save the product.**",
+      "target": {
+        "x": 25.15,
+        "y": 6.55,
+        "w": 2.4,
+        "h": 3.9,
+        "label": "Save"
+      },
+      "hint": "The cloud icon next to the breadcrumb saves the record.",
+      "explain": "Saved: the vendor price list is live."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/cfg-pur-vendor-price-07.webp",
+      "alt": "Saved toner product with PrintTech Supplies in the vendor list.",
+      "path": "Product ▸ Purchase",
+      "task": "The vendor line is saved.",
+      "explain": "Order of the lines matters: Odoo uses the first matching line, so put the preferred vendor on top."
+    }
+  ]
+}
+\`\`\`
 
 ## 8. Transactions — step-by-step walkthroughs
 
@@ -741,10 +981,201 @@ With 3-way matching enabled, the vendor bill has a **Should Be Paid** status (ve
 2. When forecast stock drops below 1,000, the scheduler (or **Order Once** / **Order** buttons in Replenishment) creates an RFQ to the first vendor for the quantity needed to reach 4,000.
 3. **MTO**: on Executive Chair, tick routes **Buy** and **Replenish on Order (MTO)**. Confirming a sales order for 20 chairs creates an RFQ to ErgoSeat for 20 chairs, linked to the sales order.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Order from the replenishment report",
+  "intro": "Toner has a reordering rule in NW/Stock: minimum 100, maximum 200. The forecast is below the minimum.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "Odoo created a request for quotation to the vendor on the product for the quantity needed to reach the maximum. Buyers review and confirm it like any RFQ.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-purchase/sims/inv-replenish-01.webp",
+      "alt": "Replenishment report with the toner line and its Order button.",
+      "path": "Inventory ▸ Operations ▸ Replenishment",
+      "task": "Toner: on hand 67, below the minimum of 100; Odoo proposes **133** to reach the maximum of 200. **Order it.**",
+      "target": {
+        "x": 89.05,
+        "y": 21.55,
+        "w": 5.1,
+        "h": 3.1,
+        "label": "Order"
+      },
+      "traps": [
+        {
+          "x": 89.05,
+          "y": 24.55,
+          "w": 7,
+          "h": 3.1,
+          "feedback": "**Automate** switches the rule to automatic ordering for the future. Here you just want to order now."
+        }
+      ],
+      "explain": "Odoo creates an RFQ for the To Order quantity."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/inv-replenish-02.webp",
+      "alt": "Replenishment report after ordering toner.",
+      "path": "Inventory ▸ Operations ▸ Replenishment",
+      "task": "The forecast is now 200.",
+      "explain": "Forecast 67 + 133 ordered = 200 (the maximum); To Order drops to 0. The RFQ to the toner vendor waits in Purchase for the buyer to confirm."
+    }
+  ]
+}
+\`\`\`
+
 ### Walkthrough G — Blanket order
 
 1. Purchase ▸ Orders ▸ Purchase Agreements ▸ New, type **Blanket Order**, vendor PrintTech, lines: Toner XL at INR 2,950, quantity 1,000 for the year.
 2. Confirm the agreement. New RFQs to PrintTech created from the agreement use the agreed price; consumed quantities are tracked on the agreement (verify the exact behaviour in your version).
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Agree a yearly price with a blanket order",
+  "intro": "PrintTech agrees **₹50 per toner cartridge for 1,000 cartridges** this year. Record it once; every RFQ then uses that price.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "The blanket order is confirmed and an RFQ was created from it with the agreed ₹50. The agreement tracks how much of the 1,000 has been ordered.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-01.webp",
+      "alt": "Purchase agreements list with the New button.",
+      "path": "Purchase ▸ Orders ▸ Purchase Agreements",
+      "task": "**Create a purchase agreement.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty agreement opens; the default type is a blanket order."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-02.webp",
+      "alt": "Vendor dropdown showing PrintTech Supplies.",
+      "path": "Purchase Agreement ▸ Vendor",
+      "task": "**Pick the vendor** PrintTech Supplies.",
+      "target": {
+        "x": 11.35,
+        "y": 30.95,
+        "w": 19.3,
+        "h": 3.5,
+        "label": "PrintTech Supplies"
+      },
+      "explain": "The agreed prices apply to RFQs for this vendor."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-03.webp",
+      "alt": "Agreement with the Add a product link.",
+      "path": "Purchase Agreement ▸ Products",
+      "task": "**Add the product line.**",
+      "target": {
+        "x": 3.25,
+        "y": 50.85,
+        "w": 6.8,
+        "h": 3.1,
+        "label": "Add a product"
+      },
+      "explain": "A line opens."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-04.webp",
+      "alt": "Product dropdown showing Toner Cartridge HP 26A.",
+      "path": "Purchase Agreement ▸ Products",
+      "task": "**Pick Toner Cartridge HP 26A.**",
+      "target": {
+        "x": 3.65,
+        "y": 53.85,
+        "w": 21.5,
+        "h": 3.5,
+        "label": "Toner Cartridge HP 26A"
+      },
+      "explain": "Now the agreed quantity and price."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-05.webp",
+      "alt": "Agreement line for toner with the quantity cell.",
+      "path": "Purchase Agreement ▸ Products",
+      "task": "The agreement covers **1000** cartridges.",
+      "target": {
+        "x": 21.15,
+        "y": 49.95,
+        "w": 7.6,
+        "h": 7.1,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "1000",
+        "placeholder": "cartridges"
+      },
+      "explain": "Odoo tracks the ordered quantity against this."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-06.webp",
+      "alt": "Agreement line with the unit price cell.",
+      "path": "Purchase Agreement ▸ Products",
+      "task": "The agreed price is **50**.",
+      "target": {
+        "x": 44.45,
+        "y": 49.95,
+        "w": 7.6,
+        "h": 7.1,
+        "label": "the Unit Price cell"
+      },
+      "input": {
+        "label": "Unit price",
+        "answer": "50",
+        "placeholder": "₹"
+      },
+      "explain": "₹50 instead of the usual ₹52–55."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-07.webp",
+      "alt": "Draft agreement with the Confirm button.",
+      "path": "Purchase Agreement",
+      "task": "**Confirm the agreement.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "The blanket order is running."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-08.webp",
+      "alt": "Confirmed agreement with the New Quotation button.",
+      "path": "Purchase Agreement",
+      "task": "Order the first 100 against it: **create an RFQ** from the agreement.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 8.8,
+        "h": 4.2,
+        "label": "New Quotation"
+      },
+      "explain": "Odoo opens an RFQ for PrintTech with the agreed price, linked to the agreement."
+    },
+    {
+      "src": "/visuals/odoo-purchase/sims/pur-blanket-09.webp",
+      "alt": "RFQ created from the blanket order with toner at 50.",
+      "path": "Purchase ▸ RFQ",
+      "task": "The RFQ uses the agreed price.",
+      "explain": "Set the quantity and confirm as usual; the agreement Ordered column goes up. Tip: set Deliver To to your warehouse (here it defaulted to the main company warehouse)."
+    }
+  ]
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -780,6 +1211,20 @@ With 3-way matching enabled, the vendor bill has a **Should Be Paid** status (ve
 | Budget check before PO confirmation | Custom module or Budget app with customization | Customization |
 | Auto-send PO reminder to vendor | Receipt reminder option on vendor/PO (verify in your instance) | Configuration |
 
+\`\`\`visual-flow
+{
+  "title": "Automatic replenishment: low stock to vendor receipt",
+  "caption": "Reordering rules + Buy route, with the Purchase Order Approval threshold switched on.",
+  "steps": [
+    { "title": "Stock falls below minimum", "icon": "warehouse", "app": "Inventory", "detail": "Forecasted quantity drops under the reordering rule's minimum.", "odoo": "Inventory ▸ Operations ▸ Replenishment" },
+    { "title": "Scheduler runs the rule", "icon": "refresh", "app": "Inventory", "detail": "Needs a vendor line on the product, the Buy route and a stock-tracked product." },
+    { "title": "RFQ created", "icon": "file", "app": "Purchase", "actor": "System", "detail": "Draft RFQ for the vendor on the product's vendor pricelist.", "impact": "No journal entry" },
+    { "title": "Buyer confirms", "icon": "check", "app": "Purchase", "actor": "Buyer", "detail": "Above the minimum amount the PO waits in To Approve.", "branch": { "when": "Above approval amount", "result": "Manager clicks Approve Order", "tone": "warning" } },
+    { "title": "Receipt created", "icon": "truck", "app": "Inventory", "detail": "Incoming receipt; forecast increases.", "impact": "Entry only when the receipt is validated (perpetual)" }
+  ]
+}
+\`\`\`
+
 > **Consultant tip:** Write the approval matrix in a table during discovery. If it has more than one threshold or depends on product category or department, flag it as Studio/customization early — it affects licence (Enterprise) and budget.
 
 ## 10. Reports and dashboards
@@ -798,6 +1243,23 @@ Useful pivots for Northwind:
 - **Qty Ordered vs Qty Received vs Qty Billed** by product — identifies unbilled receipts and bills without receipts
 - Average **days to receive** by vendor (vendor performance; verify available measures)
 
+\`\`\`visual-match
+{
+  "title": "Business question to report",
+  "prompt": "Match each question from Northwind's managers to the report that answers it.",
+  "leftLabel": "Business question",
+  "rightLabel": "Report",
+  "pairs": [
+    { "left": "How much did we spend per vendor each month?", "right": "Purchase Analysis (Untaxed Total by Vendor x Month)" },
+    { "left": "Which RFQs are still to send or late?", "right": "RFQ dashboard" },
+    { "left": "Which products are below their minimum?", "right": "Replenishment report" },
+    { "left": "Which bills are due and are they paid?", "right": "Vendor bills" },
+    { "left": "How much do we still owe each vendor?", "right": "Aged Payable" }
+  ],
+  "explanation": "Purchase Analysis covers spend and ordered vs received vs billed quantities; payables questions belong to the Accounting reports."
+}
+\`\`\`
+
 ## 11. Accounting and inventory impact
 
 Assume Paper category: AVCO, **automated** (perpetual) valuation. Purchase of 1,500 reams at INR 198 + GST 12%.
@@ -810,9 +1272,41 @@ Assume Paper category: AVCO, **automated** (perpetual) valuation. Purchase of 1,
 | Price difference on bill | None | Difference posted to price-difference/stock accounts depending on costing method and version (verify) |
 | Payment | None | Dr Accounts Payable / Cr Bank (or Outstanding Payments) |
 
+\`\`\`visual-journal
+{
+  "title": "Receipt validated: 1,500 reams @ INR 198 (AVCO, automated)",
+  "lines": [
+    { "account": "Stock Valuation", "debit": "2,97,000" },
+    { "account": "Stock Interim (Received)", "credit": "2,97,000" }
+  ],
+  "note": "The receipt values the goods at cost; no tax and no payable yet."
+}
+\`\`\`
+
+\`\`\`visual-journal
+{
+  "title": "Vendor bill posted: 1,500 reams + GST 12%",
+  "lines": [
+    { "account": "Stock Interim (Received)", "debit": "2,97,000" },
+    { "account": "Input GST", "debit": "35,640" },
+    { "account": "Accounts Payable", "credit": "3,32,640" }
+  ],
+  "note": "The bill clears the interim account to zero and creates the payable including GST."
+}
+\`\`\`
+
 With **manual (periodic)** valuation, the receipt creates no journal entry and the bill debits the expense/purchase account of the product category.
 
 > **Consultant tip:** An open balance on the Stock Interim (Received) account means goods received but not billed (or billed but not received). Reviewing it at month-end is a classic consultant check for finance.
+
+\`\`\`visual-check
+{
+  "question": "At month-end Northwind's Stock Interim (Received) account shows a debit of 2,97,000 with no matching credit. What happened?",
+  "options": ["The receipt was validated but the vendor bill is not posted", "The vendor bill was posted but the goods were never received", "The payment was registered twice", "The PO was confirmed but not received"],
+  "correct": 1,
+  "explanation": "The bill debits Stock Interim (Received); only the receipt credits it. A debit balance means billed but not received. A received-not-billed situation would leave a credit balance, and PO confirmation creates no entry."
+}
+\`\`\`
 
 ## 12. Integration with other apps
 
@@ -862,7 +1356,66 @@ With **manual (periodic)** valuation, the receipt creates no journal entry and t
 | Stock Interim (Received) not zero | Receipts not billed or bills without receipts | Review Purchase Analysis qty received vs billed |
 | Duplicate vendor bills | Same bill reference entered twice | Odoo warns on duplicate reference (verify); train AP team |
 
+\`\`\`visual-decision
+{
+  "title": "Vendor bill amount does not match the PO",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Is the bill quantity higher than the received quantity?", "options": [ { "label": "Yes", "next": "r1" }, { "label": "No", "next": "q2" } ] },
+    "r1": { "result": "Bill only what was received", "tone": "warning", "detail": "With bill control on received quantities, correct the bill or wait for the backorder receipt." },
+    "q2": { "question": "Is the unit price on the bill different from the PO?", "options": [ { "label": "Yes", "next": "r2" }, { "label": "No", "next": "q3" } ] },
+    "r2": { "result": "Confirm the agreed price with the buyer", "tone": "info", "detail": "If the vendor price changed, update the vendor pricelist for future RFQs; dispute the bill if it did not." },
+    "q3": { "question": "Are taxes or the purchase unit of measure different?", "options": [ { "label": "Yes", "next": "r3" }, { "label": "No", "next": "r4" } ] },
+    "r3": { "result": "Fix the tax or UoM on the product or vendor", "tone": "warning", "detail": "A box-of-5 vendor UoM versus units on the bill, or a wrong fiscal position, changes the total." },
+    "r4": { "result": "Check for extra lines such as freight or a duplicate bill", "tone": "info", "detail": "Compare Qty Ordered, Received and Billed in Purchase Analysis." }
+  }
+}
+\`\`\`
+
 > **Consultant tip:** For replenishment issues, open the product's **Forecasted** report and the Replenishment menu first. They show demand, incoming and the rule that should fire.
+
+\`\`\`visual-match
+{
+  "title": "Purchase symptoms and root causes",
+  "prompt": "Match each symptom to its most likely root cause.",
+  "leftLabel": "Symptom",
+  "rightLabel": "Root cause",
+  "pairs": [
+    { "left": "PO stuck in To Approve", "right": "Order Approval threshold exceeded by a non-administrator" },
+    { "left": "There is no invoiceable line on Create Bill", "right": "Bill control is Received quantities and nothing was received" },
+    { "left": "Unit price 0 on the RFQ", "right": "No matching vendor pricelist line for vendor, quantity or date" },
+    { "left": "No receipt after confirming the PO", "right": "Product is a service or not tracked in inventory" },
+    { "left": "MTO sale creates no RFQ", "right": "MTO route archived or not ticked on the product" },
+    { "left": "Cannot edit a confirmed PO", "right": "Lock Confirmed Orders is enabled" }
+  ],
+  "explanation": "Most purchase issues come from vendor pricelists, product type, routes or the bill control policy."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "PrintTech delivered 40 of 50 toners. AP clicks Create Bill. What does Odoo propose with bill control on received quantities?",
+  "options": ["50 toners", "40 toners", "10 toners", "Nothing until all 50 arrive"],
+  "correct": 1,
+  "explanation": "Received-quantity control bills what the warehouse validated (40). The remaining 10 stay on the backorder and are billed when received."
+}
+\`\`\`
+
+\`\`\`visual-decision
+{
+  "title": "Reordering rule creates no RFQ",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Is the product tracked in stock (17: Storable; 18: Goods + Track Inventory)?", "options": [ { "label": "No", "next": "r1" }, { "label": "Yes", "next": "q2" } ] },
+    "r1": { "result": "Fix the product type", "tone": "warning", "detail": "Reordering rules only apply to stock-tracked products." },
+    "q2": { "question": "Does the product have the Buy route and a vendor line on the Purchase tab?", "options": [ { "label": "No", "next": "r2" }, { "label": "Yes", "next": "q3" } ] },
+    "r2": { "result": "Add the Buy route and a vendor pricelist line", "tone": "warning", "detail": "Without a vendor Odoo cannot create an RFQ; the rule raises an exception instead." },
+    "q3": { "question": "Is the forecast quantity really below the minimum?", "options": [ { "label": "No", "next": "r3" }, { "label": "Yes", "next": "r4" } ] },
+    "r3": { "result": "Working as designed", "tone": "info", "detail": "Incoming receipts already cover the need; check the Forecasted report." },
+    "r4": { "result": "Run Order Once or wait for the scheduler", "tone": "success", "detail": "Replenishment runs with the daily scheduler or manually from the Replenishment menu." }
+  }
+}
+\`\`\`
 
 ## 14. Practical assignments
 
@@ -906,6 +1459,57 @@ Receipt: Dr Stock Valuation / Cr Stock Interim (Received). Bill: Dr Stock Interi
 
 **Q7. What is a blanket order?**
 A purchase agreement fixing prices (and optionally quantities) with a vendor for a period. POs are released against it, and consumption is tracked. Agreement types were revised in 18.0 — verify in the instance.
+
+\`\`\`visual-roleplay
+{
+  "title": "Purchase hypercare at Northwind",
+  "setting": "First month after go-live. The Accounts Payable lead and the Purchase Manager raise issues in a weekly call.",
+  "client": "AP lead",
+  "rounds": [
+    {
+      "says": "The ErgoSeat bill is higher than the PO. Odoo let us post it!",
+      "options": [
+        { "text": "Let's compare ordered, received and billed quantities and the unit price on the bill against the PO and receipt.", "quality": "best", "feedback": "This is 3-way matching: find whether quantity, price, tax or an extra line causes the difference before acting." },
+        { "text": "Just pay it, the vendor knows best.", "quality": "poor", "feedback": "Paying unchecked bills is exactly the problem the received-quantity policy was meant to stop." },
+        { "text": "Delete the bill and ask the vendor to resend.", "quality": "ok", "feedback": "May be needed later, but first find the cause so the same mismatch does not return." }
+      ]
+    },
+    {
+      "says": "We click Create Bill and get 'There is no invoiceable line'.",
+      "options": [
+        { "text": "Bill control is on received quantities and the receipt is not validated yet. Validate the receipt first.", "quality": "best", "feedback": "Correct root cause and it reinforces the company's 'pay only what was received' policy." },
+        { "text": "Change all products to ordered quantities.", "quality": "poor", "feedback": "Removes the control the business asked for. Ordered quantities fit services and prepayments only." },
+        { "text": "It is a bug, I will log a ticket.", "quality": "poor", "feedback": "It is standard behaviour; a ticket wastes time." }
+      ]
+    },
+    {
+      "says": "A4 paper ran out even though we created reordering rules.",
+      "options": [
+        { "text": "Let's open the Forecasted report and Replenishment menu: check the vendor line, Buy route, product type and whether the scheduler ran.", "quality": "best", "feedback": "These four causes explain almost every rule that does not fire." },
+        { "text": "Raise the minimum to a very high number.", "quality": "poor", "feedback": "Ties up cash in stock and does not fix a rule that never fires." },
+        { "text": "Order paper manually every Monday.", "quality": "ok", "feedback": "Keeps shelves full short term but abandons the automation." }
+      ]
+    },
+    {
+      "says": "The buyer says a large chair order has been stuck for three days.",
+      "options": [
+        { "text": "It is in To Approve because it is above INR 5,00,000. I'll show the Purchase Manager the To Approve filter so approvals happen daily.", "quality": "best", "feedback": "Explains the standard approval step and fixes the process gap." },
+        { "text": "Give the buyer Purchase Administrator rights.", "quality": "poor", "feedback": "Removes the approval control the business required." },
+        { "text": "Raise the threshold to INR 10,00,000.", "quality": "ok", "feedback": "Only valid if management agrees; it changes policy, not the bottleneck." }
+      ]
+    },
+    {
+      "says": "Can we have two approval levels, one for the manager and one for the CFO?",
+      "options": [
+        { "text": "Standard supports one threshold per company. Two levels need Studio on Enterprise or a customization; let's log it in the fit-gap with effort.", "quality": "best", "feedback": "Clear on standard versus customization, and keeps change control." },
+        { "text": "Yes, standard Odoo has multi-level PO approval.", "quality": "poor", "feedback": "Incorrect: Order Approval has a single threshold." },
+        { "text": "Use the Approvals app for every PO.", "quality": "ok", "feedback": "The Approvals app handles generic requests and is Enterprise; it is not the PO approval and may duplicate work." }
+      ]
+    }
+  ],
+  "wrapup": "Check pricelists, product type, routes and bill control first; explain standard behaviour; push real gaps through the fit-gap."
+}
+\`\`\`
 
 ## Key takeaways
 

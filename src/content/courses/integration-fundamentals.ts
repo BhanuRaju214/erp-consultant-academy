@@ -79,6 +79,28 @@ An **Application Programming Interface** is a contract that lets one program ask
 }
 \`\`\`
 
+Step through a real exchange. Watch how every answer carries a **status code** that tells the client what to do next.
+
+\`\`\`visual-sequence
+{
+  "title": "HTTP request and response, with status codes",
+  "caption": "Fictional shop API at shop.example.com. Press Next to follow each message.",
+  "actors": ["Web shop backend", "API gateway", "Order service"],
+  "messages": [
+    { "from": "Web shop backend", "to": "API gateway", "label": "POST /api/v1/orders", "note": "Headers: Content-Type application/json, Authorization Bearer token, Idempotency-Key. Body: the order as JSON.", "kind": "request" },
+    { "from": "API gateway", "to": "API gateway", "label": "Check token and rate limit", "note": "Missing or invalid token would end here with 401; too many calls with 429.", "kind": "self" },
+    { "from": "API gateway", "to": "Order service", "label": "Forward the request", "kind": "request" },
+    { "from": "Order service", "to": "Order service", "label": "Validate the body", "note": "Broken JSON gives 400; a valid document that breaks a business rule (unknown SKU) gives 422.", "kind": "self" },
+    { "from": "Order service", "to": "API gateway", "label": "201 Created", "note": "Body contains the new order id; a Location header points to /api/v1/orders/812.", "kind": "response" },
+    { "from": "API gateway", "to": "Web shop backend", "label": "201 Created + order id 812", "kind": "response" },
+    { "from": "Web shop backend", "to": "API gateway", "label": "GET /api/v1/orders/812", "note": "Safe and idempotent: can be repeated without side effects.", "kind": "request" },
+    { "from": "API gateway", "to": "Web shop backend", "label": "200 OK + order JSON", "kind": "response" },
+    { "from": "Web shop backend", "to": "API gateway", "label": "GET /api/v1/orders (burst of 500 calls)", "kind": "request" },
+    { "from": "API gateway", "to": "Web shop backend", "label": "429 Too Many Requests, Retry-After: 30", "note": "Temporary: wait the Retry-After delay, then retry with backoff.", "kind": "response" }
+  ]
+}
+\`\`\`
+
 ## Anatomy of an HTTP request
 
 \`\`\`http
@@ -111,6 +133,23 @@ REST (Representational State Transfer) organises an API around **resources** ide
 
 Characteristics: stateless requests (each carries its own authentication), standard methods, standard status codes, usually JSON bodies.
 
+\`\`\`visual-compare
+{
+  "title": "REST vs SOAP vs RPC",
+  "columns": ["REST", "SOAP", "RPC (e.g. Odoo XML-RPC / JSON-RPC)"],
+  "rows": [
+    { "label": "Organised around", "values": ["Resources and URLs", "Operations described in a WSDL", "Remote procedures (method names)"] },
+    { "label": "Typical format", "values": ["JSON", "XML envelope", "XML or JSON envelope"] },
+    { "label": "Uses HTTP methods meaningfully", "values": [true, false, false] },
+    { "label": "Errors", "values": ["HTTP status codes", "SOAP Fault in the body", "Fault or error object, often with HTTP 200"] },
+    { "label": "Formal contract", "values": ["Optional (OpenAPI)", "Required (WSDL, XSD)", "Method documentation"] },
+    { "label": "Where you meet it", "values": ["Most SaaS, shops, carriers", "Banks, government, older ERPs", "Odoo 17/18 external API"] }
+  ],
+  "highlight": 0,
+  "caption": "The status-code rules in this lesson apply to REST; for RPC styles you must also inspect the body."
+}
+\`\`\`
+
 ## HTTP methods
 
 | Method | Meaning | Safe (no change)? | Idempotent? | Typical use |
@@ -142,31 +181,95 @@ Characteristics: stateless requests (each carries its own authentication), stand
 
 Rule of thumb: **4xx = the client must change something; 5xx and 429 = may be temporary.**
 
+\`\`\`visual-match
+{
+  "title": "Read the status code",
+  "prompt": "Match each HTTP status code to what it tells your integration.",
+  "leftLabel": "Status",
+  "rightLabel": "Meaning",
+  "pairs": [
+    { "left": "200 OK", "right": "Success, the response body holds the data" },
+    { "left": "201 Created", "right": "A new resource was created" },
+    { "left": "400 Bad Request", "right": "The request is malformed, for example invalid JSON" },
+    { "left": "401 Unauthorized", "right": "Credentials are missing or invalid" },
+    { "left": "403 Forbidden", "right": "Authenticated, but not allowed to do this" },
+    { "left": "404 Not Found", "right": "Wrong URL or the record does not exist" },
+    { "left": "409 Conflict", "right": "Duplicate or version conflict, investigate before acting" },
+    { "left": "429 Too Many Requests", "right": "Rate limit hit, wait for Retry-After" },
+    { "left": "503 Service Unavailable", "right": "Temporary server problem, retry with backoff" }
+  ],
+  "explanation": "2xx means success, 4xx means the client must change something (except 429, which only asks you to slow down), and 5xx means the server had a problem that may be temporary."
+}
+\`\`\`
+
+\`\`\`visual-decision
+{
+  "title": "Retry or fail?",
+  "caption": "Run this decision for every failed call your integration makes.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Did you receive an HTTP response at all?", "options": [ { "label": "Yes, with a status code", "next": "q2" }, { "label": "No: timeout or connection reset", "next": "q3" } ] },
+    "q2": { "question": "Which status class came back?", "options": [ { "label": "2xx", "next": "r_ok" }, { "label": "4xx other than 429", "next": "r_fix" }, { "label": "429", "next": "r_wait" }, { "label": "5xx (502, 503, 504)", "next": "q3" } ] },
+    "q3": { "question": "Is the operation idempotent (GET, PUT, DELETE, or a POST with an idempotency key)?", "options": [ { "label": "Yes", "next": "r_retry" }, { "label": "No, a plain POST create", "next": "r_check" } ] },
+    "r_ok": { "result": "Process the response", "tone": "success", "detail": "Log the result with the correlation id and move on." },
+    "r_fix": { "result": "Do not retry: log, alert and fix the request", "tone": "danger", "detail": "400, 401, 403, 404, 409 and 422 will fail again until data, credentials or permissions change." },
+    "r_wait": { "result": "Wait for Retry-After, then retry", "tone": "warning", "detail": "You were rate limited. Slow down; retrying immediately makes it worse." },
+    "r_retry": { "result": "Retry with exponential backoff and jitter", "tone": "info", "detail": "Repeating an idempotent call cannot create duplicates. Give up after N attempts and dead-letter the message." },
+    "r_check": { "result": "Check before retrying", "tone": "warning", "detail": "The first attempt may have succeeded before the timeout. Look the record up by its business key first, otherwise you risk a duplicate order." }
+  }
+}
+\`\`\`
+
 > **Consultant tip:** In an integration specification, always list which status codes the receiving system returns and what your integration does for each. "What happens on 409?" is a question that prevents duplicate invoices.
 
 ## Calling an API from Python
 
-\`\`\`python
-import os
-
-import requests
-
-BASE_URL = os.environ["SHOP_API_URL"]          # e.g. a sandbox URL
-TOKEN = os.environ["SHOP_API_TOKEN"]           # never hard-code
-
-response = requests.get(
-    f"{BASE_URL}/api/v1/customers",
-    params={"limit": 5},
-    headers={"Authorization": f"Bearer {TOKEN}", "Accept": "application/json"},
-    timeout=30,
-)
-print(response.status_code)
-response.raise_for_status()      # raises for 4xx/5xx
-for customer in response.json()["items"]:
-    print(customer["id"], customer["email"])
+\`\`\`visual-codewalk
+{
+  "title": "A GET request with the requests library",
+  "language": "python",
+  "file": "list_customers.py",
+  "code": [
+    "import os",
+    "",
+    "import requests",
+    "",
+    "BASE_URL = os.environ['SHOP_API_URL']          # e.g. a sandbox URL",
+    "TOKEN = os.environ['SHOP_API_TOKEN']           # never hard-code",
+    "",
+    "response = requests.get(",
+    "    f'{BASE_URL}/api/v1/customers',",
+    "    params={'limit': 5},",
+    "    headers={'Authorization': f'Bearer {TOKEN}', 'Accept': 'application/json'},",
+    "    timeout=30,",
+    ")",
+    "print(response.status_code)",
+    "response.raise_for_status()      # raises for 4xx/5xx",
+    "for customer in response.json()['items']:",
+    "    print(customer['id'], customer['email'])"
+  ],
+  "notes": [
+    { "lines": "5-6", "title": "Secrets from the environment", "text": "The URL and token come from environment variables, so the script can be shared without leaking credentials." },
+    { "lines": "8-9", "title": "Method and resource", "text": "requests.get sends a GET (safe, idempotent) to the customers collection." },
+    { "lines": "10", "title": "Query string", "text": "params becomes ?limit=5 on the URL: filters and paging belong here, not in a body." },
+    { "lines": "11", "title": "Headers", "text": "Authorization carries the bearer token; Accept asks for JSON." },
+    { "lines": "12", "title": "Timeout", "text": "Without a timeout a hung connection can block your sync forever." },
+    { "lines": "14-15", "title": "Status first", "text": "Print the status and let raise_for_status turn any 4xx or 5xx into an exception you can classify." },
+    { "lines": "16-17", "title": "Parse the body", "text": "Only after a 2xx do you read the JSON body and use its fields." }
+  ]
+}
 \`\`\`
 
 Always set a **timeout**; without one a hung connection can block your sync forever.
+
+\`\`\`visual-check
+{
+  "question": "Your integration sends POST /orders and receives 422 Unprocessable Entity because the SKU is unknown. What should it do?",
+  "options": ["Retry immediately", "Retry with exponential backoff", "Do not retry; log it, alert the data owner and park the order", "Send the same request as PUT instead"],
+  "correct": 2,
+  "explanation": "422 is a permanent data error: the same request will fail every time. Retrying only adds load; someone must fix the product data first."
+}
+\`\`\`
 
 ## Exercise
 
@@ -311,6 +414,24 @@ For untrusted XML from external parties, use a hardened parser such as \`defused
 | Validation | JSON Schema (optional) | XSD (common) |
 | Odoo | JSON-RPC, JSON-2 (19) | XML-RPC, imports of some bank formats |
 
+\`\`\`visual-match
+{
+  "title": "Format conventions and pitfalls",
+  "prompt": "Match each concept to the rule or meaning a consultant must document.",
+  "leftLabel": "Concept",
+  "rightLabel": "Rule or meaning",
+  "pairs": [
+    { "left": "Dates in JSON", "right": "No native type: agree on ISO 8601 and UTC" },
+    { "left": "Money amounts", "right": "Decimal strings or integer cents, not raw floats" },
+    { "left": "null", "right": "Value is absent, which differs from an empty string" },
+    { "left": "XML attribute", "right": "A name-value pair inside the start tag, like sku='DESK-120'" },
+    { "left": "XML namespace", "right": "Must be handled when parsing ISO 20022 bank files" },
+    { "left": "XSD", "right": "Schema that defines the allowed XML structure" }
+  ],
+  "explanation": "Most mapping bugs come from unspoken conventions: dates, decimals and the meaning of null. Write them into the specification."
+}
+\`\`\`
+
 ## Field mapping: the heart of integration
 
 A **mapping table** is a mandatory integration deliverable:
@@ -324,6 +445,55 @@ A **mapping table** is a mandatory integration deliverable:
 | \`lines[].qty\` | \`sale.order.line.product_uom_qty\` | number | Yes |
 | \`lines[].unit_price\` | \`sale.order.line.price_unit\` | decimal, 2 places | Yes |
 | \`paid\` | (none - drives payment registration) | business rule | No |
+
+The mapping table turned into code:
+
+\`\`\`visual-codewalk
+{
+  "title": "From shop JSON to Odoo sale.order values",
+  "language": "python",
+  "file": "mapping.py",
+  "code": [
+    "def map_order(order, find_partner, find_product):",
+    "    email = order['customer']['email'].strip().lower()",
+    "    partner_id = find_partner(email)",
+    "    if not partner_id:",
+    "        raise LookupError('Customer not found: ' + email)",
+    "    lines = []",
+    "    for line in order['lines']:",
+    "        product_id = find_product(line['sku'].strip())",
+    "        if not product_id:",
+    "            raise LookupError('SKU not found: ' + line['sku'])",
+    "        lines.append((0, 0, {",
+    "            'product_id': product_id,",
+    "            'product_uom_qty': line['qty'],",
+    "            'price_unit': round(float(line['unit_price']), 2),",
+    "        }))",
+    "    return {",
+    "        'partner_id': partner_id,",
+    "        'client_order_ref': order['order_ref'],",
+    "        'date_order': order['created_at'][:19].replace('T', ' '),",
+    "        'order_line': lines,",
+    "    }"
+  ],
+  "notes": [
+    { "lines": "2-5", "title": "Lookup with a transformation", "text": "Trim and lowercase the email before searching res.partner; a missing customer is an explicit error, not a silent skip." },
+    { "lines": "7-10", "title": "SKU lookup", "text": "Each line finds product.product by default_code. Unknown SKUs stop the order so no partial order is created." },
+    { "lines": "11-15", "title": "Order lines as commands", "text": "(0, 0, values) tells Odoo to create a new one2many line. Prices are rounded to 2 decimals." },
+    { "lines": "18", "title": "Matching key", "text": "The shop reference goes to client_order_ref, the key used later to avoid duplicates." },
+    { "lines": "19", "title": "Date format", "text": "Odoo expects 'YYYY-MM-DD HH:MM:SS' in UTC. This shortcut only works because the shop sends UTC (Z); convert offsets first otherwise." }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "The shop sends created_at as 2024-05-14T09:30:00+02:00. Odoo stores datetimes in UTC. What should the integration write to date_order?",
+  "options": ["2024-05-14 09:30:00", "2024-05-14 07:30:00", "2024-05-14 11:30:00", "Only the date 2024-05-14"],
+  "correct": 1,
+  "explanation": "+02:00 means local time is two hours ahead of UTC, so 09:30 local is 07:30 UTC. Odoo converts back to each user's timezone for display."
+}
+\`\`\`
 
 > **Consultant tip:** For every mapped field, document the lookup rule (how to find the related record), what happens when it is not found, and who owns fixing it. Unmapped "not found" cases are the number one source of integration support tickets.
 
@@ -370,6 +540,24 @@ The web shop needs to create sales orders in Odoo. The tempting shortcut: "just 
 | HMAC signature | Request signed with shared secret | Common for webhooks |
 | Mutual TLS | Client certificate | Banking and high-security APIs |
 
+\`\`\`visual-match
+{
+  "title": "Which authentication fits?",
+  "prompt": "Match each authentication method to the situation where it is the usual choice.",
+  "leftLabel": "Method",
+  "rightLabel": "Typical use",
+  "pairs": [
+    { "left": "Odoo API key", "right": "A script or middleware calling the Odoo external API as a dedicated user" },
+    { "left": "OAuth2 authorization code", "right": "A connector acting on behalf of a user who gives consent" },
+    { "left": "OAuth2 client credentials", "right": "Machine-to-machine access to a SaaS API, no user involved" },
+    { "left": "HMAC signature", "right": "Proving an incoming webhook came from the provider" },
+    { "left": "Mutual TLS", "right": "Host-to-host bank connections with client certificates" },
+    { "left": "Username and password", "right": "Interactive login only, avoid for integrations" }
+  ],
+  "explanation": "Pick the method the vendor supports with the narrowest, revocable credential. Passwords are the last resort."
+}
+\`\`\`
+
 ## OAuth2 concepts
 
 OAuth2 lets an application obtain a **token** with limited **scopes** instead of handling a user's password.
@@ -389,6 +577,58 @@ Main flows:
 - **Authorization code (with PKCE)** - a user logs in and consents; used when acting on behalf of a user.
 - **Client credentials** - machine-to-machine; the integration authenticates as itself.
 
+\`\`\`visual-sequence
+{
+  "title": "OAuth2 authorization code flow (with PKCE)",
+  "caption": "A user lets the Sunrise connector read orders in a fictional SaaS shop. The password never reaches the connector.",
+  "actors": ["User browser", "Connector", "Authorization server", "Shop API"],
+  "messages": [
+    { "from": "Connector", "to": "User browser", "label": "Redirect to /authorize", "note": "Query: client_id, redirect_uri, scope=orders.read, state, code_challenge (PKCE).", "kind": "response" },
+    { "from": "User browser", "to": "Authorization server", "label": "GET /authorize", "kind": "request" },
+    { "from": "Authorization server", "to": "User browser", "label": "Login and consent screen", "note": "The user signs in at the provider and approves the requested scopes.", "kind": "response" },
+    { "from": "User browser", "to": "Connector", "label": "Redirect back with ?code=...&state=...", "note": "The connector checks that state matches what it sent.", "kind": "request" },
+    { "from": "Connector", "to": "Authorization server", "label": "POST /token (code, code_verifier, client secret)", "note": "Server-to-server: the code is exchanged, never used directly.", "kind": "request" },
+    { "from": "Authorization server", "to": "Connector", "label": "access_token + refresh_token + expires_in", "kind": "response" },
+    { "from": "Connector", "to": "Shop API", "label": "GET /orders, Authorization: Bearer access_token", "kind": "request" },
+    { "from": "Shop API", "to": "Connector", "label": "200 OK, orders within scope orders.read", "kind": "response" },
+    { "from": "Connector", "to": "Authorization server", "label": "POST /token (grant_type=refresh_token)", "note": "When the access token expires, refresh silently; store tokens in a secret store.", "kind": "request" }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-sequence
+{
+  "title": "OAuth2 client credentials flow (machine to machine)",
+  "caption": "No user and no browser: the middleware authenticates as itself.",
+  "actors": ["Middleware", "Authorization server", "Carrier API"],
+  "messages": [
+    { "from": "Middleware", "to": "Middleware", "label": "Load client_id and client_secret from the vault", "kind": "self" },
+    { "from": "Middleware", "to": "Authorization server", "label": "POST /token grant_type=client_credentials, scope=shipments.write", "kind": "request" },
+    { "from": "Authorization server", "to": "Middleware", "label": "access_token, expires_in 3600", "note": "No refresh token is usually issued; request a new token when it expires.", "kind": "response" },
+    { "from": "Middleware", "to": "Carrier API", "label": "POST /shipments, Authorization: Bearer access_token", "kind": "request" },
+    { "from": "Carrier API", "to": "Middleware", "label": "201 Created", "kind": "response" },
+    { "from": "Middleware", "to": "Carrier API", "label": "Call with an expired token", "kind": "request" },
+    { "from": "Carrier API", "to": "Middleware", "label": "401 Unauthorized", "note": "Fetch a new token once, then retry the call. A second 401 is a configuration problem.", "kind": "response" }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-order
+{
+  "title": "Authorization code flow",
+  "prompt": "Put the steps of the OAuth2 authorization code flow in order.",
+  "items": [
+    "Connector redirects the user to the authorization server with client_id, scopes and state",
+    "User logs in at the provider and grants consent",
+    "Provider redirects back to the connector with a one-time code",
+    "Connector exchanges the code for tokens at the token endpoint",
+    "Connector calls the API with the access token as a bearer header",
+    "Connector uses the refresh token when the access token expires"
+  ],
+  "explanation": "The user's password only ever goes to the provider; the connector receives a short-lived code and swaps it server-side for scoped tokens."
+}
+\`\`\`
+
 You do not need to implement OAuth2 servers - you need to know which flow a vendor uses, which scopes to request (the minimum), where tokens are stored and how refresh works.
 
 ## Authentication in Odoo's external API
@@ -399,6 +639,21 @@ For the Odoo external API, users authenticate with their login and either their 
 - It carries the permissions of the user who created it.
 - Revoking the key does not affect the user's interactive login.
 - Odoo 19's JSON-2 API uses the API key as a bearer token (check the External API documentation for your version).
+
+\`\`\`visual-sequence
+{
+  "title": "API key authentication against Odoo 17",
+  "actors": ["Integration script", "Odoo common", "Odoo object"],
+  "messages": [
+    { "from": "Integration script", "to": "Integration script", "label": "Read ODOO_USER and ODOO_API_KEY from the environment", "kind": "self" },
+    { "from": "Integration script", "to": "Odoo common", "label": "authenticate(db, login, api_key, {})", "note": "The API key is sent where the password would go.", "kind": "request" },
+    { "from": "Odoo common", "to": "Integration script", "label": "uid 7 (or False if invalid)", "kind": "response" },
+    { "from": "Integration script", "to": "Odoo object", "label": "execute_kw(db, 7, api_key, 'sale.order', 'create', ...)", "kind": "request" },
+    { "from": "Odoo object", "to": "Odoo object", "label": "Check groups, access rights, record rules of user 7", "kind": "self" },
+    { "from": "Odoo object", "to": "Integration script", "label": "New order id, or an AccessError fault", "kind": "response" }
+  ]
+}
+\`\`\`
 
 Odoo also offers OAuth login for *users* (e.g. sign in with Google via the \`auth_oauth\` module); that is user sign-in, not API authorization for integrations.
 
@@ -429,6 +684,32 @@ For the web shop integration at Sunrise:
 | Delete anything | - | **not needed - do not grant** |
 
 Test the integration user's rights by logging in as that user in a test database (with a password set for testing only) and performing each step.
+
+\`\`\`visual-decision
+{
+  "title": "Choosing the authentication method",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Who calls whom?", "options": [ { "label": "Our system calls Odoo's external API", "next": "r_key" }, { "label": "We call an external SaaS API", "next": "q2" }, { "label": "An external system calls us (webhook)", "next": "r_hmac" } ] },
+    "q2": { "question": "Does the access act on behalf of a specific user who must consent?", "options": [ { "label": "Yes", "next": "r_code" }, { "label": "No, system to system", "next": "q3" } ] },
+    "q3": { "question": "Does the provider support OAuth2?", "options": [ { "label": "Yes", "next": "r_cc" }, { "label": "No, only static keys", "next": "r_static" } ] },
+    "r_key": { "result": "Odoo API key of a dedicated least-privilege user", "tone": "success", "detail": "Stored in an environment variable or vault; separate users and keys per environment." },
+    "r_hmac": { "result": "Verify an HMAC signature (plus timestamp)", "tone": "success", "detail": "The shared signing secret lives in the vault; reject unsigned or stale requests with 401." },
+    "r_code": { "result": "OAuth2 authorization code with PKCE", "tone": "info", "detail": "Request minimal scopes and store the refresh token securely." },
+    "r_cc": { "result": "OAuth2 client credentials", "tone": "info", "detail": "Short-lived tokens, renewed automatically; the client secret stays in the vault." },
+    "r_static": { "result": "Vendor API key, stored and rotated like any secret", "tone": "warning", "detail": "Ask for IP allow-listing or a restricted key, and document the rotation schedule." }
+  }
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A connector vendor asks for the Odoo admin login to set up a web shop sync that only creates customers and quotations. What do you propose?",
+  "options": ["Give admin access, it is faster", "Share your own login so actions are traceable to you", "A dedicated integration user with Sales and Contacts rights only, using an API key", "Create an API key on the admin user and send it by email"],
+  "correct": 2,
+  "explanation": "A dedicated least-privilege user limits damage if the key leaks, shows the integration in the chatter and can be revoked independently."
+}
+\`\`\`
 
 > **Consultant tip:** When a vendor asks for "an admin account to set up the connector", ask which operations it performs and propose a restricted user. Accept admin access only temporarily, with a documented reason and a revocation date.
 
@@ -500,21 +781,33 @@ A partner once pasted a production API key into a project wiki "so the team coul
 
 ### Reading secrets in Python
 
-\`\`\`python
-import os
-
-
-def require_env(name: str) -> str:
-    value = os.environ.get(name)
-    if not value:
-        raise RuntimeError(f"Missing required environment variable: {name}")
-    return value
-
-
-ODOO_URL = require_env("ODOO_URL")
-ODOO_DB = require_env("ODOO_DB")
-ODOO_USER = require_env("ODOO_USER")
-ODOO_API_KEY = require_env("ODOO_API_KEY")
+\`\`\`visual-codewalk
+{
+  "title": "Loading secrets from the environment",
+  "language": "python",
+  "file": "settings.py",
+  "code": [
+    "import os",
+    "",
+    "",
+    "def require_env(name: str) -> str:",
+    "    value = os.environ.get(name)",
+    "    if not value:",
+    "        raise RuntimeError(f'Missing required environment variable: {name}')",
+    "    return value",
+    "",
+    "",
+    "ODOO_URL = require_env('ODOO_URL')",
+    "ODOO_DB = require_env('ODOO_DB')",
+    "ODOO_USER = require_env('ODOO_USER')",
+    "ODOO_API_KEY = require_env('ODOO_API_KEY')"
+  ],
+  "notes": [
+    { "lines": "5", "title": "Read, do not hard-code", "text": "os.environ.get returns None when the variable is missing instead of crashing with a KeyError." },
+    { "lines": "6-7", "title": "Fail fast, safely", "text": "The script stops at start-up with a clear message that names the variable but never prints a value." },
+    { "lines": "11-14", "title": "One place for configuration", "text": "Every secret is loaded once at start-up. The values differ per environment (test, production) while the code stays identical." }
+  ]
+}
 \`\`\`
 
 Note the error message prints the variable **name**, never its value.
@@ -557,6 +850,21 @@ Rotation means replacing a secret periodically or after any suspected exposure.
 4. Revoke the old key.
 5. Record the rotation date and next due date.
 
+\`\`\`visual-order
+{
+  "title": "Rotate without downtime",
+  "prompt": "Put the key rotation steps in the right order.",
+  "items": [
+    "Create a new API key for the integration user",
+    "Update the secret store or environment with the new key",
+    "Restart or redeploy the integration and verify it works",
+    "Revoke the old key",
+    "Record the rotation date and the next due date"
+  ],
+  "explanation": "Revoking last means the integration never runs without a valid key; revoking first causes an outage."
+}
+\`\`\`
+
 | Trigger | Action |
 |---------|--------|
 | Scheduled (e.g. every 90 days, per policy) | Rotate |
@@ -583,6 +891,36 @@ _logger.debug("Key prefix %s", mask(ODOO_API_KEY))            # only a prefix, i
 \`\`\`
 
 Never log full tokens, passwords, full card numbers or bank details.
+
+\`\`\`visual-dodont
+{
+  "title": "Secrets management",
+  "do": [
+    "Keep secrets in environment variables, platform secret settings or a vault",
+    "Commit only .env.example with variable names and placeholders",
+    "Use separate keys for test and production",
+    "Let browser code call your own backend, which holds the key",
+    "Rotate on schedule and immediately after any exposure",
+    "List secret names, owners and storage in the design document"
+  ],
+  "dont": [
+    "Put an API key in JavaScript, a mobile app or a Git repository",
+    "Paste keys into wikis, tickets, chat or email",
+    "Share Postman environments that contain real values",
+    "Log full tokens or passwords",
+    "Assume deleting a leaked key from a file is enough: revoke it"
+  ]
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A developer notices that a test API key was committed to a private repository three weeks ago. What is the right first action?",
+  "options": ["Delete the line and push a new commit", "Rewrite Git history and keep the key", "Revoke the key and issue a new one, then clean up the repository", "Nothing, the repository is private"],
+  "correct": 2,
+  "explanation": "Once exposed, a secret must be treated as compromised: it lives on in history and in every clone. Revocation is the only real fix."
+}
+\`\`\`
 
 > **Consultant tip:** Add a "Secrets" section to every integration design: list each secret, its owner, storage location, which environments have separate values, and the rotation schedule. Never put the values themselves in the document.
 
@@ -629,6 +967,21 @@ Sunrise's payment provider must tell Odoo when a customer pays. Polling ("any ne
 
 Most robust designs combine both: webhooks for speed, a periodic **reconciliation poll** to catch anything missed.
 
+\`\`\`visual-decision
+{
+  "title": "Webhook or polling?",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does the source system offer signed webhooks for the events you need?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No", "next": "r_poll" } ] },
+    "q2": { "question": "Can you expose a public HTTPS endpoint (or middleware) that answers within seconds?", "options": [ { "label": "Yes", "next": "q3" }, { "label": "No, only outbound calls allowed", "next": "r_poll" } ] },
+    "q3": { "question": "Does the business need the data within minutes?", "options": [ { "label": "Yes, near real time", "next": "r_hook" }, { "label": "No, a nightly batch is fine", "next": "r_batch" } ] },
+    "r_poll": { "result": "Poll on a schedule with a watermark", "tone": "info", "detail": "Fetch records changed since the last successful run; respect rate limits." },
+    "r_hook": { "result": "Webhooks plus a reconciliation poll", "tone": "success", "detail": "Webhooks give speed; a daily poll catches events missed while your endpoint was down." },
+    "r_batch": { "result": "Scheduled batch is enough", "tone": "info", "detail": "Simpler to run and support. Webhooks would add an endpoint to secure for no business gain." }
+  }
+}
+\`\`\`
+
 ## A typical webhook
 
 \`\`\`http
@@ -640,21 +993,53 @@ X-Event-Id: evt_01HXYZ123
 {"event_id": "evt_01HXYZ123", "type": "payment.succeeded", "order_ref": "WEB-10045", "amount": "678.80", "currency": "EUR"}
 \`\`\`
 
+\`\`\`visual-sequence
+{
+  "title": "Webhook delivery with signature check and retry",
+  "caption": "Fictional payment provider pay.example.com notifying Sunrise's receiver.",
+  "actors": ["Payment provider", "Webhook receiver", "Event store", "Odoo"],
+  "messages": [
+    { "from": "Payment provider", "to": "Webhook receiver", "label": "POST /webhooks/payments + X-Signature", "note": "HMAC-SHA256 of the raw body with the shared secret.", "kind": "async" },
+    { "from": "Webhook receiver", "to": "Webhook receiver", "label": "Recompute HMAC over raw bytes, compare_digest", "note": "Mismatch: answer 401 and stop.", "kind": "self" },
+    { "from": "Webhook receiver", "to": "Event store", "label": "Insert evt_01HXYZ123 (unique event_id)", "kind": "request" },
+    { "from": "Webhook receiver", "to": "Payment provider", "label": "200 OK, within 1-2 seconds", "kind": "response" },
+    { "from": "Event store", "to": "Odoo", "label": "Worker registers the payment via the API", "note": "Processing happens after the acknowledgement.", "kind": "async" },
+    { "from": "Payment provider", "to": "Webhook receiver", "label": "Same event again (provider retry)", "note": "Happens when a previous 200 arrived late or was lost.", "kind": "async" },
+    { "from": "Webhook receiver", "to": "Event store", "label": "Insert evt_01HXYZ123", "kind": "request" },
+    { "from": "Event store", "to": "Webhook receiver", "label": "Unique constraint: already stored", "kind": "response" },
+    { "from": "Webhook receiver", "to": "Payment provider", "label": "200 OK (duplicate ignored)", "note": "Still answer 2xx, otherwise the provider keeps retrying.", "kind": "response" }
+  ]
+}
+\`\`\`
+
 ## Rule 1: verify the signature
 
 Anyone who knows your URL can send a request. Providers sign each webhook with a shared secret (commonly HMAC-SHA256 over the raw body). Verify before doing anything.
 
-\`\`\`python
-import hashlib
-import hmac
-import os
-
-
-def verify_signature(raw_body: bytes, received_signature: str) -> bool:
-    secret = os.environ["PAYMENT_WEBHOOK_SECRET"].encode("utf-8")
-    expected = hmac.new(secret, raw_body, hashlib.sha256).hexdigest()
-    # constant-time comparison prevents timing attacks
-    return hmac.compare_digest(expected, received_signature or "")
+\`\`\`visual-codewalk
+{
+  "title": "Verifying an HMAC-SHA256 webhook signature",
+  "language": "python",
+  "file": "signature.py",
+  "code": [
+    "import hashlib",
+    "import hmac",
+    "import os",
+    "",
+    "",
+    "def verify_signature(raw_body: bytes, received_signature: str) -> bool:",
+    "    secret = os.environ['PAYMENT_WEBHOOK_SECRET'].encode('utf-8')",
+    "    expected = hmac.new(secret, raw_body, hashlib.sha256).hexdigest()",
+    "    # constant-time comparison prevents timing attacks",
+    "    return hmac.compare_digest(expected, received_signature or '')"
+  ],
+  "notes": [
+    { "lines": "6", "title": "Raw bytes in", "text": "Pass the body exactly as received, before JSON parsing: re-serialising changes the bytes and breaks the signature." },
+    { "lines": "7", "title": "Secret from the environment", "text": "The shared signing secret is never in the code or the repository." },
+    { "lines": "8", "title": "Recompute the signature", "text": "HMAC-SHA256 of the body with the secret, as hex. Follow the provider's exact algorithm and encoding." },
+    { "lines": "9-10", "title": "Constant-time compare", "text": "compare_digest takes the same time whatever the input, so attackers cannot guess the signature byte by byte. A missing header becomes an empty string and fails." }
+  ]
+}
 \`\`\`
 
 - Compute over the **raw bytes** received, before parsing JSON (re-serialising changes bytes).
@@ -687,6 +1072,15 @@ def handle_payment_event(event: dict, store) -> str:
 4. Process from a queue / scheduled job; retry processing failures internally.
 
 Slow endpoints cause provider timeouts, which cause retries, which cause duplicates.
+
+\`\`\`visual-check
+{
+  "question": "Your webhook endpoint registers the payment in Odoo before answering, which takes 12 seconds. The provider times out after 10. What happens?",
+  "options": ["Nothing, the payment is registered once", "The provider retries, and without idempotency the payment can be registered twice", "The provider cancels the payment", "Odoo rejects the second call automatically"],
+  "correct": 1,
+  "explanation": "A timeout looks like a failure to the provider, so it retries. Store the event, answer 200 at once, process asynchronously and deduplicate by event_id."
+}
+\`\`\`
 
 ## Rule 4: handle ordering
 
@@ -851,6 +1245,25 @@ pm.test("max 5 rows", () => pm.expect(body.result.length).to.be.at.most(5));
 
 Note: JSON-RPC errors usually come back with HTTP **200** and an \`error\` object in the body - always test for \`error\`, not only the status code.
 
+\`\`\`visual-sequence
+{
+  "title": "A Postman collection run against Odoo",
+  "caption": "Collection Runner with the environment 'Odoo Training' selected (test database only).",
+  "actors": ["Postman Runner", "Environment", "Odoo /jsonrpc"],
+  "messages": [
+    { "from": "Postman Runner", "to": "Environment", "label": "Resolve {{base_url}}, {{db}}, {{login}}, {{api_key}}", "note": "api_key comes from the local current value, marked secret.", "kind": "request" },
+    { "from": "Postman Runner", "to": "Odoo /jsonrpc", "label": "00 Authenticate: common.authenticate", "kind": "request" },
+    { "from": "Odoo /jsonrpc", "to": "Postman Runner", "label": "200, result: 7", "kind": "response" },
+    { "from": "Postman Runner", "to": "Environment", "label": "Tests: pm.environment.set('uid', 7)", "kind": "request" },
+    { "from": "Postman Runner", "to": "Odoo /jsonrpc", "label": "10 Search customers: execute_kw search_read", "kind": "request" },
+    { "from": "Odoo /jsonrpc", "to": "Postman Runner", "label": "200, result: 5 partners", "note": "Tests pass: no error key, at most 5 rows.", "kind": "response" },
+    { "from": "Postman Runner", "to": "Odoo /jsonrpc", "label": "90 Wrong api key: authenticate", "kind": "request" },
+    { "from": "Odoo /jsonrpc", "to": "Postman Runner", "label": "200, result: false", "note": "Negative test passes when it fails as expected.", "kind": "response" },
+    { "from": "Postman Runner", "to": "Postman Runner", "label": "Report: all tests green", "kind": "self" }
+  ]
+}
+\`\`\`
+
 ### Odoo 19 note
 
 Odoo 19 introduced a new **JSON-2** external API (\`/json/2/...\`, API key sent as a bearer token), and the legacy \`/xmlrpc\` and \`/jsonrpc\` endpoints are deprecated and scheduled for removal in a future version. Check the External API documentation for your version and build a separate Postman collection per API style.
@@ -874,6 +1287,31 @@ Odoo Training API
 \`\`\`
 
 Negative tests are as important as positive ones: they prove error handling and least privilege.
+
+\`\`\`visual-order
+{
+  "title": "Build and test an API collection",
+  "prompt": "Put the Postman work in a sensible order.",
+  "items": [
+    "Create an environment with base_url, db and login; api_key only as a local secret value",
+    "Add the Authenticate request and a test that saves uid",
+    "Add the positive requests (search, create TEST- records, update)",
+    "Add negative tests: wrong key, missing field, model without access",
+    "Run the whole collection in the Runner",
+    "Export the collection and check it holds placeholders, not secrets"
+  ],
+  "explanation": "Authenticate first because every later request needs uid; export last, after verifying that no secret value travels with the file."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A search_read in Postman returns HTTP 200, but nothing appears in your table. What should your test check first?",
+  "options": ["Nothing, 200 means success", "Whether the body contains an error object", "Whether the server is down", "Whether the Content-Type is XML"],
+  "correct": 1,
+  "explanation": "Odoo JSON-RPC returns business and access errors with HTTP 200 and an error key in the body, so tests must assert that error is undefined."
+}
+\`\`\`
 
 > **Consultant tip:** Attach the Postman collection (without secrets) to the integration specification. Developers, testers and the client's IT can reproduce exactly what you validated, and a failing request becomes a precise bug report.
 
@@ -936,7 +1374,71 @@ In Odoo 17 and 18, the external API is available over **XML-RPC** (\`/xmlrpc/2/c
 | \`/xmlrpc/2/common\` | Metadata and login, no authentication needed | \`version()\`, \`authenticate(db, login, key, {})\` |
 | \`/xmlrpc/2/object\` | Call model methods | \`execute_kw(db, uid, key, model, method, args, kwargs)\` |
 
+\`\`\`visual-sequence
+{
+  "title": "Odoo XML-RPC: authenticate, then execute_kw",
+  "caption": "Training database academy_test at academy-test.example.com.",
+  "actors": ["Python script", "/xmlrpc/2/common", "/xmlrpc/2/object", "ORM and security"],
+  "messages": [
+    { "from": "Python script", "to": "/xmlrpc/2/common", "label": "version()", "note": "No login needed; useful as a connectivity check.", "kind": "request" },
+    { "from": "/xmlrpc/2/common", "to": "Python script", "label": "server_version 17.0", "kind": "response" },
+    { "from": "Python script", "to": "/xmlrpc/2/common", "label": "authenticate(DB, USER, API_KEY, {})", "kind": "request" },
+    { "from": "/xmlrpc/2/common", "to": "Python script", "label": "uid 7", "note": "False means wrong database, login or key.", "kind": "response" },
+    { "from": "Python script", "to": "/xmlrpc/2/object", "label": "execute_kw(DB, 7, API_KEY, 'res.partner', 'search_read', [domain], {fields, limit})", "kind": "request" },
+    { "from": "/xmlrpc/2/object", "to": "ORM and security", "label": "Run search_read as user 7", "kind": "request" },
+    { "from": "ORM and security", "to": "ORM and security", "label": "Apply access rights and record rules", "kind": "self" },
+    { "from": "ORM and security", "to": "/xmlrpc/2/object", "label": "List of dicts", "kind": "response" },
+    { "from": "/xmlrpc/2/object", "to": "Python script", "label": "Customers, or an xmlrpc Fault", "kind": "response" }
+  ]
+}
+\`\`\`
+
 ## Complete example
+
+Walk through the core of the script first, then read the full version below.
+
+\`\`\`visual-codewalk
+{
+  "title": "Connecting to Odoo with xmlrpc.client",
+  "language": "python",
+  "file": "odoo_xmlrpc.py",
+  "code": [
+    "import os",
+    "import xmlrpc.client",
+    "",
+    "URL = os.environ['ODOO_URL']",
+    "DB = os.environ['ODOO_DB']",
+    "USER = os.environ['ODOO_USER']",
+    "API_KEY = os.environ['ODOO_API_KEY']",
+    "",
+    "common = xmlrpc.client.ServerProxy(f'{URL}/xmlrpc/2/common')",
+    "uid = common.authenticate(DB, USER, API_KEY, {})",
+    "if not uid:",
+    "    raise SystemExit('Authentication failed')",
+    "",
+    "models = xmlrpc.client.ServerProxy(f'{URL}/xmlrpc/2/object')",
+    "customers = models.execute_kw(",
+    "    DB, uid, API_KEY,",
+    "    'res.partner', 'search_read',",
+    "    [[['customer_rank', '>', 0]]],",
+    "    {'fields': ['name', 'email'], 'limit': 5},",
+    ")",
+    "partner_id = models.execute_kw(",
+    "    DB, uid, API_KEY, 'res.partner', 'create',",
+    "    [{'name': 'TEST-API Customer', 'email': 'test-api@example.com'}],",
+    ")"
+  ],
+  "notes": [
+    { "lines": "4-7", "title": "Credentials from the environment", "text": "Test database URL, name, integration user and API key; nothing is hard-coded." },
+    { "lines": "9-12", "title": "Log in on the common endpoint", "text": "authenticate returns the numeric uid, or False. Stop immediately on False." },
+    { "lines": "14", "title": "The object endpoint", "text": "All model calls go through /xmlrpc/2/object." },
+    { "lines": "15-17", "title": "execute_kw signature", "text": "db, uid and key on every call (no session), then the model and the method name." },
+    { "lines": "18", "title": "Positional args", "text": "A list of positional arguments: here one domain, which is itself a list of conditions." },
+    { "lines": "19", "title": "Keyword args", "text": "Always restrict fields and set a limit; reading everything is slow and may hit forbidden fields." },
+    { "lines": "21-24", "title": "Create", "text": "create takes the values dict as its positional argument and returns the new id. Prefix test records with TEST-." }
+  ]
+}
+\`\`\`
 
 \`\`\`python
 """Odoo XML-RPC training script - TEST DATABASE ONLY."""
@@ -1072,6 +1574,32 @@ except (ConnectionError, TimeoutError, xmlrpc.client.ProtocolError) as exc:
 | \`Fault\` containing \`ValidationError\` / \`UserError\` | Business rule rejected the data | No - fix data |
 | \`ProtocolError\` 502/503/504, connection reset, timeout | Infrastructure | Yes, with backoff |
 
+\`\`\`visual-match
+{
+  "title": "Diagnose the XML-RPC error",
+  "prompt": "Match each error to the right reaction.",
+  "leftLabel": "Error",
+  "rightLabel": "Reaction",
+  "pairs": [
+    { "left": "authenticate returns False", "right": "Check database name, login and whether the key was revoked" },
+    { "left": "Fault with AccessDenied", "right": "Bad credentials: fix them, never retry in a loop" },
+    { "left": "Fault with AccessError", "right": "Integration user lacks a right: grant only the missing one, consciously" },
+    { "left": "Fault with ValidationError", "right": "A business rule rejected the data: fix the data" },
+    { "left": "ProtocolError 503", "right": "Server temporarily unavailable: retry with backoff" }
+  ],
+  "explanation": "Faults come from Odoo's business and security layers and repeat on every retry; only transport errors are worth retrying."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Which call creates a sales order line together with the order in one XML-RPC create?",
+  "options": ["'order_line': [(6, 0, [product_id])]", "'order_line': [(0, 0, {'product_id': 12, 'product_uom_qty': 2})]", "'order_line': {'product_id': 12}", "'order_line': 12"],
+  "correct": 1,
+  "explanation": "(0, 0, values) creates a new one2many record. (6, 0, ids) replaces many2many links, and a plain id or dict is not a valid x2many value."
+}
+\`\`\`
+
 > **Consultant tip:** When an integration "suddenly fails", check whether someone changed the integration user's groups, archived it, or revoked its key. These configuration changes cause more outages than code bugs.
 
 ## Exercise steps
@@ -1122,6 +1650,46 @@ Sunrise's middleware is written in JavaScript/TypeScript and prefers JSON over X
 ## JSON-RPC (Odoo 17 / 18; deprecated in 19)
 
 A single endpoint, \`POST /jsonrpc\`, receives a JSON-RPC 2.0 envelope naming the service (\`common\` or \`object\`), the method and the arguments - the same arguments as XML-RPC.
+
+\`\`\`visual-codewalk
+{
+  "title": "The JSON-RPC envelope, piece by piece",
+  "language": "python",
+  "file": "payload.py",
+  "caption": "Shown as a Python dict; requests sends it as JSON with json=payload.",
+  "code": [
+    "payload = {",
+    "    'jsonrpc': '2.0',",
+    "    'method': 'call',",
+    "    'params': {",
+    "        'service': 'object',",
+    "        'method': 'execute_kw',",
+    "        'args': [",
+    "            DB, uid, API_KEY,",
+    "            'res.partner', 'search_read',",
+    "            [[['customer_rank', '>', 0]]],",
+    "            {'fields': ['name', 'email'], 'limit': 5},",
+    "        ],",
+    "    },",
+    "    'id': 2,",
+    "}",
+    "resp = requests.post(f'{URL}/jsonrpc', json=payload, timeout=30)",
+    "body = resp.json()",
+    "if body.get('error'):",
+    "    raise RuntimeError(body['error']['data']['message'])",
+    "partners = body['result']"
+  ],
+  "notes": [
+    { "lines": "2-3", "title": "Fixed envelope", "text": "Always jsonrpc 2.0 and method call; the real Odoo method sits inside params." },
+    { "lines": "5-6", "title": "Service and method", "text": "common for authenticate and version, object for execute_kw." },
+    { "lines": "7-12", "title": "Same args as XML-RPC", "text": "db, uid, key, model, method, positional args, keyword args, in that order." },
+    { "lines": "14", "title": "Request id", "text": "Echoed back in the response, so you can match answers to requests." },
+    { "lines": "16", "title": "One endpoint", "text": "Every call is a POST to /jsonrpc with a timeout." },
+    { "lines": "18-19", "title": "Errors live in the body", "text": "HTTP status is 200 even for an AccessError; always check the error key." },
+    { "lines": "20", "title": "The result", "text": "The method's return value, here a list of partner dicts." }
+  ]
+}
+\`\`\`
 
 \`\`\`python
 """Odoo JSON-RPC training script - TEST DATABASE ONLY."""
@@ -1187,6 +1755,23 @@ Content-Type: application/json
 {"ids": [...], "context": {...}, ...named arguments of the method...}
 \`\`\`
 
+\`\`\`visual-sequence
+{
+  "title": "A JSON-2 call (Odoo 19)",
+  "caption": "Illustrative; verify paths and headers in the External API documentation for your version.",
+  "actors": ["Middleware", "Odoo /json/2", "ORM and security"],
+  "messages": [
+    { "from": "Middleware", "to": "Odoo /json/2", "label": "POST /json/2/res.partner/search_read", "note": "Headers: Authorization bearer API key, X-Odoo-Database. Body: named arguments domain, fields, limit.", "kind": "request" },
+    { "from": "Odoo /json/2", "to": "Odoo /json/2", "label": "Identify the user from the API key", "note": "No separate authenticate call and no uid in the body.", "kind": "self" },
+    { "from": "Odoo /json/2", "to": "ORM and security", "label": "search_read as that user", "kind": "request" },
+    { "from": "ORM and security", "to": "Odoo /json/2", "label": "Records allowed by rights and rules", "kind": "response" },
+    { "from": "Odoo /json/2", "to": "Middleware", "label": "200 OK + JSON list of records", "kind": "response" },
+    { "from": "Middleware", "to": "Odoo /json/2", "label": "Same call with a revoked key", "kind": "request" },
+    { "from": "Odoo /json/2", "to": "Middleware", "label": "401 + JSON error body", "note": "Unlike legacy JSON-RPC, errors use real HTTP status codes.", "kind": "response" }
+  ]
+}
+\`\`\`
+
 An illustrative call (verify exact paths, headers and parameter names in the External API documentation for your version):
 
 \`\`\`python
@@ -1214,13 +1799,23 @@ print(resp.json())
 
 Notable characteristics (verify for your version):
 
-| Aspect | XML-RPC / JSON-RPC | JSON-2 |
-|--------|-------------------|--------|
-| Endpoint | \`/xmlrpc/2/...\`, \`/jsonrpc\` | \`/json/2/<model>/<method>\` |
-| Authentication | db + uid + key in every call | API key as bearer token in a header |
-| Errors | XML-RPC Fault / JSON body with \`error\` | HTTP status codes with JSON error body |
-| Arguments | Positional lists | Named arguments |
-| Status | Deprecated in 19, removal planned in a future version | Recommended going forward |
+\`\`\`visual-compare
+{
+  "title": "XML-RPC vs JSON-RPC vs JSON-2",
+  "columns": ["XML-RPC", "JSON-RPC", "JSON-2 (Odoo 19)"],
+  "rows": [
+    { "label": "Endpoint", "values": ["/xmlrpc/2/common and /xmlrpc/2/object", "/jsonrpc", "/json/2/<model>/<method>"] },
+    { "label": "Body format", "values": ["XML", "JSON-RPC 2.0 envelope", "Plain JSON with named arguments"] },
+    { "label": "Authentication", "values": ["authenticate, then db + uid + key in every call", "authenticate, then db + uid + key in every call", "API key as bearer token, database in a header"] },
+    { "label": "Errors", "values": ["xmlrpc Fault", "HTTP 200 with an error key", "HTTP status code with JSON error body"] },
+    { "label": "Arguments", "values": ["Positional lists", "Positional lists", "Named arguments"] },
+    { "label": "Python standard library only", "values": [true, false, false] },
+    { "label": "Status in Odoo 19", "values": ["Deprecated, removal planned", "Deprecated, removal planned", "Recommended going forward"] }
+  ],
+  "highlight": 2,
+  "caption": "Same models, methods, domains and access rights in all three; only the transport changes."
+}
+\`\`\`
 
 ## Choosing for a project
 
@@ -1256,6 +1851,15 @@ Business logic (e.g. "sync products") calls \`OdooClient\` only; the transport c
 ## Calling Odoo from a browser? No.
 
 A web page must never call Odoo's external API directly with an API key - the key would be visible to every visitor. Browser code calls **your backend** (or middleware), which holds the key in its environment and calls Odoo server-to-server. CORS restrictions will usually block direct calls anyway, but security is the real reason.
+
+\`\`\`visual-check
+{
+  "question": "A client on Odoo 17 plans to upgrade to Odoo 19 next year. You build a new order integration now. What is the best approach?",
+  "options": ["Use JSON-RPC everywhere in the business logic and rewrite later", "Wait for the upgrade before building anything", "Use XML-RPC or JSON-RPC behind an OdooClient adapter and budget a JSON-2 transport in the upgrade", "Call Odoo directly from the shop's browser code"],
+  "correct": 2,
+  "explanation": "The adapter isolates the transport, so the upgrade changes one class. The legacy endpoints are deprecated in 19, so the migration must be planned and budgeted."
+}
+\`\`\`
 
 ## Exercise steps
 
@@ -1320,6 +1924,21 @@ Sunrise's IT roadmap lists five integrations: card payments, an existing web sho
 
 Go down the ladder only when the step above does not meet the requirement.
 
+\`\`\`visual-order
+{
+  "title": "The decision ladder",
+  "prompt": "Order the options from the first one a consultant should check to the last resort.",
+  "items": [
+    "Standard Odoo feature or official connector",
+    "Configuration of a generic tool (automation rules, import templates)",
+    "Third-party app from the Odoo Apps store or OCA",
+    "Middleware or iPaaS",
+    "Custom development"
+  ],
+  "explanation": "Each step down adds cost, upgrade risk and support effort, so only go lower when the step above cannot meet the requirement."
+}
+\`\`\`
+
 ## Payment gateways
 
 | Aspect | Notes |
@@ -1370,6 +1989,24 @@ Banking integrations are high risk: always include a reconciliation process and 
 
 3PL key questions: who validates the Odoo delivery (integration user after confirmation from the 3PL)? How are partial shipments and backorders handled? How often are stock levels reconciled?
 
+\`\`\`visual-match
+{
+  "title": "Integration pattern by example",
+  "prompt": "Match each business need to the pattern that usually fits it.",
+  "leftLabel": "Business need",
+  "rightLabel": "Pattern",
+  "pairs": [
+    { "left": "Card payment confirmed on the website", "right": "Provider notification (webhook) handled by a standard payment app" },
+    { "left": "Daily bank statement lines", "right": "Bank synchronisation (Enterprise) or statement file import" },
+    { "left": "Product catalogue to an external shop", "right": "Scheduled delta sync from Odoo, the system of record" },
+    { "left": "Shipment confirmations from a 3PL", "right": "Webhook or file into middleware, then validate the Odoo delivery" },
+    { "left": "Stock levels at the 3PL vs Odoo", "right": "Daily snapshot and reconciliation report" },
+    { "left": "Won deals in an external CRM", "right": "Event-driven creation of quotations in Odoo" }
+  ],
+  "explanation": "Fast, event-like data (payments, shipments) is pushed; large reference data (catalogue) is synced on a schedule; every flow ends with reconciliation."
+}
+\`\`\`
+
 ## Integration requirements checklist
 
 | Topic | Question |
@@ -1385,7 +2022,59 @@ Banking integrations are high risk: always include a reconciliation process and 
 | Edition | Does the standard connector require Enterprise? |
 | Reconciliation | How do we prove both systems agree? |
 
+\`\`\`visual-roleplay
+{
+  "title": "Real-time e-commerce and 3PL integration",
+  "setting": "Scoping workshop at Sunrise Office Supplies (fictional). The e-commerce manager wants the external web shop and the new 3PL connected to Odoo 17.",
+  "client": "E-commerce manager",
+  "rounds": [
+    {
+      "says": "We need everything real time between the shop, the 3PL and Odoo. Can you just connect them?",
+      "options": [
+        { "text": "Yes, we will sync everything every minute in both directions.", "quality": "poor", "feedback": "Promises a design before knowing the data, volumes or ownership; every-minute bi-directional sync of everything is costly and fragile." },
+        { "text": "Let's list each data flow first: orders, stock, prices, shipments. For each, what delay is acceptable to the business?", "quality": "best", "feedback": "Real time is a requirement per flow, not per project. Orders may need minutes, the catalogue can sync nightly." },
+        { "text": "Real time is impossible with Odoo.", "quality": "poor", "feedback": "Wrong and unhelpful: webhooks and queues give near real time where the business needs it." }
+      ]
+    },
+    {
+      "says": "Black Friday is our big day. Is volume a problem?",
+      "options": [
+        { "text": "How many orders per day and in the peak hour, and how many lines per order? Does the 3PL publish API rate limits?", "quality": "best", "feedback": "Peak volume and rate limits drive the choice of queue, batching and retry policy." },
+        { "text": "Odoo can handle anything.", "quality": "poor", "feedback": "An unverified promise. Peak load, worker capacity and the partner's limits must be measured and tested." },
+        { "text": "We will test it after go-live.", "quality": "ok", "feedback": "Testing matters, but a load test belongs before go-live, based on figures collected now." }
+      ]
+    },
+    {
+      "says": "If the 3PL rejects a delivery or Odoo is down, what happens to the order?",
+      "options": [
+        { "text": "Messages go to a queue, transient errors are retried with backoff, permanent ones land in a dead-letter list with an alert to a named owner.", "quality": "best", "feedback": "Nothing is lost, duplicates are prevented by the order reference, and someone is responsible for fixing rejects." },
+        { "text": "The shop customer will see an error and can try again.", "quality": "poor", "feedback": "Pushes integration failures onto customers and invites duplicate orders." },
+        { "text": "The developer will check the logs when someone complains.", "quality": "poor", "feedback": "No monitoring and no owner means silent failures discovered weeks later by finance." }
+      ]
+    },
+    {
+      "says": "Who owns stock and prices? Both teams edit them today.",
+      "options": [
+        { "text": "Let's agree one system of record per field: Odoo for prices and stock valuation, the 3PL for physical counts, reconciled daily.", "quality": "best", "feedback": "Clear ownership avoids conflicting updates; the daily reconciliation proves both systems agree." },
+        { "text": "Last write wins.", "quality": "poor", "feedback": "Rarely acceptable for financial data: whichever system writes last silently overwrites the other." },
+        { "text": "We can decide that during testing.", "quality": "ok", "feedback": "Better than nothing, but ownership shapes the mapping and the direction of every flow, so decide it now." }
+      ]
+    }
+  ],
+  "wrapup": "Scope per flow, measure volumes, design for failure and agree ownership before promising real time."
+}
+\`\`\`
+
 > **Consultant tip:** Write "verify" next to every connector claim in your proposal until you have tested it in the client's version and edition. Sales promises about connectors are a frequent source of scope disputes.
+
+\`\`\`visual-check
+{
+  "question": "A client on Odoo Community asks for automatic bank statement synchronisation. What do you answer?",
+  "options": ["It is standard in every edition", "Bank synchronisation through aggregation providers is an Enterprise feature; on Community, plan statement file imports or a third-party solution, and verify bank coverage", "Write a script that logs in to the bank website", "Banks cannot be integrated with Odoo"],
+  "correct": 1,
+  "explanation": "Edition and country coverage decide the option. Screen-scraping a bank website is insecure and breaks the bank's terms."
+}
+\`\`\`
 
 ## Exercise
 
@@ -1439,9 +2128,45 @@ Middleware options range from iPaaS products (e.g. Make, Zapier, n8n, Workato, B
 | Delta (incremental) | Fetch only records changed since the last run | Large datasets |
 | Full refresh | Fetch everything | Small datasets, periodic reconciliation |
 
+\`\`\`visual-decision
+{
+  "title": "Synchronous call or asynchronous processing?",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Must the caller have the answer before it can continue (for example a price or stock check during checkout)?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No, it only needs to know it was received", "next": "q3" } ] },
+    "q2": { "question": "Does the target answer reliably in well under a second, even at peak?", "options": [ { "label": "Yes", "next": "r_sync" }, { "label": "No or unknown", "next": "r_cache" } ] },
+    "q3": { "question": "Is it a single event or a large set of changed records?", "options": [ { "label": "Single events (orders, payments)", "next": "r_queue" }, { "label": "Many records (catalogue, customers)", "next": "r_batch" } ] },
+    "r_sync": { "result": "Synchronous API call with a short timeout", "tone": "success", "detail": "Plan a fallback for timeouts so the shop does not hang." },
+    "r_cache": { "result": "Serve from a cached copy synced asynchronously", "tone": "warning", "detail": "For example publish stock levels to the shop every few minutes instead of calling Odoo during checkout." },
+    "r_queue": { "result": "Event-driven: enqueue and process with a worker", "tone": "info", "detail": "Acknowledge fast, retry transient failures, dead-letter permanent ones." },
+    "r_batch": { "result": "Scheduled delta sync with a watermark", "tone": "info", "detail": "Paginate, upsert on the target, and save the watermark only after success." }
+  }
+}
+\`\`\`
+
 ### Delta sync with a watermark
 
 Odoo records have \`write_date\` (last modification, UTC). Store the timestamp of the last successful run (the **watermark**) and fetch changes since then:
+
+\`\`\`visual-sequence
+{
+  "title": "Scheduled sync: poll, transform, upsert",
+  "caption": "Nightly customer sync from Odoo to a fictional CRM at crm.example.com.",
+  "actors": ["Scheduler", "Sync job", "Odoo", "CRM"],
+  "messages": [
+    { "from": "Scheduler", "to": "Sync job", "label": "02:00 start (only if no run is active)", "kind": "async" },
+    { "from": "Sync job", "to": "Sync job", "label": "Note start time, load watermark", "kind": "self" },
+    { "from": "Sync job", "to": "Odoo", "label": "search_read res.partner, write_date > watermark, limit 200, offset 0", "kind": "request" },
+    { "from": "Odoo", "to": "Sync job", "label": "200 partners, ordered by write_date, id", "kind": "response" },
+    { "from": "Sync job", "to": "Sync job", "label": "Transform: map fields, lowercase emails", "kind": "self" },
+    { "from": "Sync job", "to": "CRM", "label": "PUT /contacts/odoo-58 (upsert by Odoo id)", "note": "Upsert makes overlapping runs harmless.", "kind": "request" },
+    { "from": "CRM", "to": "Sync job", "label": "200 updated / 201 created", "kind": "response" },
+    { "from": "Sync job", "to": "Odoo", "label": "Next page, offset 200", "kind": "request" },
+    { "from": "Odoo", "to": "Sync job", "label": "Empty page: done", "kind": "response" },
+    { "from": "Sync job", "to": "Sync job", "label": "Save watermark = start time", "note": "Only after the whole run succeeded.", "kind": "self" }
+  ]
+}
+\`\`\`
 
 \`\`\`python
 import os
@@ -1504,6 +2229,15 @@ Design points:
 | Odoo scheduled action (\`ir.cron\`) calling an external API | Customization; keeps logic in Odoo but adds outbound credentials to Odoo's environment and load to Odoo workers |
 
 Prevent overlapping runs (a lock file, a database lock or the scheduler's concurrency setting); two simultaneous runs are a common source of duplicates.
+
+\`\`\`visual-check
+{
+  "question": "A delta sync saves the watermark as the time the run finished. A salesperson edits a customer while the run is in progress. What happens?",
+  "options": ["The change is picked up next run", "The change can be missed forever, because its write_date is older than the new watermark", "Odoo blocks the edit during the sync", "The CRM receives it twice"],
+  "correct": 1,
+  "explanation": "Use the run's start time as the new watermark: changes made during the run then have a later write_date and are fetched next time. Upserts make the overlap harmless."
+}
+\`\`\`
 
 ## Queues
 
@@ -1594,31 +2328,47 @@ On Black Friday, Sunrise's web shop sent 2,000 orders. Odoo restarted for 90 sec
 
 ## Exponential backoff with jitter
 
-\`\`\`python
-import logging
-import random
-import time
-import xmlrpc.client
-
-_logger = logging.getLogger("integration")
-
-TRANSIENT = (ConnectionError, TimeoutError, xmlrpc.client.ProtocolError, OSError)
-
-
-def with_retry(func, *args, max_attempts=5, base_delay=1.0, max_delay=60.0, **kwargs):
-    for attempt in range(1, max_attempts + 1):
-        try:
-            return func(*args, **kwargs)
-        except xmlrpc.client.Fault:
-            raise                                   # business/access error: never retry
-        except TRANSIENT as exc:
-            if attempt == max_attempts:
-                _logger.error("Giving up after %s attempts: %s", attempt, exc)
-                raise
-            delay = min(max_delay, base_delay * 2 ** (attempt - 1))
-            delay += random.uniform(0, delay / 2)   # jitter spreads retries
-            _logger.warning("Attempt %s failed (%s); retrying in %.1fs", attempt, exc, delay)
-            time.sleep(delay)
+\`\`\`visual-codewalk
+{
+  "title": "A retry wrapper with exponential backoff and jitter",
+  "language": "python",
+  "file": "retry.py",
+  "code": [
+    "import logging",
+    "import random",
+    "import time",
+    "import xmlrpc.client",
+    "",
+    "_logger = logging.getLogger('integration')",
+    "",
+    "TRANSIENT = (ConnectionError, TimeoutError, xmlrpc.client.ProtocolError, OSError)",
+    "",
+    "",
+    "def with_retry(func, *args, max_attempts=5, base_delay=1.0, max_delay=60.0, **kwargs):",
+    "    for attempt in range(1, max_attempts + 1):",
+    "        try:",
+    "            return func(*args, **kwargs)",
+    "        except xmlrpc.client.Fault:",
+    "            raise                                   # business/access error: never retry",
+    "        except TRANSIENT as exc:",
+    "            if attempt == max_attempts:",
+    "                _logger.error('Giving up after %s attempts: %s', attempt, exc)",
+    "                raise",
+    "            delay = min(max_delay, base_delay * 2 ** (attempt - 1))",
+    "            delay += random.uniform(0, delay / 2)   # jitter spreads retries",
+    "            _logger.warning('Attempt %s failed (%s); retrying in %.1fs', attempt, exc, delay)",
+    "            time.sleep(delay)"
+  ],
+  "notes": [
+    { "lines": "8", "title": "What counts as transient", "text": "Network and server-side transport problems that may succeed a moment later." },
+    { "lines": "11-12", "title": "Bounded attempts", "text": "A fixed maximum: after that the message goes to the dead-letter queue instead of looping forever." },
+    { "lines": "15-16", "title": "Never retry Odoo faults", "text": "Validation, access and authentication errors fail identically every time. Re-raise at once." },
+    { "lines": "18-20", "title": "Give up loudly", "text": "Log an error and re-raise on the last attempt so the caller can dead-letter and alert." },
+    { "lines": "21", "title": "Exponential delay", "text": "1, 2, 4, 8 seconds, capped at max_delay." },
+    { "lines": "22", "title": "Jitter", "text": "A random extra wait so thousands of clients do not all retry at the same second." },
+    { "lines": "23-24", "title": "Log, then wait", "text": "The warning records attempt number and delay, which support needs later." }
+  ]
+}
 \`\`\`
 
 | Attempt | Base delay (s) |
@@ -1638,6 +2388,24 @@ An operation is idempotent if repeating it does not change the result. \`create\
 ### 1. Idempotency keys (APIs that support them)
 
 Many payment and commerce APIs accept an \`Idempotency-Key\` header: the server remembers the key and returns the original result for repeats. Generate one key per business operation (e.g. per order), not per attempt.
+
+\`\`\`visual-sequence
+{
+  "title": "Retry with backoff and an idempotency key",
+  "caption": "Fictional payment API at pay.example.com; the timeout hides a request that actually succeeded.",
+  "actors": ["Middleware", "Payment API", "Key store"],
+  "messages": [
+    { "from": "Middleware", "to": "Payment API", "label": "POST /refunds, Idempotency-Key: rf-WEB-10045", "note": "One key per business operation, reused on every attempt.", "kind": "request" },
+    { "from": "Payment API", "to": "Key store", "label": "Save key with result: refund re_881 created", "kind": "request" },
+    { "from": "Payment API", "to": "Middleware", "label": "Response lost: client timeout after 30 s", "kind": "response" },
+    { "from": "Middleware", "to": "Middleware", "label": "Transient error: wait 1 s + jitter", "kind": "self" },
+    { "from": "Middleware", "to": "Payment API", "label": "Retry POST /refunds, same Idempotency-Key", "kind": "request" },
+    { "from": "Payment API", "to": "Key store", "label": "Look up rf-WEB-10045", "kind": "request" },
+    { "from": "Key store", "to": "Payment API", "label": "Already done: re_881", "kind": "response" },
+    { "from": "Payment API", "to": "Middleware", "label": "200 OK, original result re_881", "note": "No second refund: the customer is refunded exactly once.", "kind": "response" }
+  ]
+}
+\`\`\`
 
 ### 2. Natural or external keys - upsert
 
@@ -1664,6 +2432,24 @@ Good matching keys:
 
 Search-then-create still has a race window if two workers process the same message simultaneously. Protect with a single worker per key, a queue that deduplicates, or a unique constraint (e.g. a custom field with an SQL unique constraint - customization).
 
+\`\`\`visual-sequence
+{
+  "title": "Dead-letter queue: when retries run out",
+  "actors": ["Queue", "Worker", "Odoo", "Dead-letter queue", "Support"],
+  "messages": [
+    { "from": "Queue", "to": "Worker", "label": "Order WEB-10047", "kind": "async" },
+    { "from": "Worker", "to": "Odoo", "label": "search client_order_ref = WEB-10047", "kind": "request" },
+    { "from": "Odoo", "to": "Worker", "label": "Not found", "kind": "response" },
+    { "from": "Worker", "to": "Odoo", "label": "create sale.order", "kind": "request" },
+    { "from": "Odoo", "to": "Worker", "label": "Fault: ValidationError, product SKU-999 not found", "kind": "response" },
+    { "from": "Worker", "to": "Worker", "label": "Permanent error: do not retry", "kind": "self" },
+    { "from": "Worker", "to": "Dead-letter queue", "label": "Park message + error class + correlation id", "kind": "async" },
+    { "from": "Dead-letter queue", "to": "Support", "label": "Alert: DLQ size greater than 0", "kind": "async" },
+    { "from": "Support", "to": "Queue", "label": "After the SKU is created: replay the message", "note": "The upsert by client_order_ref makes the replay safe.", "kind": "request" }
+  ]
+}
+\`\`\`
+
 ## Logging that helps support
 
 Log per message: correlation id, external reference, operation, result, duration, error class. Never log secrets or full personal data.
@@ -1676,6 +2462,36 @@ Log per message: correlation id, external reference, operation, result, duration
 \`\`\`
 
 Note line 3: the retry found the order already created by the timed-out first attempt - the upsert prevented a duplicate.
+
+\`\`\`visual-dodont
+{
+  "title": "Error handling",
+  "do": [
+    "Classify every error as transient, permanent data, permanent configuration or unknown outcome",
+    "Retry transient errors with exponential backoff, jitter and a maximum number of attempts",
+    "Honour Retry-After on 429 and 503",
+    "Upsert by a business key or use idempotency keys before retrying a create",
+    "Send permanent failures to a dead-letter queue with an alert to a named owner",
+    "Log correlation id, external reference, operation and error class"
+  ],
+  "dont": [
+    "Retry validation or access errors",
+    "Retry immediately in a tight loop",
+    "Create a new idempotency key for each attempt",
+    "Swallow exceptions and report success",
+    "Log tokens, passwords or full personal data"
+  ]
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A create sale.order call times out. You do not know whether Odoo created the order. What is the safe next step?",
+  "options": ["Call create again immediately", "Search by client_order_ref; create only if nothing is found", "Mark the order as failed and ignore it", "Delete all orders with that reference and recreate"],
+  "correct": 1,
+  "explanation": "An unknown outcome is the Black Friday trap: the first attempt may have succeeded. Searching by the external reference makes the retry idempotent."
+}
+\`\`\`
 
 ## Reconciliation reports
 
@@ -1745,6 +2561,24 @@ These six assignments combine everything in the course. Do them in order, as the
 | 5 | Handle duplicate requests and API errors | Idempotency, retries, logging |
 | 6 | Document an integration design | Specification, security, reconciliation |
 
+\`\`\`visual-order
+{
+  "title": "Building an integration, end to end",
+  "prompt": "Put the steps of delivering an integration in a sensible order.",
+  "items": [
+    "Agree scope, volumes, system of record and matching keys with the business",
+    "Write the design document and field mapping table",
+    "Create the dedicated integration user and store its key in the environment",
+    "Explore and validate the calls in Postman against the test database",
+    "Implement the script or middleware flow with upserts and retries",
+    "Run positive, negative and duplicate tests",
+    "Set up monitoring, alerts and the reconciliation report",
+    "Go live with an agreed support owner"
+  ],
+  "explanation": "Design and security come before code; tests and monitoring come before go-live. Skipping the early steps is how duplicate invoices and orphan integrations happen."
+}
+\`\`\`
+
 ## 1. Read customer data via authorized API
 
 Create a read-only integration user (Contacts/Sales read). Fetch customers changed in the last 30 days with name, email, country and \`write_date\`, paginated by 50, and write them to a CSV file.
@@ -1770,19 +2604,33 @@ Given an external JSON catalogue:
 
 Upsert into Odoo by \`default_code\`:
 
-\`\`\`python
-def upsert_product(call, item):
-    values = {
-        "name": item["title"],
-        "default_code": item["sku"],
-        "list_price": item["price"],
-        "barcode": item["barcode"],
-    }
-    ids = call("product.product", "search", [["default_code", "=", item["sku"]]], limit=1)
-    if ids:
-        call("product.product", "write", ids, values)
-        return ids[0], "updated"
-    return call("product.product", "create", values), "created"
+\`\`\`visual-codewalk
+{
+  "title": "Upsert a product by SKU",
+  "language": "python",
+  "file": "product_sync.py",
+  "code": [
+    "def upsert_product(call, item):",
+    "    values = {",
+    "        'name': item['title'],",
+    "        'default_code': item['sku'],",
+    "        'list_price': item['price'],",
+    "        'barcode': item['barcode'],",
+    "    }",
+    "    ids = call('product.product', 'search', [['default_code', '=', item['sku']]], limit=1)",
+    "    if ids:",
+    "        call('product.product', 'write', ids, values)",
+    "        return ids[0], 'updated'",
+    "    return call('product.product', 'create', values), 'created'"
+  ],
+  "notes": [
+    { "lines": "1", "title": "Reuse the call helper", "text": "call wraps execute_kw from the XML-RPC lesson, so credentials stay in one place." },
+    { "lines": "2-7", "title": "Map once", "text": "The external catalogue fields are mapped to Odoo fields before any lookup." },
+    { "lines": "8", "title": "Look up by the business key", "text": "default_code (internal reference) is the matching key; make sure it is unique in Odoo." },
+    { "lines": "9-11", "title": "Exists: update", "text": "write keeps the same record, so a second run changes nothing but the values." },
+    { "lines": "12", "title": "Missing: create", "text": "Only a SKU that is not in Odoo creates a product, which keeps the sync idempotent." }
+  ]
+}
 \`\`\`
 
 Extension: register an External ID for each product (\`ir.model.data\` with your own module prefix such as \`webshop_sync\`) and match on it instead; this requires additional rights for the integration user - discuss whether that is acceptable.
@@ -1800,6 +2648,15 @@ From a sample shop order JSON (external ref, customer email, lines with SKU and 
 Send the same order three times, and simulate two transient failures (raise \`TimeoutError\` in a wrapper). Use exponential backoff for transient errors and upsert by \`client_order_ref\`.
 
 *Acceptance:* exactly one order exists; logs show retries with increasing delays; validation errors are not retried; a reconciliation query shows zero duplicate references.
+
+\`\`\`visual-check
+{
+  "question": "In assignment 4, the second line of an order has an unknown SKU. What should your script do?",
+  "options": ["Create the order with the first line only", "Create the order and add a note about the missing line", "Raise a clear error before creating anything, so no partial order exists", "Create a new product with that SKU automatically"],
+  "correct": 2,
+  "explanation": "Validate all lookups before the create. A partial order looks correct in Odoo but bills the customer wrongly; auto-creating products bypasses the product owner."
+}
+\`\`\`
 
 ## 6. Document an integration design
 

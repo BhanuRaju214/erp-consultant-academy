@@ -36,10 +36,12 @@ export interface VisualAsset {
 
 import { odooInventoryScreens } from "./odoo-inventory";
 import { odooAppSimScreens } from "./odoo-app-sims";
+import { odooAppScreens } from "./odoo-app-screens";
 
 export const visualAssets: VisualAsset[] = [
   ...odooInventoryScreens,
   ...odooAppSimScreens,
+  ...odooAppScreens,
   // Add Napkin exports / screenshots here as they are produced, e.g.
   // {
   //   src: "/visuals/odoo-sales/master-data-and-transactions/np-07-sales-document-flow.svg",

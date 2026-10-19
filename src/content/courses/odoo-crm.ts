@@ -60,6 +60,22 @@ Throughout this course we use one fictional company:
 
 > **Consultant tip:** Leads and opportunities are the *same model* (crm.lead) with a different type. That is why "converting" a lead does not create a new record — it changes the type and assigns a stage. Mention this in interviews; it shows technical depth.
 
+\`\`\`visual-cards
+{
+  "label": "Key concepts",
+  "title": "The building blocks of Odoo CRM",
+  "columns": 3,
+  "cards": [
+    { "icon": "user", "title": "Lead", "body": "Unqualified enquiry from a web form, email or trade fair card. Exists only when the Leads setting is on.", "tone": "info" },
+    { "icon": "target", "title": "Opportunity", "body": "Qualified deal with expected revenue, probability and a stage. Same model (crm.lead) as a lead." },
+    { "icon": "layers", "title": "Stage", "body": "Kanban column of the pipeline, e.g. New, Qualified, Proposition, Won. Can be limited to one sales team." },
+    { "icon": "users", "title": "Sales team", "body": "Corporate Sales and Inside Sales at Northwind: each has its own pipeline, leader and optional email alias." },
+    { "icon": "calendar", "title": "Activity", "body": "Planned call, meeting, email or to-do with a due date; overdue activities show in red." },
+    { "icon": "x", "title": "Lost reason", "body": "Why a deal was lost (Too expensive, Chose competitor). Feeds the Lost analysis.", "tone": "warning" }
+  ]
+}
+\`\`\`
+
 ## 2. Business problems solved
 
 Before Odoo, Northwind tracked enquiries in personal spreadsheets and email inboxes. The management team listed these pain points:
@@ -79,6 +95,34 @@ Before Odoo, Northwind tracked enquiries in personal spreadsheets and email inbo
 | No follow-up | Activities with due dates, overdue highlighting, activity reports |
 | No learning from losses | Mandatory lost reasons and Lost analysis |
 | Duplicate effort | Duplicate detection and Merge |
+
+\`\`\`visual-beforeafter
+{
+  "title": "Northwind Office Supplies: before and after Odoo CRM",
+  "before": {
+    "title": "Spreadsheets and inboxes",
+    "points": [
+      "Web enquiries wait for days in a shared mailbox",
+      "Each salesperson keeps a private spreadsheet of deals",
+      "The sales manager cannot see which deals are close to closing",
+      "Finance has no revenue forecast to plan purchases",
+      "Nobody knows why deals are lost",
+      "Two salespeople call the same school"
+    ]
+  },
+  "after": {
+    "title": "One pipeline in Odoo CRM",
+    "points": [
+      "Email alias and website form create leads automatically for the right team",
+      "Kanban pipeline per team shows every open deal and its stage",
+      "Expected revenue x probability and closing dates feed the forecast",
+      "Activities with due dates enforce follow-up; overdue ones turn red",
+      "Lost reasons feed the Lost analysis",
+      "Similar Leads and Merge remove duplicate effort"
+    ]
+  }
+}
+\`\`\`
 
 ## 3. Process flow
 
@@ -152,6 +196,54 @@ Key points about the flow:
 | IAP credits | Lead enrichment and lead generation | Optional, paid credits |
 
 > **Consultant tip:** In discovery workshops always ask "Where do your enquiries come from today?" The answer decides whether you need the Leads setting, email aliases, the website form or lead generation.
+
+\`\`\`visual-hub
+{
+  "title": "Odoo CRM and its neighbours",
+  "caption": "Contacts, Discuss and Calendar come with CRM; the other apps are optional.",
+  "center": { "label": "CRM pipeline (crm.lead)", "icon": "target" },
+  "nodes": [
+    { "label": "Contacts", "icon": "users", "detail": "Customers (res.partner) linked to leads and opportunities. Installed automatically." },
+    { "label": "Discuss / Mail", "icon": "mail", "detail": "Chatter, email gateway, email aliases and activities." },
+    { "label": "Calendar", "icon": "calendar", "detail": "Meetings scheduled from the opportunity." },
+    { "label": "Sales", "icon": "cart", "detail": "New Quotation button; confirmed orders count towards the won opportunity." },
+    { "label": "Website forms", "icon": "globe", "detail": "Contact Us form creates leads for a sales team." },
+    { "label": "Marketing apps", "icon": "rocket", "detail": "Email Marketing campaigns as lead sources; Marketing Automation (Enterprise) for nurturing." },
+    { "label": "IAP credits", "icon": "coins", "detail": "Lead enrichment and lead generation; paid credits." }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-order
+{
+  "title": "Lead to order at Northwind",
+  "prompt": "Put the CRM steps in the order they happen when the Leads setting is on.",
+  "items": [
+    "Enquiry arrives by web form or the team email alias",
+    "Lead is created and assigned to Inside Sales",
+    "Inside Sales qualifies it and clicks Convert to Opportunity",
+    "Opportunity moves through New, Qualified and Proposition",
+    "Salesperson clicks New Quotation (Sales app)",
+    "Customer accepts; the quotation is confirmed as a sales order",
+    "Opportunity is marked Won"
+  ],
+  "explanation": "Qualification happens before the pipeline; the quotation is created from the opportunity so it stays linked, and Won closes the deal. A declined deal would instead be marked Lost with a reason."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Northwind's finance team asks which journal entry CRM posts when an opportunity is marked Won. What is the correct answer?",
+  "options": [
+    "A receivable entry for the expected revenue",
+    "A deferred revenue entry until the invoice is posted",
+    "None: CRM posts no accounting entries; entries start with the invoice in Accounting",
+    "A stock reservation entry in Inventory"
+  ],
+  "correct": 2,
+  "explanation": "Expected revenue is only a forecast. CRM organises selling effort; accounting entries start when the customer invoice is posted, and stock moves start with the delivery."
+}
+\`\`\`
 
 ## Key takeaways
 
@@ -271,6 +363,41 @@ A stage can be limited to one sales team, can be **folded** in the kanban, and c
 
 **CRM ▸ Configuration ▸ Tags**: *Education*, *Corporate*, *Co-working*, *Furniture*, *Consumables*. Tags drive filtering and reporting.
 
+#### In Odoo 20: Lost reasons
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-crm/screens/crm-lost-reasons.webp",
+  "alt": "Odoo 20 lost reasons list: Too expensive, We don't have people/skills, Not enough stock.",
+  "title": "Lost reasons",
+  "path": "CRM ▸ Configuration ▸ Lost Reasons",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 50.3,
+      "y": 18.1,
+      "w": 95.6,
+      "h": 5,
+      "tag": "right",
+      "title": "A lost reason",
+      "text": "Offered as a tag when marking an opportunity lost; feeds the lost-by-reason report."
+    },
+    {
+      "x": 2.8,
+      "y": 7.8,
+      "w": 4.1,
+      "h": 4.3,
+      "tag": "bottom",
+      "title": "Add your own",
+      "text": "Agree the list with sales management: 5–8 clear reasons."
+    }
+  ],
+  "caption": "Real screen from an Odoo 20 training database with fictional Northwind data; amounts in ₹ with Indian GST."
+}
+\`\`\`
+
 ## Key takeaways
 
 - Gather teams, stages, lost reasons and lead sources before touching settings.
@@ -322,6 +449,118 @@ Scenario: Ms. Priya Nair from Greenfield International School fills the website 
 6. In the **Extra Info** tab note the **Source** (e.g. Website) and **Medium**.
 7. Save. Notice the **Probability** computed by predictive lead scoring.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Add a new opportunity from the pipeline",
+  "intro": "Contoso called: they want an annual paper contract worth about ₹2,50,000. Capture it in seconds with quick create.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "The opportunity sits in the **New** column with its expected revenue, ready to be worked. Quick create is the fastest way to capture a sales signal while you are still on the phone.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-crm/sims/cfg-crm-opportunity-01.webp",
+      "alt": "CRM pipeline kanban with the New button.",
+      "path": "CRM ▸ Sales ▸ My Pipeline",
+      "task": "**Add an opportunity** from the pipeline.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "A quick-create card opens at the top of the first column."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/cfg-crm-opportunity-02.webp",
+      "alt": "Quick-create card with the Organization/Contact dropdown showing Contoso Ltd.",
+      "path": "CRM ▸ Pipeline ▸ Quick create",
+      "task": "**Pick the customer** Contoso Ltd.",
+      "target": {
+        "x": 4.45,
+        "y": 24.85,
+        "w": 17.4,
+        "h": 3.5,
+        "label": "Contoso Ltd"
+      },
+      "explain": "Odoo proposes an opportunity name from the customer; you can overwrite it."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/cfg-crm-opportunity-03.webp",
+      "alt": "Quick-create card with the opportunity name field.",
+      "path": "CRM ▸ Pipeline ▸ Quick create",
+      "task": "Name it **Contoso annual paper contract**.",
+      "target": {
+        "x": 4.15,
+        "y": 25.25,
+        "w": 18.1,
+        "h": 3.2,
+        "label": "Opportunity"
+      },
+      "input": {
+        "label": "Opportunity name",
+        "answer": "Contoso annual paper contract",
+        "placeholder": "what is being sold"
+      },
+      "explain": "A clear name (customer + what) makes the pipeline readable at a glance."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/cfg-crm-opportunity-04.webp",
+      "alt": "Quick-create card with the expected revenue field.",
+      "path": "CRM ▸ Pipeline ▸ Quick create",
+      "task": "Expected revenue is about **250000**. Enter it.",
+      "target": {
+        "x": 4.15,
+        "y": 35.85,
+        "w": 14.5,
+        "h": 3.2,
+        "label": "Expected revenue"
+      },
+      "input": {
+        "label": "Expected revenue",
+        "answer": "250000",
+        "placeholder": "₹"
+      },
+      "explain": "Revenue × probability feeds the forecast from day one."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/cfg-crm-opportunity-05.webp",
+      "alt": "Filled quick-create card with the Add button.",
+      "path": "CRM ▸ Pipeline ▸ Quick create",
+      "task": "**Add the card** to the pipeline.",
+      "target": {
+        "x": 1.9500000000000002,
+        "y": 39.45,
+        "w": 3.9,
+        "h": 4.2,
+        "label": "Add"
+      },
+      "traps": [
+        {
+          "x": 5.85,
+          "y": 39.45,
+          "w": 3.7,
+          "h": 4.2,
+          "feedback": "**Edit** opens the full form. Fine for more detail, but quick capture only needs Add."
+        }
+      ],
+      "explain": "The card is created in the **New** stage."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/cfg-crm-opportunity-06.webp",
+      "alt": "Pipeline with the new Contoso annual paper contract card in the New column.",
+      "path": "CRM ▸ Sales ▸ My Pipeline",
+      "task": "The opportunity is in the pipeline.",
+      "explain": "Next: schedule an activity on the card so it never goes cold."
+    }
+  ]
+}
+\`\`\`
+
 ### Walkthrough B — Qualify and convert to an opportunity
 
 1. Open the lead and log a call in the chatter (*Log note*) with the outcome: budget approx. INR 8 lakh, decision in 6 weeks.
@@ -341,6 +580,99 @@ Greenfield also emailed sales@ — a second lead was created.
 3. Click **Actions ▸ Merge**.
 4. Review the result: the oldest/most advanced record is generally kept, and chatter history is combined (verify which record is kept in your training instance).
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Merge duplicate opportunities",
+  "intro": "Harbour Hotels phoned **and** filled the website form: two opportunities for the same need.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "One opportunity remains with the combined history; the duplicate is gone. Pipeline value is no longer counted twice.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-crm/sims/crm-merge-01.webp",
+      "alt": "Opportunity list filtered on Harbour showing two duplicates.",
+      "path": "CRM ▸ Pipeline (list)",
+      "task": "**Select the first** Harbour Hotels opportunity.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 17.45,
+        "w": 1.5,
+        "h": 2.1,
+        "label": "the first checkbox"
+      },
+      "explain": "One selected."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-merge-02.webp",
+      "alt": "Opportunity list with one row selected.",
+      "path": "CRM ▸ Pipeline (list)",
+      "task": "**Select the second** one too.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 21.95,
+        "w": 1.5,
+        "h": 2.1,
+        "label": "the second checkbox"
+      },
+      "explain": "Two selected: the action bar appears."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-merge-03.webp",
+      "alt": "Two selected opportunities with the Actions menu.",
+      "path": "CRM ▸ Pipeline (list)",
+      "task": "Merge is in the **Actions** menu. Open it.",
+      "target": {
+        "x": 58.05,
+        "y": 5.95,
+        "w": 6.6,
+        "h": 4.2,
+        "label": "Actions"
+      },
+      "explain": "The menu shows actions for the selected records."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-merge-04.webp",
+      "alt": "Actions menu with Merge.",
+      "path": "CRM ▸ Actions",
+      "task": "**Choose Merge.**",
+      "target": {
+        "x": 58.35,
+        "y": 33.55,
+        "w": 15.1,
+        "h": 3.5,
+        "label": "Merge"
+      },
+      "explain": "The merge dialog shows both records and the one that will be kept."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-merge-05.webp",
+      "alt": "Merge dialog listing both Harbour Hotels opportunities.",
+      "path": "Merge",
+      "task": "**Merge them.**",
+      "target": {
+        "x": 16.85,
+        "y": 67.95,
+        "w": 4.9,
+        "h": 4.2,
+        "label": "Merge"
+      },
+      "explain": "Odoo keeps the most advanced record and adds the other's details and chatter to it."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-merge-06.webp",
+      "alt": "The merged Harbour Hotels opportunity.",
+      "path": "CRM ▸ Opportunity",
+      "task": "One opportunity remains.",
+      "explain": "Check the chatter: the merge is logged with both histories."
+    }
+  ]
+}
+\`\`\`
+
 ### Walkthrough D — Work the pipeline
 
 1. Go to **CRM ▸ Sales ▸ My Pipeline**.
@@ -348,6 +680,113 @@ Greenfield also emailed sales@ — a second lead was created.
 3. Schedule an activity: **Meeting**, due next Tuesday, *Product demo at school*.
 4. After the meeting drag the card from **New** to **Qualified**.
 5. Use the star (priority) widget to mark it as high priority.
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Prioritise an opportunity and schedule the next step",
+  "intro": "The Contoso paper contract is hot. Star it and book the product demo so it never goes cold.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "The card shows the stars and a planned activity: the salesperson sees the demo in their activities and the opportunity is easy to spot.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-crm/sims/crm-activity-01.webp",
+      "alt": "Pipeline with the Contoso annual paper contract card.",
+      "path": "CRM ▸ Pipeline",
+      "task": "**Open** *Contoso annual paper contract*.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 32.95,
+        "w": 22.4,
+        "h": 13.4,
+        "label": "the Contoso card"
+      },
+      "explain": "The opportunity opens."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-activity-02.webp",
+      "alt": "Opportunity form with the priority stars.",
+      "path": "CRM ▸ Opportunity",
+      "task": "Mark it **high priority**: click the **second** star.",
+      "target": {
+        "x": 58.25,
+        "y": 39.85,
+        "w": 1.7,
+        "h": 2.4,
+        "label": "the second star"
+      },
+      "explain": "Stars sort the pipeline and filter 'high priority' lists."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-activity-03.webp",
+      "alt": "Opportunity with the Activity button in the chatter.",
+      "path": "CRM ▸ Opportunity ▸ Chatter",
+      "task": "**Schedule an activity** for the demo.",
+      "target": {
+        "x": 77.35,
+        "y": 11.75,
+        "w": 5.3,
+        "h": 4.2,
+        "label": "Activity"
+      },
+      "traps": [
+        {
+          "x": 71.55,
+          "y": 11.75,
+          "w": 5.9,
+          "h": 4.2,
+          "feedback": "A log note records what happened. You need a planned next step: an activity."
+        }
+      ],
+      "explain": "The schedule-activity dialog opens."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-activity-04.webp",
+      "alt": "Schedule Activity dialog with the summary field.",
+      "path": "Schedule Activity",
+      "task": "Summary: **Product demo**.",
+      "target": {
+        "x": 31.05,
+        "y": 38.05,
+        "w": 39.6,
+        "h": 3.2,
+        "label": "Summary"
+      },
+      "input": {
+        "label": "Summary",
+        "answer": "Product demo",
+        "placeholder": "what will happen"
+      },
+      "explain": "The type, due date and assignee default from the activity type."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-activity-05.webp",
+      "alt": "Schedule Activity dialog with the Schedule button.",
+      "path": "Schedule Activity",
+      "task": "**Schedule it.**",
+      "target": {
+        "x": 29.35,
+        "y": 67.95,
+        "w": 4.1,
+        "h": 4.2,
+        "label": "Schedule"
+      },
+      "explain": "The activity is planned on the opportunity."
+    },
+    {
+      "src": "/visuals/odoo-crm/sims/crm-activity-06.webp",
+      "alt": "Opportunity with the planned activity in the chatter.",
+      "path": "CRM ▸ Opportunity",
+      "task": "The next step is planned.",
+      "explain": "Activities appear in the clock menu and the pipeline card turns red when overdue."
+    }
+  ]
+}
+\`\`\`
 
 ### Walkthrough E — Quotation from opportunity (requires Sales)
 
@@ -679,6 +1118,50 @@ All reports offer **graph, pivot and list** views. Use the pivot to build "Expec
 | VoIP (Enterprise) | Call leads from the record |
 | Helpdesk / Field Service | Different apps but share contacts; some flows can create opportunities (verify per app) |
 
+#### In Odoo 20: Pipeline analysis
+
+\`\`\`visual-screen
+{
+  "src": "/visuals/odoo-crm/screens/crm-pipeline-analysis.webp",
+  "alt": "Odoo 20 CRM pipeline analysis report with the Measures menu, filters and view switcher.",
+  "title": "Pipeline analysis",
+  "path": "CRM ▸ Reporting ▸ Pipeline",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "callouts": [
+    {
+      "x": 49.5,
+      "y": 8.1,
+      "w": 31.8,
+      "h": 4.7,
+      "tag": "bottom",
+      "title": "Filters",
+      "text": "Narrow the analysis: my pipeline, a sales team, a period."
+    },
+    {
+      "x": 95,
+      "y": 8.1,
+      "w": 2.8,
+      "h": 3.6,
+      "tag": "top",
+      "title": "The chart",
+      "text": "Opportunities grouped by stage: where the pipeline gets stuck."
+    },
+    {
+      "x": 95,
+      "y": 8.1,
+      "w": 8.4,
+      "h": 4.7,
+      "tag": "bottom",
+      "title": "Views",
+      "text": "Switch to pivot for numbers, list for the records."
+    }
+  ],
+  "caption": "Real screen from an Odoo 20 training database with fictional Northwind data; amounts in ₹ with Indian GST."
+}
+\`\`\`
+
 ## Key takeaways
 
 - CRM automation = assignment rules, predictive scoring, activities, aliases and automation rules; approvals are not native.
@@ -716,6 +1199,71 @@ All reports offer **graph, pivot and list** views. Use the pivot to build "Expec
 | Forecast shows nothing | Expected closing dates empty | Make expected closing date part of the qualification checklist |
 
 > **Consultant tip:** When a user says "my data is gone", check three things in order: filters on the view, archived/lost records, and access rights. 90% of CRM "bugs" are one of these.
+
+\`\`\`visual-decision
+{
+  "title": "'My opportunity is gone' — triage",
+  "caption": "Follow the consultant tip: filters, then archived or lost records, then access rights.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Is a default filter (e.g. My Pipeline) active on the view?", "options": [ { "label": "Yes", "next": "r1" }, { "label": "No", "next": "q2" } ] },
+    "r1": { "result": "Remove the filter and search again", "tone": "success", "detail": "My Pipeline only shows records where the user is the salesperson. Most 'missing' records reappear here." },
+    "q2": { "question": "Does it appear with the Lost or Archived filter?", "options": [ { "label": "Yes", "next": "r2" }, { "label": "No", "next": "q3" } ] },
+    "r2": { "result": "It was marked lost (archived): Restore it if the deal is still alive", "tone": "info", "detail": "Lost opportunities are archived, so they disappear from the pipeline but are not deleted." },
+    "q3": { "question": "Is the user's Sales access level 'Own Documents Only'?", "options": [ { "label": "Yes", "next": "r3" }, { "label": "No", "next": "r4" } ] },
+    "r3": { "result": "Access rights hide colleagues' records", "tone": "warning", "detail": "Change to All Documents only if the business agrees; otherwise reassign the opportunity." },
+    "r4": { "result": "Check the chatter and audit log on a copy, or whether it was merged", "tone": "danger", "detail": "Merging keeps one record and removes the others; the surviving record's chatter shows the merge." }
+  }
+}
+\`\`\`
+
+\`\`\`visual-decision
+{
+  "title": "Emails to the team alias do not create leads",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Is an alias domain set in Settings ▸ General Settings?", "options": [ { "label": "No", "next": "r1" }, { "label": "Yes", "next": "q2" } ] },
+    "r1": { "result": "Configure the alias domain first", "tone": "warning", "detail": "Without it, the sales team alias has no full email address to receive mail." },
+    "q2": { "question": "Is incoming mail working (Odoo Online, or an incoming mail server / MX forwarding on-premise)?", "options": [ { "label": "No", "next": "r2" }, { "label": "Yes", "next": "q3" } ] },
+    "r2": { "result": "Fix the incoming mail server or DNS forwarding", "tone": "danger", "detail": "Odoo never receives the email, so nothing can be created." },
+    "q3": { "question": "Is the email alias set on the correct sales team?", "options": [ { "label": "No", "next": "r3" }, { "label": "Yes", "next": "r4" } ] },
+    "r3": { "result": "Set the alias on the sales team", "tone": "warning", "detail": "Each team alias creates leads or opportunities for that team." },
+    "r4": { "result": "Check the alias security (who may send) and the mail logs", "tone": "info", "detail": "An alias restricted to followers or authenticated partners rejects emails from new senders." }
+  }
+}
+\`\`\`
+
+\`\`\`visual-match
+{
+  "title": "CRM symptoms and root causes",
+  "prompt": "Match each symptom to its most likely root cause.",
+  "leftLabel": "Symptom",
+  "rightLabel": "Root cause",
+  "pairs": [
+    { "left": "No Leads menu in CRM", "right": "The Leads setting is disabled" },
+    { "left": "New Quotation button missing", "right": "Sales app not installed or user lacks Sales rights" },
+    { "left": "Probability does not change when the stage moves", "right": "Probability was manually overridden" },
+    { "left": "Enrichment does nothing", "right": "No IAP credits or a generic email domain such as gmail.com" },
+    { "left": "Forecast view is empty", "right": "Expected closing dates are not filled" },
+    { "left": "A stage appears in the wrong team's pipeline", "right": "The stage is not restricted to a sales team" }
+  ],
+  "explanation": "Almost every CRM 'bug' is a setting, an empty field, a filter or an access right. Check those before suspecting the software."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A Northwind salesperson says the probability on her opportunity stays at 60% whatever stage she moves it to. What is the most likely cause?",
+  "options": [
+    "Predictive lead scoring is not installed",
+    "The probability was typed in manually, which stops the automatic update",
+    "The stage is folded in the kanban",
+    "The opportunity has no customer"
+  ],
+  "correct": 1,
+  "explanation": "A manual probability overrides the automatic computation. Resetting it to automatic lets stage changes and lead scoring update it again."
+}
+\`\`\`
 
 ## 14. Practical assignments
 
@@ -759,6 +1307,57 @@ Import contacts first (companies then persons), then import opportunities with e
 
 **Q7. How do you get leads from a shared mailbox?**
 Configure an alias domain and incoming mail, then set an email alias on the sales team. Each incoming email creates a lead/opportunity for that team.
+
+\`\`\`visual-roleplay
+{
+  "title": "Hypercare call with Northwind's sales manager",
+  "setting": "Two weeks after go-live, Northwind Office Supplies' sales manager calls you with a list of CRM complaints.",
+  "client": "Sales manager",
+  "rounds": [
+    {
+      "says": "Leads from the website go to the wrong salesperson. School enquiries should go to Corporate Sales but Inside Sales gets them.",
+      "options": [
+        { "text": "Let me check which sales team the website form and the email alias point to, and the assignment rules (team and member domains) that decide who gets each lead.", "quality": "best", "feedback": "Assignment is configuration: the form or alias sets the team, and rule-based assignment uses domains per team and member. Check those before anything else." },
+        { "text": "I'll write a small module that routes leads by keyword.", "quality": "poor", "feedback": "Jumping to customisation before checking standard assignment rules adds cost and upgrade risk." },
+        { "text": "Ask the salespeople to reassign the leads manually each morning.", "quality": "ok", "feedback": "A workaround, not a fix. Fine for a day, but it brings back the delays CRM was meant to remove." }
+      ]
+    },
+    {
+      "says": "One of my reps says an opportunity worth 12 lakh has disappeared from Odoo.",
+      "options": [
+        { "text": "Odoo must have deleted it; I'll raise a ticket with Odoo support.", "quality": "poor", "feedback": "Lost and filtered records are not deleted. Escalating without checking wastes time and credibility." },
+        { "text": "Let's check the filters on her view, then the Lost and Archived filter, then her access rights.", "quality": "best", "feedback": "This is the standard triage order. Most 'missing' records are hidden by a filter, archived as lost or invisible because of Own Documents Only." },
+        { "text": "Let's restore last night's backup.", "quality": "poor", "feedback": "Restoring a backup loses a day of everyone's work for a record that is almost certainly still there." }
+      ]
+    },
+    {
+      "says": "The probability on our big deals never changes when we move them forward. Is lead scoring broken?",
+      "options": [
+        { "text": "Probably someone typed the probability manually. A manual value stops the automatic update; we can reset it to automatic.", "quality": "best", "feedback": "Correct root cause, and it teaches the team why the manual override behaves this way." },
+        { "text": "Lead scoring needs a year of data before it works.", "quality": "ok", "feedback": "History does affect the quality of scores, but it does not explain probabilities that never move at all." },
+        { "text": "Yes, I'll disable predictive lead scoring.", "quality": "poor", "feedback": "Turning off a feature hides the symptom and removes useful forecasting." }
+      ]
+    },
+    {
+      "says": "Finance says the forecast view is empty, but we have forty open opportunities.",
+      "options": [
+        { "text": "The forecast groups by expected closing date. If that field is empty the deals do not show. Let's make the closing date part of qualification.", "quality": "best", "feedback": "Fixes the data and the process, so the forecast stays reliable." },
+        { "text": "The forecast only works in Enterprise.", "quality": "poor", "feedback": "Wrong reason; the empty view is a data problem, not an edition problem." },
+        { "text": "I'll export the pipeline to Excel for finance every week.", "quality": "ok", "feedback": "Gives finance numbers short term, but the missing dates remain and the spreadsheet habit returns." }
+      ]
+    },
+    {
+      "says": "Can we make lost reasons mandatory? Reps just close deals without saying why.",
+      "options": [
+        { "text": "Sure, I'll change the code today.", "quality": "poor", "feedback": "Untracked code changes become scope creep and an untested customisation." },
+        { "text": "Strict enforcement is a gap. Options are process plus a weekly Lost analysis check, an automation rule, Studio on Enterprise or a small module. Let's log it in the fit-gap with the cost of each.", "quality": "best", "feedback": "Honest about standard versus customisation and gives the client a costed choice." },
+        { "text": "It is already mandatory in standard Odoo.", "quality": "poor", "feedback": "The Lost wizard proposes a reason but strict enforcement is not standard. Wrong facts damage trust." }
+      ]
+    }
+  ],
+  "wrapup": "Triage in order: settings, filters, archived records, access rights, data quality. Only then discuss customisation, and log it in the fit-gap."
+}
+\`\`\`
 
 ## Key takeaways
 

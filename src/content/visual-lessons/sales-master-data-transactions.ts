@@ -48,6 +48,114 @@ Customer and product records fill in the defaults on every order — get them ri
 
 > **Consultant tip:** Choosing the wrong product type is the most expensive master-data mistake. A consumable cannot be valued in stock; changing type after transactions exist is restricted or messy.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Create a customer with payment terms",
+  "intro": "New B2B customer **Harbour Hotels Pvt Ltd** pays within 30 days. Set it up once so every quotation and invoice inherits the terms.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "Harbour Hotels exists as a company with 30-day payment terms: new quotations and invoices for it pick the terms up automatically.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-sales/sims/cfg-sal-customer-01.webp",
+      "alt": "Customers list with the New button.",
+      "path": "Sales ▸ Orders ▸ Customers",
+      "task": "**Create a new customer.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty contact form opens."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/cfg-sal-customer-02.webp",
+      "alt": "New contact form with the Name (company or person) field.",
+      "path": "Sales ▸ Customers ▸ New",
+      "task": "Enter the name **Harbour Hotels Pvt Ltd**.",
+      "target": {
+        "x": 12.75,
+        "y": 14.55,
+        "w": 48.4,
+        "h": 5.3,
+        "label": "Name"
+      },
+      "input": {
+        "label": "Company name",
+        "answer": "Harbour Hotels Pvt Ltd",
+        "placeholder": "legal name"
+      },
+      "explain": "Use the legal name: it is printed on quotations and tax invoices. Odoo 20 has no separate Individual/Company switch on this form."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/cfg-sal-customer-03.webp",
+      "alt": "Contact form with the Sales & Purchase tab.",
+      "path": "Sales ▸ Customers ▸ New",
+      "task": "Payment terms are on the **Sales & Purchase** tab. Open it.",
+      "target": {
+        "x": 8.65,
+        "y": 54.95,
+        "w": 10.2,
+        "h": 4.8,
+        "label": "Sales & Purchase"
+      },
+      "explain": "This tab holds the salesperson, payment terms, pricelist and fiscal position."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/cfg-sal-customer-04.webp",
+      "alt": "Payment Terms dropdown showing 30 Days.",
+      "path": "Sales ▸ Customers ▸ Sales & Purchase",
+      "task": "The hotel pays in 30 days. **Pick 30 Days.**",
+      "target": {
+        "x": 12.55,
+        "y": 59.75,
+        "w": 18.1,
+        "h": 3.5,
+        "label": "30 Days"
+      },
+      "traps": [
+        {
+          "x": 12.55,
+          "y": 62.75,
+          "w": 18.1,
+          "h": 3.5,
+          "feedback": "That is an instalment plan. The agreement is simply 30 days."
+        }
+      ],
+      "explain": "Due dates on invoices to Harbour Hotels will be invoice date + 30 days."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/cfg-sal-customer-05.webp",
+      "alt": "Customer form with payment terms set and the save button.",
+      "path": "Sales ▸ Customers",
+      "task": "**Save the customer.**",
+      "target": {
+        "x": 10.15,
+        "y": 6.55,
+        "w": 2.4,
+        "h": 3.9,
+        "label": "Save"
+      },
+      "hint": "The cloud icon next to the breadcrumb saves the record.",
+      "explain": "Saved."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/cfg-sal-customer-06.webp",
+      "alt": "Saved customer Harbour Hotels Pvt Ltd.",
+      "path": "Sales ▸ Customers",
+      "task": "The customer is ready.",
+      "explain": "Add the GSTIN and addresses before the first tax invoice; GST treatment and place of supply depend on them."
+    }
+  ]
+}
+\`\`\`
+
 ## 8. Transactions — the document flow
 
 Select a step to see who acts and what Odoo creates.
@@ -421,6 +529,113 @@ Order: 20 Executive Chairs, **INR 4,20,000**. Terms: 50% advance.
     { "title": "Customer pays", "icon": "payment", "detail": "The advance is received." },
     { "title": "Delivery", "icon": "truck", "detail": "The chairs are delivered." },
     { "title": "Final regular invoice", "icon": "receipt", "odoo": "Create Invoice ▸ Regular invoice", "detail": "The down payment is **deducted automatically** as a negative line." }
+  ]
+}
+\`\`\`
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Invoice a 30% down payment",
+  "intro": "Harbour Hotels ordered 100 reams. The terms require a **30% advance** before delivery.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "A down-payment invoice for 30% is posted. When the final invoice is created, Odoo deducts this advance automatically.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-sales/sims/sal-downpayment-01.webp",
+      "alt": "Confirmed sales order for Harbour Hotels with Create Invoice.",
+      "path": "Sales ▸ Orders",
+      "task": "**Create the advance invoice.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 8.3,
+        "h": 4.2,
+        "label": "Create Invoice"
+      },
+      "explain": "The invoice dialog opens."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-downpayment-02.webp",
+      "alt": "Create invoice dialog with Regular invoice and down payment options.",
+      "path": "Create Invoice",
+      "task": "This is an advance. **Choose Down payment (percentage).**",
+      "target": {
+        "x": 26.85,
+        "y": 47.35,
+        "w": 13.1,
+        "h": 2.8,
+        "label": "Down payment (percentage)"
+      },
+      "traps": [
+        {
+          "x": 26.85,
+          "y": 44.45,
+          "w": 7.3,
+          "h": 2.8,
+          "feedback": "A regular invoice bills the full order now. The terms ask for an advance only."
+        }
+      ],
+      "explain": "A percentage field appears."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-downpayment-03.webp",
+      "alt": "Down payment percentage field.",
+      "path": "Create Invoice",
+      "task": "Enter **30** percent.",
+      "target": {
+        "x": 25.85,
+        "y": 52.45,
+        "w": 11.5,
+        "h": 3.2,
+        "label": "Down payment"
+      },
+      "input": {
+        "label": "Down payment %",
+        "answer": "30",
+        "placeholder": "%"
+      },
+      "explain": "30% of the order total."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-downpayment-04.webp",
+      "alt": "Dialog with 30% down payment and Create Draft.",
+      "path": "Create Invoice",
+      "task": "**Create the draft invoice.**",
+      "target": {
+        "x": 16.85,
+        "y": 61.05,
+        "w": 7.4,
+        "h": 4.2,
+        "label": "Create Draft"
+      },
+      "explain": "A draft invoice with one down-payment line opens."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-downpayment-05.webp",
+      "alt": "Draft down-payment invoice for Harbour Hotels.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "**Post the invoice.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.85,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Confirm"
+      },
+      "explain": "The advance is invoiced; the order line 'Down payment' is created on the SO."
+    },
+    {
+      "src": "/visuals/odoo-sales/sims/sal-downpayment-06.webp",
+      "alt": "Posted down-payment invoice.",
+      "path": "Accounting ▸ Customers ▸ Invoices",
+      "task": "The down-payment invoice is posted.",
+      "explain": "30% of ₹650 = ₹194.99 plus GST (₹204.75). The final invoice later deducts this down payment."
+    }
   ]
 }
 \`\`\`

@@ -72,6 +72,24 @@ As a consultant, your first job is to understand **why** this particular client 
 | Legacy replacement | "The old system is unsupported." | Modern, supported platform |
 | Investor / audit pressure | "The auditors want proper controls." | Segregation of duties, traceability |
 
+\`\`\`visual-match
+{
+  "title": "Hear the driver behind the symptom",
+  "prompt": "Match what the client says to the business driver behind it.",
+  "leftLabel": "Client says",
+  "rightLabel": "Driver",
+  "pairs": [
+    { "left": "We opened two new branches and nothing scales.", "right": "Growth" },
+    { "left": "I don't know our real margin per product.", "right": "Visibility" },
+    { "left": "Anyone can give any discount.", "right": "Control" },
+    { "left": "We type every order three times.", "right": "Efficiency" },
+    { "left": "Tax filing takes a week and has errors.", "right": "Compliance" },
+    { "left": "We promise dates we cannot keep.", "right": "Customer service" }
+  ],
+  "explanation": "Naming the driver tells you what success looks like and which processes to prioritise."
+}
+\`\`\`
+
 ## Tangible vs intangible benefits
 
 **Tangible benefits** can be measured in money or time:
@@ -88,6 +106,18 @@ As a consultant, your first job is to understand **why** this particular client 
 - Improved customer experience
 - Standardised processes that make new branches easier to open
 - Reduced dependency on "the one person who knows the spreadsheet"
+
+\`\`\`visual-cards
+{
+  "label": "Benefits",
+  "title": "Tangible vs intangible",
+  "columns": 2,
+  "cards": [
+    { "icon": "coins", "title": "Tangible: measured in money or time", "body": "Lower inventory, fewer data-entry hours, faster close, faster cash collection, fewer write-offs.", "tone": "success" },
+    { "icon": "lightbulb", "title": "Intangible: real but hard to quantify", "body": "Better decisions, happier customers, easier new branches, less dependency on one spreadsheet expert.", "tone": "info" }
+  ]
+}
+\`\`\`
 
 ## Triggers by industry
 
@@ -108,6 +138,23 @@ A business case connects drivers to measurable outcomes. A simple structure:
 4. **Costs** — licences, implementation, hardware/hosting, training, internal time.
 5. **Benefits** — tangible savings per year plus intangible benefits.
 6. **Risks** — and how they will be mitigated.
+
+\`\`\`visual-flow
+{
+  "title": "Business case structure",
+  "compact": true,
+  "steps": [ { "title": "Current situation" }, { "title": "SMART objectives" }, { "title": "Scope" }, { "title": "Costs" }, { "title": "Benefits" }, { "title": "Risks" } ]
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Which is a SMART objective for UrbanNest Interiors?",
+  "options": ["Automate everything", "Better project control", "See estimated vs actual cost for every project at any time, from go-live", "Use the latest ERP version"],
+  "correct": 2,
+  "explanation": "It is specific, measurable and time-bound, so it can become an acceptance criterion."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -242,6 +289,32 @@ Finance spends days at month-end matching stock values, sales totals and bank re
 | Weak controls | Unapproved discounts, bad debts, unexplained stock losses |
 
 Numbers make the business case convincing and give you a baseline to measure after go-live.
+
+\`\`\`visual-match
+{
+  "title": "Quantify the pain",
+  "prompt": "Match each problem to the way you measure it in discovery.",
+  "leftLabel": "Problem",
+  "rightLabel": "Measure",
+  "pairs": [
+    { "left": "Double entry", "right": "Minutes per transaction x volume x hourly cost" },
+    { "left": "Errors", "right": "Credit notes or returns caused by wrong data" },
+    { "left": "Delayed information", "right": "Stock-outs or overstock incidents per month" },
+    { "left": "Reconciliation", "right": "Days to close the books" },
+    { "left": "Weak controls", "right": "Unapproved discounts, bad debts, unexplained stock losses" }
+  ],
+  "explanation": "A number per problem justifies scope now and becomes the baseline to prove value after go-live."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Coastal Supplies keys each order twice, 9 extra minutes on 1,400 orders a month. Roughly how many hours a month is that?",
+  "options": ["About 21 hours", "About 210 hours", "About 2,100 hours", "About 90 hours"],
+  "correct": 1,
+  "explanation": "9 x 1,400 = 12,600 minutes, about 210 hours a month, more than one full-time person."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -404,6 +477,24 @@ ERPs provide operational reports (stock on hand, open orders), financial reports
 
 Mixing these up is a classic beginner mistake. A wrong configuration affects every future transaction; a wrong transaction affects only itself.
 
+\`\`\`visual-check
+{
+  "question": "At Vertex Build Contractors a salesperson changes a customer's payment terms from 30 to 45 days. What happens to invoices already posted?",
+  "options": ["They switch to 45 days", "They keep 30 days; only new quotations and invoices use 45 days", "They are cancelled", "Accounting must approve each one"],
+  "correct": 1,
+  "explanation": "Payment terms are master data. Changing master data affects future transactions, not posted history."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Which item is configuration rather than master data or a transaction?",
+  "options": ["A vendor bill", "A product", "A 15% sales tax rate", "A customer"],
+  "correct": 2,
+  "explanation": "Tax rates are set rarely during implementation and drive every future transaction. Products and customers are master data; a bill is a transaction."
+}
+\`\`\`
+
 ## Real-world scenario
 
 At **Vertex Build Contractors** the finance director's question has a simple answer: payment terms are stored on the **customer master record**, which both Sales and Accounting read. When the salesperson updates the terms, the next quotation and the next invoice both use them. However, invoices already posted keep their original terms — they are transactions, and changing master data does not rewrite history. That distinction (master data vs transaction) saves hours of confused support calls.
@@ -453,14 +544,21 @@ Covers the core operations of the whole business on one database — usually inc
 
 ## Comparison
 
-| Aspect | Accounting | CRM | Standalone app | ERP |
-|---|---|---|---|---|
-| Primary users | Finance | Sales, marketing | One team | All departments |
-| Data scope | Financial | Customers & pipeline | One domain | Whole business |
-| Inventory & warehouses | Basic or none | None | Only if specialised | Full |
-| Process coverage | Record-to-report | Lead-to-opportunity | One task | End-to-end (O2C, P2P, etc.) |
-| Integration need | High if business is complex | High | High | Lower (core is built-in) |
-| Implementation effort | Low | Low–medium | Low | Medium–high |
+\`\`\`visual-compare
+{
+  "title": "Four categories of business software",
+  "columns": ["Accounting", "CRM", "Standalone app", "ERP"],
+  "highlight": 3,
+  "rows": [
+    { "label": "Primary users", "values": ["Finance", "Sales, marketing", "One team", "All departments"] },
+    { "label": "Data scope", "values": ["Financial", "Customers & pipeline", "One domain", "Whole business"] },
+    { "label": "Inventory & warehouses", "values": ["Basic or none", "None", "Only if specialised", "Full"] },
+    { "label": "Process coverage", "values": ["Record-to-report", "Lead-to-opportunity", "One task", "End-to-end (O2C, P2P, etc.)"] },
+    { "label": "Integration need", "values": ["High if business is complex", "High", "High", "Lower (core is built-in)"] },
+    { "label": "Implementation effort", "values": ["Low", "Low–medium", "Low", "Medium–high"] }
+  ]
+}
+\`\`\`
 
 ## When is each the right answer?
 
@@ -468,6 +566,22 @@ Covers the core operations of the whole business on one database — usually inc
 - **CRM + accounting** — a sales-driven business with simple invoicing and no inventory.
 - **Best-of-breed stack** — specialised needs where one tool is far superior; requires integration investment and an owner for each connector.
 - **ERP** — when processes cross departments (order → stock → invoice), inventory matters, multiple sites exist, or management needs consolidated real-time reporting.
+
+\`\`\`visual-decision
+{
+  "title": "What does this client need?",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does the business hold stock or run processes that cross departments (order to stock to invoice)?", "options": [ { "label": "Yes", "next": "q3" }, { "label": "No", "next": "q2" } ] },
+    "q2": { "question": "Is it sales-driven, with a pipeline of leads and opportunities?", "options": [ { "label": "Yes", "next": "crm" }, { "label": "No", "next": "acc" } ] },
+    "q3": { "question": "Is one specialised need far better served by a dedicated tool, with low financial or stock impact?", "options": [ { "label": "Yes", "next": "mix" }, { "label": "No", "next": "erp" } ] },
+    "acc": { "result": "Accounting software", "tone": "info", "detail": "A small service business with few transactions and no stock." },
+    "crm": { "result": "CRM + accounting", "tone": "info", "detail": "Simple invoicing, no inventory, strong pipeline management." },
+    "erp": { "result": "ERP", "tone": "success", "detail": "Core operations on one database, like PeakForm Retail's POS, inventory, purchase and accounting." },
+    "mix": { "result": "ERP core + a standalone tool", "tone": "success", "detail": "Keep the specialised tool where integration is simple and low-risk, like PeakForm's email-marketing tool." }
+  }
+}
+\`\`\`
 
 A modular ERP such as Odoo blurs these lines: it includes CRM, POS, e-commerce and accounting apps on the same database, so a company can start with a few apps and add more later.
 
@@ -480,6 +594,31 @@ A modular ERP such as Odoo blurs these lines: it includes CRM, POS, e-commerce a
 | Error handling | What if the sync fails at 2 a.m.? Who notices? |
 | Upgrades | Each vendor updates on its own schedule and may break the connector |
 | Reporting | Data still needs consolidation for cross-functional reports |
+
+\`\`\`visual-match
+{
+  "title": "Which software does what?",
+  "prompt": "Match each category to the job it does best.",
+  "leftLabel": "Category",
+  "rightLabel": "Best at",
+  "pairs": [
+    { "left": "Accounting software", "right": "Invoices, payments, ledgers and tax returns" },
+    { "left": "CRM", "right": "Leads, opportunities and the sales pipeline" },
+    { "left": "Standalone app", "right": "One specialised job, such as email marketing" },
+    { "left": "ERP", "right": "End-to-end processes across departments on one database" }
+  ],
+  "explanation": "The question is never which tool is best, but where the boundaries are and what it costs to connect them."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "PeakForm Retail's owner asks: 'Can't I just connect what I have?' What is the main hidden cost of that approach?",
+  "options": ["There is none once the connector is built", "Ongoing syncing of duplicate master data, monitoring failed syncs and re-testing after each vendor upgrade", "Buying new hardware", "Retraining all users"],
+  "correct": 1,
+  "explanation": "Connectors have to be built, monitored and maintained for life, and master data still lives in several places."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -527,15 +666,21 @@ The company rents virtual servers from a cloud provider and installs the ERP its
 
 ## Comparison
 
-| Factor | SaaS | Managed platform | On-premises / IaaS |
-|---|---|---|---|
-| Up-front cost | Low | Low–medium | High (servers, setup) |
-| Ongoing cost | Subscription | Subscription + hosting | IT staff, hardware refresh |
-| Custom code | Limited or none | Allowed | Fully allowed |
-| Upgrades | Vendor-driven, frequent | Planned, partner-assisted | Self-managed |
-| Internet dependence | Total | Total | Can work on a local network |
-| Data location control | Vendor's regions | Platform's regions | Full control |
-| IT skills required | Minimal | Moderate | High |
+\`\`\`visual-compare
+{
+  "title": "Deployment models compared",
+  "columns": ["SaaS", "Managed platform", "On-premises / IaaS"],
+  "rows": [
+    { "label": "Up-front cost", "values": ["Low", "Low–medium", "High (servers, setup)"] },
+    { "label": "Ongoing cost", "values": ["Subscription", "Subscription + hosting", "IT staff, hardware refresh"] },
+    { "label": "Custom code", "values": ["Limited or none", "Allowed", "Fully allowed"] },
+    { "label": "Upgrades", "values": ["Vendor-driven, frequent", "Planned, partner-assisted", "Self-managed"] },
+    { "label": "Internet dependence", "values": ["Total", "Total", "Can work on a local network"] },
+    { "label": "Data location control", "values": ["Vendor's regions", "Platform's regions", "Full control"] },
+    { "label": "IT skills required", "values": ["Minimal", "Moderate", "High"] }
+  ]
+}
+\`\`\`
 
 ## How this applies to Odoo
 
@@ -556,20 +701,66 @@ Exact plan conditions change over time — always check the current offering on 
 5. **Total cost of ownership (TCO)** — compare over 3–5 years, not just year one.
 6. **Upgrade policy** — SaaS clients get upgrades on the vendor's schedule; self-hosted clients must plan and fund them.
 
+\`\`\`visual-decision
+{
+  "title": "Choosing a deployment model",
+  "caption": "Always confirm current vendor plan conditions before advising.",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Does the client need custom code modules?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No", "next": "q3" } ] },
+    "q2": { "question": "Is there an IT team able to patch, back up and monitor servers, or a hard rule that data stays on site?", "options": [ { "label": "Yes", "next": "onp" }, { "label": "No", "next": "paas" } ] },
+    "q3": { "question": "Is reliable internet available at every site that must use the ERP?", "options": [ { "label": "Yes", "next": "saas" }, { "label": "No", "next": "q2" } ] },
+    "saas": { "result": "SaaS", "tone": "success", "detail": "Minimal IT effort and access from anywhere, like Lumen Consulting Group." },
+    "paas": { "result": "Managed cloud platform", "tone": "success", "detail": "Custom code without running servers, like Harbor Steelworks, plus a backup internet line where connectivity is weak." },
+    "onp": { "result": "On-premises or self-managed cloud servers", "tone": "info", "detail": "Full control, but the client funds and staffs hardware, backups, security and upgrades." }
+  }
+}
+\`\`\`
+
 ## Shared responsibility
 
-\`\`\`text
-                    SaaS        Managed platform    On-premises
- Hardware          Vendor        Platform            Client
- OS / database     Vendor        Platform            Client
- Backups           Vendor        Platform (+client)  Client
- ERP upgrades      Vendor        Client/partner      Client/partner
- Custom code       n/a           Client/partner      Client/partner
- Users & access    Client        Client              Client
- Data quality      Client        Client              Client
+\`\`\`visual-compare
+{
+  "title": "Who is responsible?",
+  "columns": ["SaaS", "Managed platform", "On-premises"],
+  "rows": [
+    { "label": "Hardware", "values": ["Vendor", "Platform", "Client"] },
+    { "label": "OS / database", "values": ["Vendor", "Platform", "Client"] },
+    { "label": "Backups", "values": ["Vendor", "Platform (+client)", "Client"] },
+    { "label": "ERP upgrades", "values": ["Vendor", "Client/partner", "Client/partner"] },
+    { "label": "Custom code", "values": ["n/a", "Client/partner", "Client/partner"] },
+    { "label": "Users & access", "values": ["Client", "Client", "Client"] },
+    { "label": "Data quality", "values": ["Client", "Client", "Client"] }
+  ]
+}
 \`\`\`
 
 Note the last two rows: **users, access and data quality are always the client's responsibility**, no matter where the ERP runs.
+
+\`\`\`visual-match
+{
+  "title": "Deployment model characteristics",
+  "prompt": "Match each deployment model to its defining characteristic.",
+  "leftLabel": "Model",
+  "rightLabel": "Characteristic",
+  "pairs": [
+    { "left": "SaaS", "right": "Vendor runs everything; custom code limited or none" },
+    { "left": "Managed platform", "right": "Platform hosts it, client or partner deploys custom code" },
+    { "left": "On-premises", "right": "Client's own servers; can run on a local network" },
+    { "left": "IaaS / private cloud", "right": "Rented virtual servers the client installs and manages" }
+  ],
+  "explanation": "The further right you go, the more control and the more responsibility the client takes on."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A SaaS client's salesperson can see all customers' invoices. Who is responsible for fixing this?",
+  "options": ["The SaaS vendor", "The client (with its partner): users and access rights are always the client's responsibility", "The hosting platform", "Nobody, it is standard behaviour"],
+  "correct": 1,
+  "explanation": "Whatever the deployment model, users, access and data quality stay with the client."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -662,6 +853,22 @@ Changes move **forward** through the path after passing checks. Data generally m
 - A single database can contain **multiple companies** (multi-company), which share some master data and keep separate accounting. Choosing between "one database with several companies" and "separate databases" is an important early design decision: inter-company transactions and consolidated reporting are much easier in one database.
 - **Backups** must be scheduled, stored off-site and **tested by restoring** them. An untested backup is not a backup.
 
+\`\`\`visual-match
+{
+  "title": "Which environment?",
+  "prompt": "Match each activity at Meridian Wholesale Foods to the environment where it belongs.",
+  "leftLabel": "Activity",
+  "rightLabel": "Environment",
+  "pairs": [
+    { "left": "Developer builds a custom delivery slip field", "right": "Development" },
+    { "left": "Consultant verifies a new tax setting against acceptance criteria", "right": "Test / QA" },
+    { "left": "Key users run UAT and a migration dry-run on a production copy", "right": "Staging" },
+    { "left": "Warehouse validates today's customer deliveries", "right": "Production" }
+  ],
+  "explanation": "Changes move forward through the path only after passing checks; nobody experiments in production."
+}
+\`\`\`
+
 ## User access
 
 ### Users and licences
@@ -689,6 +896,23 @@ The person who creates a vendor should not be the same person who approves payme
 | Storekeeper | — | Read | User | — | — |
 | Accountant | Read | Read | Read | Full | — |
 | System admin | Admin | Admin | Admin | Admin | Full |
+
+\`\`\`visual-dodont
+{
+  "title": "User access",
+  "do": ["One named user per person", "Grant access by groups or roles", "Apply least privilege", "Separate vendor creation from payment approval", "Keep admin rights to a few trained people"],
+  "dont": ["Share logins", "Give admin rights temporarily to get past an error", "Assign rights person by person", "Let the same user create and pay vendors"]
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "Meridian's accountant both creates vendors and approves vendor payments. Which principle does this break?",
+  "options": ["Least privilege", "Segregation of duties", "Multi-company", "Record rules"],
+  "correct": 1,
+  "explanation": "Splitting vendor creation and payment approval between people reduces fraud and error risk."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -759,6 +983,15 @@ Before agreeing to any customization, walk through this ladder:
 4. **Is there a ready-made module?** From the vendor or a trusted community/third-party source — evaluate quality and upgrade support.
 5. **Only then: custom development** — with a written specification and cost/benefit justification.
 
+\`\`\`visual-order
+{
+  "title": "The standard-first ladder",
+  "prompt": "Put the questions in the order a consultant asks them before agreeing to a customisation.",
+  "items": ["Does standard already do it?", "Can configuration achieve it?", "Can the process change?", "Is there a ready-made, well-supported module?", "Custom development with a specification and justification"],
+  "explanation": "Each rung is cheaper to own than the next. Custom code is the last rung because it adds upgrade, testing and maintenance cost for the life of the system."
+}
+\`\`\`
+
 ## Why customization has a long-term cost
 
 - **Upgrade cost** — each new version may change the code a customization relies on.
@@ -827,6 +1060,32 @@ During requirement analysis, every requirement should be labelled:
 | Reporting | Needs a new or adapted report |
 
 This classification drives effort estimates and the fit-gap analysis covered in the Implementation Methodology course.
+
+\`\`\`visual-match
+{
+  "title": "Classify the request",
+  "prompt": "Oakridge Distributors: match each request to its classification.",
+  "leftLabel": "Request",
+  "rightLabel": "Classification",
+  "pairs": [
+    { "left": "Enter order lines by typing product codes", "right": "Standard (training)" },
+    { "left": "Set 30-day payment terms for contractors", "right": "Configuration" },
+    { "left": "Pallet label in a major customer's format", "right": "Customization" },
+    { "left": "Book shipments automatically with the courier's API", "right": "Integration" },
+    { "left": "Monthly margin by product category", "right": "Reporting" }
+  ],
+  "explanation": "Many requests turn out to be standard once demonstrated. Classify only after checking standard and configuration."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A client wants Studio to add five fields to the sales order. How should this be classified?",
+  "options": ["Configuration, because no code is written", "Customization: low-code changes must still be documented, tested and maintained", "Standard", "Integration"],
+  "correct": 1,
+  "explanation": "Studio (Enterprise-only) changes behaviour and data model, so it is a customization with the same lifecycle cost questions."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -898,6 +1157,30 @@ A client of the fictional partner **Northwind ERP Partners** reports: "When we d
 - **13:00** — Prepare and validate a product import file; fix category mismatches.
 - **15:00** — Investigate a support ticket: check configuration, then inspect the record's technical fields to find the cause.
 - **16:30** — Review a developer's change in the test environment against acceptance criteria.
+
+\`\`\`visual-match
+{
+  "title": "Who takes this task?",
+  "prompt": "Match each task to the profile that typically leads it.",
+  "leftLabel": "Task",
+  "rightLabel": "Profile",
+  "pairs": [
+    { "left": "Run a receiving workshop with the warehouse team", "right": "Functional consultant" },
+    { "left": "Write the Python and XML for a custom module", "right": "Technical consultant" },
+    { "left": "Turn a requirement into a technical specification and verify the build", "right": "Techno-functional consultant" }
+  ],
+  "explanation": "The techno-functional consultant bridges the other two: business language on one side, data models and code on the other."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "A ticket says the backorder does not appear on the warehouse screen. The backorder policy is configured correctly. What is the next best step?",
+  "options": ["Close the ticket as user error", "Check whether the screen is a customised view, e.g. a filter excluding backorders, and escalate with the exact cause if so", "Reinstall Inventory", "Ask the vendor to fix the standard product"],
+  "correct": 1,
+  "explanation": "Configuration is ruled out, so look at customisations next. Escalating with the exact cause lets the developer fix it in an hour."
+}
+\`\`\`
 
 ## How tickets are diagnosed
 
@@ -1034,6 +1317,20 @@ At **Sunrise Retail Group** (fictional, 12 stores), the ERP project stalled for 
 | **C** — Consulted | Gives input before/during | Two-way communication |
 | **I** — Informed | Kept up to date | One-way communication |
 
+\`\`\`visual-cards
+{
+  "label": "RACI",
+  "title": "Four letters, four kinds of involvement",
+  "columns": 4,
+  "cards": [
+    { "icon": "wrench", "title": "R — Responsible", "body": "Does the work. At least one per task.", "tone": "info" },
+    { "icon": "signature", "title": "A — Accountable", "body": "Owns the outcome and signs off. Exactly one per task.", "tone": "warning" },
+    { "icon": "users", "title": "C — Consulted", "body": "Gives input before or during. Two-way.", "tone": "neutral" },
+    { "icon": "mail", "title": "I — Informed", "body": "Kept up to date. One-way.", "tone": "neutral" }
+  ]
+}
+\`\`\`
+
 ## Sample RACI for an ERP project
 
 | Activity | Sponsor | Client PM | Process owner | Key user | Partner PM | Consultant | Developer |
@@ -1054,6 +1351,33 @@ Notice two patterns:
 - **The client is accountable for data cleansing and UAT.** Partners can help, but only the business knows whether its data and processes are correct.
 - **The sponsor is accountable for the go-live decision**, based on readiness evidence prepared by the project managers.
 
+\`\`\`visual-match
+{
+  "title": "Who does what",
+  "prompt": "Match each project role to its main responsibility.",
+  "leftLabel": "Role",
+  "rightLabel": "Responsibility",
+  "pairs": [
+    { "left": "Executive sponsor", "right": "Owns the business case, funds the project, decides go-live" },
+    { "left": "Process owner", "right": "Accountable for the design and UAT of their process" },
+    { "left": "Key user", "right": "Attends workshops, tests, cleans data and trains colleagues" },
+    { "left": "Partner project manager", "right": "Plans, tracks, reports and controls scope and change requests" },
+    { "left": "Functional consultant", "right": "Maps the process to ERP configuration" },
+    { "left": "Developer", "right": "Builds customizations, integrations and migration scripts" }
+  ],
+  "explanation": "Business decisions stay with the client (sponsor, process owners); the partner does and coordinates the work."
+}
+\`\`\`
+
+\`\`\`visual-check
+{
+  "question": "In the sample RACI, who is Accountable for data cleansing?",
+  "options": ["The consultant", "The developer", "The client project manager", "The partner project manager"],
+  "correct": 2,
+  "explanation": "Only the business knows whether its data is correct, so the client side is accountable; key users do the work and consultants advise."
+}
+\`\`\`
+
 ## Common role problems
 
 | Problem | Consequence | Prevention |
@@ -1063,6 +1387,15 @@ Notice two patterns:
 | Sponsor disengaged | Escalations unresolved | Monthly steering committee with clear decisions |
 | Partner treated as decision-maker on business rules | Design doesn't match business | Process owners sign off designs |
 | IT not involved early | Late surprises with network, security, integrations | Include IT from discovery |
+
+\`\`\`visual-check
+{
+  "question": "Sunrise Retail's pricing design has two Accountable people: the Commercial Director and the Finance Director. What is the problem?",
+  "options": ["None, more owners means more control", "With two A's nobody can make the final call, so decisions stall; there must be exactly one A", "Finance should be Informed only", "The partner should be A instead"],
+  "correct": 1,
+  "explanation": "Exactly one Accountable per activity. Finance can be Consulted, as Sunrise did when it restarted."
+}
+\`\`\`
 
 ## Real-world scenario
 
@@ -1117,6 +1450,23 @@ Notice two patterns:
 | Parallel running | Keeping the old system during transition | **Yes** |
 | Post-go-live support | Hypercare, support contract, continuous improvement | Sometimes |
 | Upgrades | Future version migrations, re-testing customizations | **Yes** |
+
+\`\`\`visual-match
+{
+  "title": "Tidewater's forgotten costs",
+  "prompt": "Match each cost Tidewater Components discovered to its cost category.",
+  "leftLabel": "What happened",
+  "rightLabel": "Cost category",
+  "pairs": [
+    { "left": "Staff overtime for testing and workshops", "right": "Internal staff time" },
+    { "left": "A new barcode scanner fleet", "right": "Hardware" },
+    { "left": "A temporary team to clean product data", "right": "Data migration" },
+    { "left": "Two extra months of the old system's licence", "right": "Parallel running" },
+    { "left": "Re-testing custom modules on the next version", "right": "Upgrades" }
+  ],
+  "explanation": "None of these were in the budget, which is why the project went 45% over. A full TCO model lists them up front."
+}
+\`\`\`
 
 ## Benefits and how to measure them
 
@@ -1193,6 +1543,15 @@ Benefits must be **owned** by a business manager and measured after go-live; oth
 \`\`\`
 
 Big bang is faster but riskier; phased reduces risk but needs temporary interfaces between old and new systems.
+
+\`\`\`visual-check
+{
+  "question": "Three weeks before go-live, testing is behind and the steering committee suggests compressing UAT to keep the date. Which risk is this?",
+  "options": ["Scope creep", "Unrealistic timeline: go-live criteria should be based on readiness, not dates", "Key person dependency", "Over-customization"],
+  "correct": 1,
+  "explanation": "Compressing testing to save a date moves defects into production. Readiness-based go-live criteria prevent it."
+}
+\`\`\`
 
 ## Real-world scenario
 

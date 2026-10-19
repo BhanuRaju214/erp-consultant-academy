@@ -1533,13 +1533,353 @@ Scenario: Customer Contoso Ltd orders 120 reams (SO S00003).
 
 For serial-tracked laptops, one line per serial number (quantity 1 each). Odoo can generate a range of serials from the first number entered (verify the exact button in your training instance).
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Receive lot-tracked toner",
+  "intro": "20 HP 26A toner cartridges arrive from Paper Mills. Toner is tracked **by lot**: record the lot number printed on the cartons, TN-2026-201.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "20 cartridges of lot **TN-2026-201** are in NW/Stock. Every later move, sale or recall can be traced to this lot.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-lot-receipt-01.webp",
+      "alt": "Receipt for 20 toner cartridges with the Details link on the line.",
+      "path": "Inventory ▸ Operations ▸ Receipts",
+      "task": "The receipt cannot be validated without a lot. **Open the line details.**",
+      "target": {
+        "x": 51.95,
+        "y": 49.35,
+        "w": 4.2,
+        "h": 2.8,
+        "label": "Details"
+      },
+      "traps": [
+        {
+          "x": 0.8500000000000001,
+          "y": 11.75,
+          "w": 5.6,
+          "h": 4.2,
+          "feedback": "Validating now fails: a lot-tracked product needs a lot number first."
+        }
+      ],
+      "explain": "The detailed operations dialog lists one line per lot."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-lot-receipt-02.webp",
+      "alt": "Detailed operations dialog for Toner Cartridge HP 26A with an empty lot line.",
+      "path": "Receipt ▸ Detailed Operations",
+      "task": "Type the lot number **TN-2026-201** from the cartons.",
+      "target": {
+        "x": 15.75,
+        "y": 45.75,
+        "w": 31.5,
+        "h": 4.7,
+        "label": "the Lot/Serial Number cell"
+      },
+      "input": {
+        "label": "Lot number",
+        "answer": "TN-2026-201",
+        "placeholder": "printed on the carton"
+      },
+      "explain": "Typing a new number creates the lot when the receipt is validated."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-lot-receipt-03.webp",
+      "alt": "Lot line TN-2026-201 with the quantity cell.",
+      "path": "Receipt ▸ Detailed Operations",
+      "task": "All **20** cartridges belong to this lot. Set the quantity.",
+      "target": {
+        "x": 63.849999999999994,
+        "y": 45.75,
+        "w": 7.6,
+        "h": 4.7,
+        "label": "the Quantity cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "20",
+        "placeholder": "cartridges"
+      },
+      "explain": "Two lots on one delivery? Add one line per lot."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-lot-receipt-04.webp",
+      "alt": "Detailed operations with lot TN-2026-201 for 20 units and the Save button.",
+      "path": "Receipt ▸ Detailed Operations",
+      "task": "**Save the lot details.**",
+      "target": {
+        "x": 16.85,
+        "y": 73.15,
+        "w": 4.1,
+        "h": 4.2,
+        "label": "Save"
+      },
+      "traps": [
+        {
+          "x": 20.95,
+          "y": 73.15,
+          "w": 5.3,
+          "h": 4.2,
+          "feedback": "Discard throws away the lot you just entered."
+        }
+      ],
+      "explain": "Back on the receipt, the line now carries the lot."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-lot-receipt-05.webp",
+      "alt": "Receipt with the lot entered and the Validate button.",
+      "path": "Inventory ▸ Operations ▸ Receipts",
+      "task": "**Validate the receipt.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Validate"
+      },
+      "explain": "Lot TN-2026-201 is created and 20 cartridges enter NW/Stock."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-lot-receipt-06.webp",
+      "alt": "Done receipt for 20 toner cartridges.",
+      "path": "Inventory ▸ Operations ▸ Receipts",
+      "task": "The receipt is done.",
+      "explain": "Inventory ▸ Products ▸ Lots/Serial Numbers now shows TN-2026-201 with its location and history."
+    }
+  ]
+}
+\`\`\`
+
 ### 8.4 Internal transfer
 
 Move 40 chairs from NW/Stock/Floor to NW/Stock/Showroom: Inventory ▸ Operations ▸ Transfers ▸ New, Operation Type *Internal Transfers*, source and destination, product and quantity, **Mark as To Do**, then **Validate**. Internal transfers create **no** accounting entry (value stays inside the company).
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Move stock with an internal transfer",
+  "intro": "Rack-A is full. Move **50 reams** of A4 paper from NW/Stock to the floor area NW/Stock/Floor.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "50 reams now sit in NW/Stock/Floor. Total stock is unchanged: an internal transfer moves goods, it does not create or value them.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-01.webp",
+      "alt": "Transfers list with the New button.",
+      "path": "Inventory ▸ Operations ▸ Transfers",
+      "task": "**Create a new transfer.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty transfer opens."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-02.webp",
+      "alt": "Operation Type dropdown showing Northwind Main: Internal Transfers.",
+      "path": "Transfer ▸ Operation Type",
+      "task": "**Choose Northwind Main: Internal Transfers.**",
+      "target": {
+        "x": 13.15,
+        "y": 32.75,
+        "w": 19,
+        "h": 3.5,
+        "label": "Northwind Main: Internal Transfers"
+      },
+      "explain": "The operation type sets the default source and destination: NW/Stock to NW/Stock."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-03.webp",
+      "alt": "Destination Location dropdown showing NW/Stock/Floor.",
+      "path": "Transfer ▸ Destination Location",
+      "task": "The paper goes to the floor area. **Pick NW/Stock/Floor.**",
+      "target": {
+        "x": 13.15,
+        "y": 40.95,
+        "w": 17.5,
+        "h": 3.5,
+        "label": "NW/Stock/Floor"
+      },
+      "explain": "Source NW/Stock, destination NW/Stock/Floor."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-04.webp",
+      "alt": "Internal transfer with the Add a line link.",
+      "path": "Transfer ▸ Operations",
+      "task": "**Add the product line.**",
+      "target": {
+        "x": 3.25,
+        "y": 53.45,
+        "w": 6.8,
+        "h": 3.1,
+        "label": "Add a Product"
+      },
+      "explain": "A product line opens."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-05.webp",
+      "alt": "Product dropdown showing A4 Copy Paper 80gsm (Ream).",
+      "path": "Transfer ▸ Operations",
+      "task": "**Select A4 Copy Paper 80gsm.**",
+      "target": {
+        "x": 3.65,
+        "y": 56.45,
+        "w": 24.8,
+        "h": 3.5,
+        "label": "A4 Copy Paper 80gsm (Ream)"
+      },
+      "explain": "Now the quantity."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-06.webp",
+      "alt": "Transfer line for A4 paper with the demand cell.",
+      "path": "Transfer ▸ Operations",
+      "task": "Move **50** reams. Set the quantity.",
+      "target": {
+        "x": 27.65,
+        "y": 52.55,
+        "w": 7.6,
+        "h": 7.1,
+        "label": "the Demand cell"
+      },
+      "input": {
+        "label": "Quantity",
+        "answer": "50",
+        "placeholder": "reams"
+      },
+      "explain": "Demand 50 reams."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-07.webp",
+      "alt": "Draft internal transfer with the Mark as To Do button.",
+      "path": "Inventory ▸ Transfers",
+      "task": "**Confirm the transfer** so Odoo reserves the paper.",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 8.3,
+        "h": 4.2,
+        "label": "Mark as To Do"
+      },
+      "explain": "Odoo reserves 50 reams in NW/Stock (Rack-A)."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-08.webp",
+      "alt": "Ready internal transfer with the Validate button.",
+      "path": "Inventory ▸ Transfers",
+      "task": "The storeman has moved the paper. **Validate.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 11.75,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Validate"
+      },
+      "explain": "The move NW/Stock/Rack-A → NW/Stock/Floor is done."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-internal-09.webp",
+      "alt": "Done internal transfer of 50 reams.",
+      "path": "Inventory ▸ Transfers",
+      "task": "The transfer is done.",
+      "explain": "No accounting entry: the value stays in the same warehouse."
+    }
+  ]
+}
+\`\`\`
+
 ### 8.5 Returns
 
 Open a done delivery and click **Return**. Select quantities, confirm, then validate the return transfer. The return reverses the stock move (and, with automated valuation, the valuation entry at the original cost).
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Receive a customer return",
+  "intro": "Contoso sends back **10 reams** from delivery NW/OUT/00001: the wrong paper weight was ordered.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "10 reams are back in NW/Stock, linked to the original delivery. Invoice the customer a credit note if they were already invoiced.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-return-01.webp",
+      "alt": "Done delivery NW/OUT/00001 to Contoso with the Return button.",
+      "path": "Inventory ▸ Deliveries",
+      "task": "**Start a return** from the original delivery.",
+      "target": {
+        "x": 4.75,
+        "y": 11.75,
+        "w": 5,
+        "h": 4.2,
+        "label": "Return"
+      },
+      "explain": "Odoo 20 creates a draft return receipt right away, linked to the delivery."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-return-02.webp",
+      "alt": "Draft return receipt with demand 0 and the Return All and Clear buttons.",
+      "path": "Inventory ▸ Receipts",
+      "task": "Contoso returns **10** reams. Set the quantity.",
+      "target": {
+        "x": 39.95,
+        "y": 48.55,
+        "w": 7.6,
+        "h": 5,
+        "label": "the Demand cell"
+      },
+      "input": {
+        "label": "Quantity returned",
+        "answer": "10",
+        "placeholder": "reams"
+      },
+      "traps": [
+        {
+          "x": 54.15,
+          "y": 67.65,
+          "w": 6.4,
+          "h": 4.2,
+          "feedback": "**Return All** would take back all 120 reams. Contoso returns 10."
+        }
+      ],
+      "explain": "The return expects 10 reams back."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-return-03.webp",
+      "alt": "Return receipt for 10 reams with the Validate button.",
+      "path": "Inventory ▸ Receipts",
+      "task": "The reams are checked and resaleable. **Validate the return.**",
+      "target": {
+        "x": 8.95,
+        "y": 11.85,
+        "w": 5.6,
+        "h": 4.2,
+        "label": "Validate"
+      },
+      "explain": "10 reams re-enter NW/Stock."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-return-04.webp",
+      "alt": "Done return receipt for 10 reams from Contoso.",
+      "path": "Inventory ▸ Receipts",
+      "task": "The return is done.",
+      "explain": "The sales order now shows Delivered = 110."
+    }
+  ]
+}
+\`\`\`
 
 ### 8.6 Physical inventory (cycle count)
 
@@ -1670,6 +2010,132 @@ Path: **Inventory ▸ Operations ▸ Scrap** (or the **Scrap** button on a trans
 
 Path: **Inventory ▸ Operations ▸ Landed Costs** (after enabling the setting; requires accounting — verify in your training instance). Create a landed cost, select the done receipt(s), add a cost line using a service product flagged as a landed cost (e.g. "Sea Freight", USD 600), choose a **Split Method** (Equal, By Quantity, By Current Cost, By Weight, By Volume), **Compute**, then **Validate**. Product unit costs for AVCO/FIFO increase accordingly.
 
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Add sea freight to the cost of a receipt",
+  "intro": "30 imported desk lamps arrived on receipt **NW/IN/00015** (₹800 each). The sea-freight bill is **₹600**: add it to the lamps cost with a landed cost.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "You built and computed a landed cost: ₹600 of freight spread as ₹20 per lamp (₹820 each). In a company with perpetual valuation, Validate posts it and the lamps' cost becomes ₹820.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-landed-01.webp",
+      "alt": "Landed costs list with the New button.",
+      "path": "Inventory ▸ Operations ▸ Landed Costs",
+      "task": "**Create a landed cost.**",
+      "target": {
+        "x": 0.8500000000000001,
+        "y": 5.95,
+        "w": 4,
+        "h": 4.2,
+        "label": "New"
+      },
+      "explain": "An empty landed cost opens."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-landed-02.webp",
+      "alt": "Transfers field with NW/IN/00015 in the dropdown.",
+      "path": "Landed Cost ▸ Transfers",
+      "task": "The freight belongs to receipt **NW/IN/00015**. Pick it.",
+      "target": {
+        "x": 8.15,
+        "y": 43.05,
+        "w": 22.5,
+        "h": 3.5,
+        "label": "NW/IN/00015"
+      },
+      "explain": "The landed cost will be spread over the moves of this receipt."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-landed-03.webp",
+      "alt": "Landed cost with the Additional Costs tab and Add a line.",
+      "path": "Landed Cost ▸ Additional Costs",
+      "task": "**Add the cost line.**",
+      "target": {
+        "x": 2.55,
+        "y": 55.05,
+        "w": 5,
+        "h": 3.1,
+        "label": "Add a line"
+      },
+      "explain": "A cost line opens."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-landed-04.webp",
+      "alt": "Product dropdown showing Sea Freight (landed cost).",
+      "path": "Landed Cost ▸ Additional Costs",
+      "task": "**Pick Sea Freight**, the landed-cost service product.",
+      "target": {
+        "x": 2.95,
+        "y": 57.95,
+        "w": 21.8,
+        "h": 3.5,
+        "label": "Sea Freight (landed cost)"
+      },
+      "explain": "Only services flagged as landed costs can be used here."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-landed-05.webp",
+      "alt": "Cost line for Sea Freight with the cost field.",
+      "path": "Landed Cost ▸ Additional Costs",
+      "task": "The freight bill is **600**. Enter the cost.",
+      "target": {
+        "x": 51.55,
+        "y": 54.15,
+        "w": 8.5,
+        "h": 4.7,
+        "label": "the Cost cell"
+      },
+      "input": {
+        "label": "Cost",
+        "answer": "600",
+        "placeholder": "₹"
+      },
+      "explain": "The split method (equal, by quantity, by cost, by weight or volume) decides how it is shared."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-landed-06.webp",
+      "alt": "Landed cost with the Compute button.",
+      "path": "Landed Cost",
+      "task": "**Compute** how the cost is split.",
+      "target": {
+        "x": 55.05,
+        "y": 76.25,
+        "w": 6.1,
+        "h": 4.2,
+        "label": "Compute"
+      },
+      "explain": "The Valuation Adjustments tab shows the extra cost per move."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-landed-07.webp",
+      "alt": "Computed landed cost with the Valuation Adjustments tab.",
+      "path": "Landed Cost",
+      "task": "See the split: open **Valuation Adjustments**.",
+      "target": {
+        "x": 11.95,
+        "y": 45.65,
+        "w": 12.5,
+        "h": 4.8,
+        "label": "Valuation Adjustments"
+      },
+      "explain": "One line per product move: original value, the extra cost and the new value."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-landed-08.webp",
+      "alt": "Valuation adjustments of the landed cost for 30 desk lamps.",
+      "path": "Landed Cost ▸ Valuation Adjustments",
+      "task": "This is the cost split.",
+      "explain": "₹600 over 30 lamps: ₹20 each, so ₹24,000 becomes ₹24,600. **Validate** would post it to stock valuation; that needs perpetual valuation with stock accounts on the product category (this training database uses periodic valuation, so it stops here)."
+    }
+  ]
+}
+\`\`\`
+
 > **Consultant tip:** Train warehouse users to *never* validate a transfer with quantities they did not physically handle. "Validate everything, fix it later" is the number one cause of negative stock and wrong valuation.
 
 ## Key takeaways
@@ -1779,6 +2245,52 @@ Logic: when **forecasted** quantity (on hand + incoming − outgoing) drops belo
 \`\`\`
 
 Other automation: MTO route, reservation method, automatic backorders, putaway rules, and (Enterprise) automated actions via Studio.
+
+#### Try it yourself
+
+\`\`\`visual-simulate
+{
+  "title": "Order from the replenishment report",
+  "intro": "Toner has a reordering rule in NW/Stock: minimum 100, maximum 200. The forecast is below the minimum.",
+  "version": "Odoo 20",
+  "width": 1600,
+  "height": 1000,
+  "caption": "Real screens are from an Odoo 20 training database with fictional Northwind data; amounts are in ₹ with Indian GST.",
+  "outcome": "Odoo created a request for quotation to the vendor on the product for the quantity needed to reach the maximum. Buyers review and confirm it like any RFQ.",
+  "steps": [
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-replenish-01.webp",
+      "alt": "Replenishment report with the toner line and its Order button.",
+      "path": "Inventory ▸ Operations ▸ Replenishment",
+      "task": "Toner: on hand 67, below the minimum of 100; Odoo proposes **133** to reach the maximum of 200. **Order it.**",
+      "target": {
+        "x": 89.05,
+        "y": 21.55,
+        "w": 5.1,
+        "h": 3.1,
+        "label": "Order"
+      },
+      "traps": [
+        {
+          "x": 89.05,
+          "y": 24.55,
+          "w": 7,
+          "h": 3.1,
+          "feedback": "**Automate** switches the rule to automatic ordering for the future. Here you just want to order now."
+        }
+      ],
+      "explain": "Odoo creates an RFQ for the To Order quantity."
+    },
+    {
+      "src": "/visuals/odoo-inventory/sims/inv-replenish-02.webp",
+      "alt": "Replenishment report after ordering toner.",
+      "path": "Inventory ▸ Operations ▸ Replenishment",
+      "task": "The forecast is now 200.",
+      "explain": "Forecast 67 + 133 ordered = 200 (the maximum); To Order drops to 0. The RFQ to the toner vendor waits in Purchase for the buyer to confirm."
+    }
+  ]
+}
+\`\`\`
 
 ## 10. Reports and dashboards
 
@@ -2019,6 +2531,24 @@ Internal transfers between internal locations create **no** journal entry. Accou
 }
 \`\`\`
 
+\`\`\`visual-match
+{
+  "title": "Inventory symptoms and root causes",
+  "prompt": "Match each symptom to its most likely root cause.",
+  "leftLabel": "Symptom",
+  "rightLabel": "Root cause",
+  "pairs": [
+    { "left": "Negative on-hand quantity", "right": "Delivery validated with more than was available" },
+    { "left": "No journal entry after a receipt", "right": "Category valuation is Manual or the product is a consumable" },
+    { "left": "MTO route not visible on the product", "right": "The MTO route is archived by default" },
+    { "left": "Lot or serial required error on validation", "right": "Tracked product validated without lot numbers" },
+    { "left": "Cannot change product type or UoM", "right": "Stock moves already exist for the product" },
+    { "left": "Valuation report differs from the Stock Valuation GL", "right": "Manual journal entries posted to the stock account" }
+  ],
+  "explanation": "Most inventory issues come from locations, reservation, tracking and valuation settings."
+}
+\`\`\`
+
 ## 14. Practical assignments (task list)
 
 Complete these in your training instance using Northwind data:
@@ -2096,6 +2626,56 @@ Complete these in your training instance using Northwind data:
 *Model answer:* It is in a location outside the delivery's source location tree, reserved by another transfer, or belongs to a different lot/package/owner than required.
 
 > **Consultant tip:** In interviews, always answer with *business reason + Odoo mechanism + example*. "We use 2-step delivery because orders are consolidated at a dispatch bay; Odoo creates PICK and OUT transfers; for Northwind…" sounds like a consultant, not a user.
+
+\`\`\`visual-roleplay
+{
+  "title": "Warehouse escalation at Northwind",
+  "setting": "Month-end at Northwind's NW warehouse. The warehouse manager and the finance controller raise issues with you.",
+  "client": "Warehouse manager",
+  "rounds": [
+    {
+      "says": "The delivery for Greenfield School cannot reserve paper, but Odoo shows 800 reams on hand!",
+      "options": [
+        { "text": "Let's see where the stock sits: if it is still in NW/Input, finish the Input to Stock step; then check whether another transfer has reserved it or a specific lot is required.", "quality": "best", "feedback": "Follows the reservation tree: source location, existing reservations, then lot, package or owner." },
+        { "text": "Validate the delivery anyway and fix stock later.", "quality": "poor", "feedback": "Forcing validation creates negative stock and wrong valuation." },
+        { "text": "Run a full physical count of the warehouse tonight.", "quality": "ok", "feedback": "A count is the last step, after location and reservation are ruled out." }
+      ]
+    },
+    {
+      "says": "We received chairs today but finance sees no journal entry.",
+      "options": [
+        { "text": "Check the product category: valuation must be Automated with the stock accounts set, and the product must be stock-tracked. Changing it affects future moves only.", "quality": "best", "feedback": "Correct cause and an honest note that past receipts need separate correction." },
+        { "text": "Ask finance to post the entry manually.", "quality": "poor", "feedback": "Manual entries to the stock account break the reconciliation between valuation report and GL." },
+        { "text": "It will post at month-end automatically.", "quality": "poor", "feedback": "Wrong: automated valuation posts in real time at validation." }
+      ]
+    },
+    {
+      "says": "Toner keeps running out. The reordering rule never fires.",
+      "options": [
+        { "text": "Let's check the forecast (an open RFQ may already cover it), the rule trigger (Auto or Manual) and the vendor on the product.", "quality": "best", "feedback": "These three explain most rules that seem not to trigger." },
+        { "text": "Set the minimum ten times higher.", "quality": "poor", "feedback": "Overstocks and does not fix a rule that never runs." },
+        { "text": "Order toner manually every week.", "quality": "ok", "feedback": "Keeps shelves full but abandons replenishment automation." }
+      ]
+    },
+    {
+      "says": "Finance says the Valuation report and the Stock Valuation account do not agree.",
+      "options": [
+        { "text": "Look for manual entries on the stock account and categories still on manual valuation, reconcile the difference, and restrict manual posting by policy.", "quality": "best", "feedback": "Finds the usual causes and prevents recurrence." },
+        { "text": "Post a balancing entry and move on.", "quality": "poor", "feedback": "Hides the difference; it will grow every month." }
+      ]
+    },
+    {
+      "says": "Can we make scraps above USD 500 need my approval first?",
+      "options": [
+        { "text": "That is not standard in Inventory. Options are the Approvals app or Studio and automation (Enterprise) or a small module; I'll log it as a customization with an estimate.", "quality": "best", "feedback": "Clear about standard versus customization and keeps change control." },
+        { "text": "Yes, just tick a setting.", "quality": "poor", "feedback": "There is no such standard setting; promising it damages trust." },
+        { "text": "Remove scrap rights from everyone except you.", "quality": "ok", "feedback": "A possible interim control, but it creates a bottleneck and is not an approval flow." }
+      ]
+    }
+  ],
+  "wrapup": "Locations and reservation first, then valuation settings, then data. Classify approval requests honestly as customization."
+}
+\`\`\`
 
 ## Key takeaways
 

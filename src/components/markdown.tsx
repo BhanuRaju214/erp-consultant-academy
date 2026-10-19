@@ -41,7 +41,7 @@ function heading(level: 2 | 3) {
   const Heading: Components["h2"] = ({ node, children }) => {
     const id = slugify(hastText(node as HastNode));
     return (
-      <Tag id={id} className="group scroll-mt-24">
+      <Tag id={id} className="group scroll-mt-24 [overflow-wrap:anywhere]">
         {children}
         <a href={`#${id}`} className="ml-2 text-muted no-underline opacity-0 transition group-hover:opacity-100" aria-label="Link to this section">
           #

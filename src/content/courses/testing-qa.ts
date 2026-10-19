@@ -67,6 +67,22 @@ A consultant who only clicks "Confirm" and sees no error has not tested anything
 
 Security (role-based access) testing and reconciliation testing run across several of these levels.
 
+\`\`\`visual-match
+{ "title": "Practice: pick the right test level",
+  "prompt": "Crestline Furniture has these testing needs. Match each one to the test level that should cover it.",
+  "leftLabel": "Testing need", "rightLabel": "Test level",
+  "pairs": [
+    { "left": "A developer's new computed field 'Margin %' must return 25.00 when price is 100.00 and cost is 75.00", "right": "Unit testing" },
+    { "left": "Confirm that a quotation for a lot-tracked chair can be created and confirmed in Sales", "right": "Functional testing" },
+    { "left": "A confirmed sales order must create the delivery, the invoice and the receivable journal entry correctly", "right": "Integration testing (SIT)" },
+    { "left": "1,248 legacy customers and their open balances must be present and correct in Odoo", "right": "Data migration testing" },
+    { "left": "The sales coordinator confirms she can run her monthly repeat orders in the new system", "right": "User Acceptance Testing (UAT)" },
+    { "left": "After a fix to the pricelist rule, quotation-to-payment must still work as before", "right": "Regression testing" },
+    { "left": "Month-end invoicing of 4,000 lines must finish within the agreed time", "right": "Performance testing" }
+  ],
+  "explanation": "Each level answers a different question: unit = does one piece of logic compute correctly, functional = does one step work in one app, integration = does value flow across apps, migration = is the loaded data complete and accurate, UAT = does the business accept it, regression = did a change break what worked, performance = is it fast enough at real volume." }
+\`\`\`
+
 ## Entry and exit criteria
 
 Testing phases should not start just because a date arrived. Each phase has **entry criteria** (conditions to start) and **exit criteria** (conditions to finish).
@@ -90,6 +106,13 @@ Testing phases should not start just because a date arrived. Each phase has **en
 | Key users trained | Reconciliations of migrated balances agreed by finance |
 | UAT scripts handed over | UAT sign-off form signed by process owners |
 
+\`\`\`visual-check
+{ "question": "SIT at Crestline Furniture is planned to start on Monday. On Friday the consultant reports: all apps configured, test cases approved, but no master data has been loaded and test users do not exist yet. What should the test lead do?",
+  "options": ["Start SIT on Monday as planned and load data in parallel", "Start SIT using the administrator account to save time", "Postpone the start: entry criteria are not met", "Skip SIT and go straight to UAT"],
+  "correct": 2,
+  "explanation": "Entry criteria exist so phases start on facts, not dates. Testing without master data or proper test users produces results that are not repeatable and false passes (admin bypasses access rules), so the time is wasted and the cases must be re-run anyway." }
+\`\`\`
+
 ## Test environments
 
 Never test on production. A typical Odoo project uses:
@@ -109,6 +132,13 @@ Keep a note of which database and which build/version each test was executed on.
 5. **Report defects** — log, prioritise, fix, retest.
 6. **Close** — test summary report and sign-off.
 
+\`\`\`visual-order
+{ "title": "Practice: the testing lifecycle",
+  "prompt": "Put the testing activities of an ERP project in the order they happen.",
+  "items": ["Plan scope, levels, environments and entry/exit criteria", "Design test cases linked to requirement IDs", "Prepare test data, test users and refresh the environment", "Execute test cases and record actual results with evidence", "Log, triage, fix and retest defects", "Close with a test summary report and sign-off"],
+  "explanation": "You cannot design cases before you know the scope, cannot execute before data and users exist, and cannot close before defects are retested. Skipping Prepare is the most common cause of 'Blocked' test cases on day one." }
+\`\`\`
+
 ## Example: what "tested" really means
 
 Scenario: *Sell 10 units of a stock product to a customer.*
@@ -122,6 +152,13 @@ A strong tester also checks:
 - The journal entry debits the receivable account and credits income and tax payable.
 - If automated stock valuation is used, the stock output/COGS entries were created with the correct cost (verify for your edition/configuration).
 - The customer's due amount and the aged receivable report show the invoice.
+
+\`\`\`visual-check
+{ "question": "A tester marks 'Sell 10 LED Panel 40W' as Pass because the order, delivery and invoice all reached Done/Posted without errors. Which check is still missing before this can honestly be called a pass?",
+  "options": ["Nothing, no error means it works", "Check that the invoice PDF has the company logo", "Verify on-hand dropped by 10 in WH/Stock and the journal entry hit the right receivable, income and tax accounts", "Ask the developer if the code was changed"],
+  "correct": 2,
+  "explanation": "Document states only prove the buttons worked. ERP tests pass when the business outcome is right: quantity moved in the right location and the accounting entry uses the right accounts and amounts. A wrong income account produces no error at all." }
+\`\`\`
 
 ## Key takeaways
 
@@ -194,6 +231,27 @@ A test case is a contract between the consultant and the business: *"If you do t
 | Defect ID | — |
 | Remarks | Attach screenshots of journal items |
 
+\`\`\`visual-order
+{ "title": "Practice: write the steps of TC-O2C-001",
+  "prompt": "You are writing the Steps field for TC-O2C-001 (Blue Harbor Traders buys 10 LED Panel 40W). Put the steps in the order a tester must execute them.",
+  "items": ["Sales > Orders > Quotations > New, select Blue Harbor Traders", "Check the pricelist on the quotation shows Wholesale", "Add LED Panel 40W, quantity 10, and confirm the order", "Open the Delivery smart button and validate 10 units", "Create Invoice > Regular invoice and post it", "Register Payment for 1,150.00 via the Bank journal", "Open journal items and verify receivable, income and tax accounts"],
+  "explanation": "The pricelist must be checked before lines are added, because the unit price is taken from it when the line is created. The policy is invoice on delivered quantities, so the delivery must be validated before the invoice proposes 10 units. The accounting check comes last because it proves the outcome of the whole chain." }
+\`\`\`
+
+\`\`\`visual-match
+{ "title": "Practice: step and expected result",
+  "prompt": "A good test case states a measurable expected result for each step. Match each step of TC-O2C-001 to its expected result.",
+  "leftLabel": "Test step", "rightLabel": "Expected result",
+  "pairs": [
+    { "left": "Add LED Panel 40W, qty 10, on the quotation", "right": "Unit price 100.00, untaxed 1,000.00, tax 150.00, total 1,150.00" },
+    { "left": "Validate the delivery", "right": "Delivery state Done; on-hand in WH/Stock goes from 50 to 40" },
+    { "left": "Post the customer invoice", "right": "Receivable debit 1,150.00; income credit 1,000.00; tax payable credit 150.00" },
+    { "left": "Register the full payment", "right": "Invoice shows In Payment or Paid; customer due amount 0.00" },
+    { "left": "Open the Aged Receivable report before payment", "right": "Blue Harbor Traders shows 1,150.00 in the current bucket" }
+  ],
+  "explanation": "Every expected result contains a number, a state or an account. That is what makes the case executable by someone else and impossible to argue about: either on-hand is 40 or it is not." }
+\`\`\`
+
 ## Worked example 2 — Procure to Pay with partial receipt
 
 | Field | Value |
@@ -210,6 +268,13 @@ A test case is a contract between the consultant and the business: *"If you do t
 | Status | Not Run |
 | Defect ID | — |
 | Remarks | Repeat for backorder in TC-P2P-002 |
+
+\`\`\`visual-order
+{ "title": "Practice: write the steps of TC-P2P-001",
+  "prompt": "Put the Procure-to-Pay steps for the partial receipt test (100 Copper Cable 2.5mm ordered, 60 received) in execution order.",
+  "items": ["Create an RFQ for Northwind Components, 100 units at 20.00", "Confirm the order", "Open the receipt, set quantity 60 and validate", "Choose Create Backorder for the remaining 40", "Create Bill from the purchase order", "Check the bill proposes 60 units, total 1,380.00, and confirm it"],
+  "explanation": "The bill control policy is 'On received quantities', so the bill can only be checked after the receipt is validated. Choosing Create Backorder (not No Backorder) is part of the test: it proves the remaining 40 stay expected and can be received in TC-P2P-002." }
+\`\`\`
 
 ## Worked example 3 — Sales return and credit note
 
@@ -236,6 +301,13 @@ A test case is a contract between the consultant and the business: *"If you do t
 | No preconditions | List master data, stock and settings explicitly |
 | Steps skip accounting checks | Add "Open journal items and verify accounts" |
 | Testing only the happy path | Pair each positive case with negative cases (Lesson: Negative testing) |
+
+\`\`\`visual-check
+{ "question": "Which Expected Result for TC-O2C-005 (customer returns 2 LED Panel 40W, credit note issued) is written correctly?",
+  "options": ["Return works and credit note is fine", "System handles the return correctly", "On-hand 40 to 42; SO delivered qty 8; credit note 230.00 (200.00 + 30.00 tax) posted; customer balance reduced by 230.00", "Credit note created"],
+  "correct": 2,
+  "explanation": "Only the third option is measurable: it states quantities, amounts and the effect on the customer balance. 'Credit note created' would pass even if the credit note had the wrong quantity or tax, which is exactly the defect you want to catch." }
+\`\`\`
 
 ## Key takeaways
 
@@ -275,6 +347,21 @@ Functional tests check one feature or configuration against its requirement.
 
 Functional testing is usually done by the consultant who configured the app, immediately after configuring it. It is quick and catches configuration errors early.
 
+\`\`\`visual-match
+{ "title": "Practice: requirement and test type",
+  "prompt": "Match each Crestline Furniture requirement to the test type that proves it best.",
+  "leftLabel": "Requirement", "rightLabel": "Test type",
+  "pairs": [
+    { "left": "Custom discount function returns 5% for orders above 2,000.00", "right": "Unit test" },
+    { "left": "Lot-tracked products ask for a lot number on receipt", "right": "Functional test" },
+    { "left": "Web shop orders arrive in Odoo with correct taxes and stock syncs back", "right": "Integration test" },
+    { "left": "Sales coordinator accepts the repeat-order process for her team", "right": "UAT" },
+    { "left": "Existing invoicing still works after the payment terms change", "right": "Regression test" },
+    { "left": "A quotation without a customer cannot be saved", "right": "Negative test" }
+  ],
+  "explanation": "Pick the cheapest test that really proves the requirement: logic in one function is a unit test, one feature in one app is functional, anything crossing systems is integration, business acceptance is UAT, 'still works after a change' is regression, and 'must be prevented' is a negative test." }
+\`\`\`
+
 ## Integration testing
 
 Integration testing proves that data and value flow correctly **between** apps and systems.
@@ -301,6 +388,13 @@ Integration testing proves that data and value flow correctly **between** apps a
 
 For each integration test, verify **both ends**: the record in Odoo and the record in the external system, plus error handling when the other side is down or sends bad data.
 
+\`\`\`visual-check
+{ "question": "The web shop integration test passes: the order appears in Odoo with correct products and taxes. What is the most important additional integration test?",
+  "options": ["Check the order list view colours", "Send the same order message twice and stop the network mid-sync, then check for duplicates or half-created orders", "Re-test the same order ten more times", "Ask the web shop vendor to confirm it works"],
+  "correct": 1,
+  "explanation": "Happy-path success proves only one end of the story. Real integrations fail on retries, duplicates and timeouts, and those produce double orders or orphan records that nobody notices until stock or revenue is wrong." }
+\`\`\`
+
 ## A sample integration test scenario: Make to Order
 
 **Company:** Fictional "Crestline Furniture".
@@ -315,6 +409,18 @@ For each integration test, verify **both ends**: the record in Odoo and the reco
 | 5. Deliver | Inventory | Delivery done, stock of tables back to zero |
 | 6. Invoice | Accounting | Revenue and receivable posted |
 | 7. Valuation | Accounting | If automated valuation is enabled: component consumption and finished goods entries are balanced |
+
+\`\`\`visual-flow
+{ "title": "Make to Order: integration points to verify",
+  "caption": "Each arrow is a hand-over between apps. An integration test checks the record created on both sides of every hand-over.",
+  "steps": [
+    { "title": "Sales order confirmed", "app": "Sales", "icon": "cart", "document": "SO for 5 Oak Dining Table", "detail": "Check: delivery created, waiting for production." },
+    { "title": "Manufacturing order", "app": "Manufacturing", "icon": "factory", "document": "MO for 5 tables", "detail": "Check: created automatically, components per BoM reserved.", "branch": { "when": "Components short", "result": "RFQ created in Purchase", "tone": "warning" } },
+    { "title": "Produce", "app": "Manufacturing", "icon": "wrench", "detail": "Check: components consumed, 5 tables in stock.", "impact": "Valuation: components out, finished goods in" },
+    { "title": "Deliver", "app": "Inventory", "icon": "truck", "detail": "Check: delivery Done, table stock back to 0." },
+    { "title": "Invoice", "app": "Accounting", "icon": "invoice", "detail": "Check: revenue and receivable posted with correct tax.", "impact": "Dr Receivable, Cr Income, Cr Tax payable" }
+  ] }
+\`\`\`
 
 ## Planning integration test cycles
 
@@ -348,6 +454,17 @@ For every integration test record the document numbers produced (SO, delivery, i
           body: `## Business context
 
 Migrated data is the foundation the business will run on from day one. If opening stock is wrong, every delivery is wrong. If customer balances are wrong, collections are wrong. Data migration testing proves that what was loaded into Odoo is **complete**, **accurate** and **reconciles** to the legacy system.
+
+\`\`\`visual-flow
+{ "title": "Migration pipeline and where each test sits",
+  "loop": "Repeat for each trial load until the reconciliation has zero unexplained differences",
+  "steps": [
+    { "title": "Extract", "icon": "database", "actor": "Data owner", "detail": "Export from legacy with record counts and control totals taken at the same moment." },
+    { "title": "Transform", "icon": "settings", "actor": "Consultant", "detail": "Clean duplicates, map UoM, taxes, accounts and categories. Test: mapping table reviewed, excluded records listed with reasons." },
+    { "title": "Load", "icon": "server", "app": "Odoo import", "detail": "Import templates into the test database. Test: import log has no failed rows or every failure is explained.", "branch": { "when": "Rows rejected", "result": "Fix source or mapping, reload", "tone": "warning" } },
+    { "title": "Reconcile", "icon": "scale", "actor": "Finance", "detail": "Counts, control totals, sample checks, AR/AP/stock/TB agreement. Test: suspense account is 0.00.", "branch": { "when": "Difference found", "result": "Explain or fix before sign-off", "tone": "danger" } }
+  ] }
+\`\`\`
 
 ## The four validation techniques
 
@@ -384,6 +501,19 @@ Pick numeric fields and compare sums:
 
 Select records randomly **and** deliberately pick edge cases: records with special characters, multiple addresses, foreign currency, lot/serial tracking, zero cost. Compare field by field and log differences.
 
+\`\`\`visual-match
+{ "title": "Practice: which check catches which problem?",
+  "prompt": "Match each migration problem to the validation technique that would catch it first.",
+  "leftLabel": "Problem in the loaded data", "rightLabel": "Check that catches it",
+  "pairs": [
+    { "left": "One vendor silently failed to import because of an invalid country code", "right": "Record count per object" },
+    { "left": "Open AR loaded as 480,120.75 instead of 482,350.75 because credit notes were skipped", "right": "Control total of open AR amounts" },
+    { "left": "A product's UoM is 'Box of 10' instead of 'Units', but quantities and totals still match", "right": "Field-by-field sample check" },
+    { "left": "The opening trial balance entry leaves 2,500.00 on the suspense account", "right": "Reconciliation to the legacy trial balance" }
+  ],
+  "explanation": "Counts prove completeness, control totals prove the sums, samples prove the individual fields, and reconciliation proves the balances. A UoM error can pass counts and totals, which is why random plus edge-case samples are mandatory." }
+\`\`\`
+
 ## Reconciling AR, AP and stock values to legacy
 
 At cutover date, finance must agree that the Odoo opening position equals the legacy closing position.
@@ -402,6 +532,20 @@ Typical approach in Odoo:
 2. Load opening stock via inventory adjustment with the agreed unit cost.
 3. Post the opening trial balance journal entry, clearing the suspense account.
 4. Check that the suspense account balance is **zero**. A non-zero balance means something does not reconcile.
+
+\`\`\`visual-order
+{ "title": "Practice: cutover load and reconcile",
+  "prompt": "Put the opening-balance migration steps in the right order.",
+  "items": ["Agree the legacy trial balance, AR and AP aging and stock valuation at the cutover date", "Load open customer invoices and vendor bills against the opening suspense account", "Load opening stock via inventory adjustment at the agreed unit cost", "Post the opening trial balance entry that clears the suspense account", "Check the suspense account is 0.00 and compare Odoo reports to legacy", "Finance signs off AR, AP, stock value and trial balance"],
+  "explanation": "The legacy figures must be frozen first, otherwise you reconcile to a moving target. The opening TB entry comes after the detailed loads so it clears the suspense account; only a zero suspense balance proves every piece agrees." }
+\`\`\`
+
+\`\`\`visual-check
+{ "question": "The count sheet shows Vendors: legacy 214, excluded 9 (duplicates merged), expected 205, actual 204. The go-live is next week. What is the correct action?",
+  "options": ["Accept it: one vendor out of 205 is under 1%", "Find which vendor is missing and why, fix the source or mapping, and document the explanation", "Create the missing vendor manually after go-live", "Change the expected count to 204"],
+  "correct": 1,
+  "explanation": "Every difference must be explained. The missing vendor may have open bills worth thousands, so 'close enough' can mean an unpaid supplier and a wrong AP balance on day one." }
+\`\`\`
 
 ## Migration test cycles
 
@@ -463,6 +607,21 @@ Users should see and do exactly what their job requires — no more, no less. A 
 
 Exact group names differ per app and version; read them from the user form in your database.
 
+\`\`\`visual-match
+{ "title": "Practice: write the negative access tests",
+  "prompt": "For each role in the matrix, match the action the test must prove they can NOT do.",
+  "leftLabel": "Role", "rightLabel": "Must NOT be able to",
+  "pairs": [
+    { "left": "Salesperson (Own Documents Only)", "right": "Open another salesperson's sales order, even by URL" },
+    { "left": "Sales Manager", "right": "Post a customer invoice" },
+    { "left": "Buyer", "right": "Validate (post) a vendor bill" },
+    { "left": "Warehouse Clerk", "right": "See product costs or open vendor bills" },
+    { "left": "Accountant", "right": "Confirm a sales order" },
+    { "left": "Portal customer", "right": "See invoices of other customers" }
+  ],
+  "explanation": "Each restriction is a segregation-of-duties control: the person who creates a commitment (order) must not also post the money side (invoice or bill). If a negative test passes as Allowed, the control does not exist." }
+\`\`\`
+
 ## Positive and negative tests
 
 For every role, test both what the user **should** be able to do (positive) and what they **must not** be able to do (negative).
@@ -489,6 +648,20 @@ Record rules restrict which records appear. Classic tests:
 
 Try to reach restricted records through **every path**: list view, search, direct URL with record ID, smart buttons, reports and exports. A rule that hides records from the list but allows a direct URL is a defect.
 
+\`\`\`visual-decision
+{ "title": "Practice: evaluate an access test result",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Was the test executed while logged in as the dedicated role test user (not admin)?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No, as administrator", "next": "r1" } ] },
+    "q2": { "question": "Is the result the same as the role matrix says?", "options": [ { "label": "Yes", "next": "q3" }, { "label": "No, the user can do MORE", "next": "r2" }, { "label": "No, the user can do LESS", "next": "r3" } ] },
+    "q3": { "question": "Did you also try URL, search, smart buttons, reports and export?", "options": [ { "label": "Yes, all paths blocked", "next": "r4" }, { "label": "Only the menu and list", "next": "r5" } ] },
+    "r1": { "result": "Invalid test: re-run as the role user", "tone": "warning", "detail": "Administrators bypass record rules and groups, so a pass proves nothing." },
+    "r2": { "result": "Security defect: log as High or Critical", "tone": "danger", "detail": "Excess access breaks segregation of duties and will be an audit finding." },
+    "r3": { "result": "Defect: user is blocked from their job", "tone": "warning", "detail": "Check missing groups or an over-strict record rule; severity depends on whether a workaround exists." },
+    "r4": { "result": "Pass: record evidence per path", "tone": "success", "detail": "Note user, database, build and the paths tried." },
+    "r5": { "result": "Not finished: test the remaining paths", "tone": "info", "detail": "A hidden menu does not stop a direct URL or an export." } } }
+\`\`\`
+
 ## Multi-company testing
 
 | Test | Expected |
@@ -498,6 +671,13 @@ Try to reach restricted records through **every path**: list view, search, direc
 | Inter-company product shared vs company-specific | Company-specific product not visible in other company |
 | Reports run in Company A | Contain only Company A figures unless both selected |
 | Inter-company rules (if configured) | SO in A creates PO in B (Enterprise-dependent; verify for your edition) |
+
+\`\`\`visual-check
+{ "question": "SEC-002 says Salesperson A must not see Salesperson B's orders. The list view hides them, but opening /odoo/sales/45 (B's order) shows the full order. What is the result of SEC-002?",
+  "options": ["Pass, because the list view hides the order", "Fail: log a defect, the record rule does not protect all access paths", "Pass with a remark", "Not applicable, users do not type URLs"],
+  "correct": 1,
+  "explanation": "A record rule must protect the data, not just the menu. URLs are shared in emails and chats every day, so a hidden list with an open URL is a real data leak." }
+\`\`\`
 
 ## Custom groups and Studio changes
 
@@ -545,6 +725,20 @@ When product categories use **automated (perpetual)** inventory valuation, every
 
 **Test case example:** Receive 100 units at 20.00 (value 2,000.00), deliver 30 units. Expected: valuation report shows 70 units, 1,400.00; stock account balance increased by 1,400.00 net from these moves.
 
+\`\`\`visual-check
+{ "question": "Category 'Cables' uses automated valuation (FIFO). You receive 50 units at 20.00, then 50 units at 22.00, then deliver 60 units. What should the valuation report and the stock account show for these moves?",
+  "options": ["40 units, 800.00", "40 units, 880.00", "40 units, 840.00", "60 units, 1,260.00"],
+  "correct": 1,
+  "explanation": "FIFO consumes the oldest layer first: 50 x 20.00 + 10 x 22.00 = 1,220.00 leaves stock. Remaining 40 units are from the 22.00 layer, so 880.00. Receipts posted 2,100.00, deliveries took 1,220.00, net 880.00 on the stock account: subledger and GL agree." }
+\`\`\`
+
+\`\`\`visual-order
+{ "title": "Practice: stock count test case",
+  "prompt": "Put the steps of a stock-count test (TC-INV-007: count finds 3 missing Oak Dining Chairs) in order.",
+  "items": ["Note on-hand quantity (25) and the stock account balance before the count", "Inventory > Operations > Physical Inventory: set counted quantity 22 for WH/Stock", "Apply the count with reason 'Annual count'", "Check on-hand is now 22 and a stock move to the inventory loss location exists", "Check the journal entry: credit stock valuation, debit inventory loss/adjustment expense for 3 x unit cost", "Re-run the valuation report and confirm it still equals the stock account balance"],
+  "explanation": "Recording the before figures is what makes the test measurable. The last step is the real reconciliation test: a count that changes quantity without posting the value would quietly break stock vs GL agreement." }
+\`\`\`
+
 ## Reconciliation 2 — AR subledger vs receivable control account
 
 The **Aged Receivable** report (subledger) lists open items per customer. The **receivable account** in the GL (control account) holds the total. They must agree at any date.
@@ -564,6 +758,20 @@ Report menu names and availability differ between Community and Enterprise (veri
 - Multiple receivable accounts (e.g. one per currency or customer group) — compare totals of all of them.
 - Report filters (posted only vs including draft entries).
 
+\`\`\`visual-match
+{ "title": "Practice: diagnose the difference",
+  "prompt": "Each reconciliation failed with this symptom. Match it to the most likely cause.",
+  "leftLabel": "Symptom", "rightLabel": "Likely cause",
+  "pairs": [
+    { "left": "Stock account is 2,500.00 higher than the valuation report; one journal entry on the stock account has no stock move", "right": "Manual journal entry posted directly to the stock account" },
+    { "left": "Valuation report includes stock from before 1 March but the GL has no entry for it", "right": "Category switched from manual to automated valuation mid-stream" },
+    { "left": "Report total matches only after adding a second stock account", "right": "Categories use different stock valuation accounts" },
+    { "left": "Aged Receivable is 640.00 lower than the receivable account; one entry has no partner", "right": "Manual receivable entry posted without a partner" },
+    { "left": "Totals agree but a paid customer still shows an old overdue invoice and a credit", "right": "Payment posted but not reconciled with the invoice" }
+  ],
+  "explanation": "Most differences are not software bugs: they come from postings that bypass the subledger, configuration changes during testing, or incomplete comparisons. Knowing the pattern tells you where to look first." }
+\`\`\`
+
 ## Reconciliation 3 — Bank
 
 Bank account balance in Odoo after reconciliation must equal the bank statement closing balance. Unreconciled statement lines and outstanding payments/receipts must be explainable.
@@ -582,6 +790,13 @@ Tax report totals should agree with tax payable/receivable account balances for 
 | REC-04 | Bank balance vs statement | After payment tests | Treasury |
 | REC-05 | Tax report vs tax accounts | After invoice/bill tests | Tax accountant |
 | REC-06 | Trial balance vs legacy (opening) | At migration | Finance controller |
+
+\`\`\`visual-order
+{ "title": "Practice: month-end close test case",
+  "prompt": "Put the steps of the month-end close test (TC-R2R-003, closing April at Crestline Furniture) in order.",
+  "items": ["Check all April receipts, deliveries, invoices and bills are posted", "Reconcile the bank journal to the April statement closing balance", "Run REC-01 to REC-03: stock, AR and AP subledgers vs GL", "Run the tax report and compare it to the tax accounts", "Set the lock date to 30 April", "Try to post a test invoice dated 28 April and confirm it is blocked"],
+  "explanation": "Reconciliations only mean something once every transaction is posted. The lock date comes after the checks, and the final negative step proves the lock really protects the closed period." }
+\`\`\`
 
 Run reconciliations **after** a full batch of transactions, not only on a clean database — differences appear when many processes interact (returns, partial deliveries, credit notes, landed costs).
 
@@ -655,6 +870,18 @@ Encourage users to also run **their own day-in-the-life scenarios**: "Do what yo
 4. **Retest**: users retest fixed defects in the same environment.
 5. **Sign-off**.
 
+\`\`\`visual-timeline
+{ "title": "A UAT cycle at Crestline Furniture",
+  "items": [
+    { "when": "Week -2", "title": "Prepare", "icon": "clipboard", "detail": "SIT exit met, key users trained, UAT database refreshed with migrated data, scripts handed over." },
+    { "when": "Day 1", "title": "Kick-off", "icon": "flag", "detail": "Objectives, schedule, how to log defects, defect vs change request." },
+    { "when": "Days 1-8", "title": "Execute", "icon": "users", "detail": "Consultant demonstrates the first script; key users run the rest and their day-in-the-life scenarios." },
+    { "when": "Daily 9:00", "title": "Triage", "icon": "filter", "detail": "Review new defects, set severity and priority, separate change requests." },
+    { "when": "Days 9-12", "title": "Retest", "icon": "refresh", "detail": "Key users retest fixed defects with the same data; related regression is re-run." },
+    { "when": "Day 13", "title": "Sign-off", "icon": "signature", "detail": "Process owners sign: accepted, accepted with conditions, or rejected." }
+  ] }
+\`\`\`
+
 ### Defect vs change request
 
 | Situation | Classification |
@@ -663,6 +890,19 @@ Encourage users to also run **their own day-in-the-life scenarios**: "Do what yo
 | User now wants an extra field not in requirements | Change request (scope) |
 | Report layout differs from approved mock-up | Defect |
 | User prefers old screen layout | Training / change management |
+
+\`\`\`visual-match
+{ "title": "Practice: classify UAT findings",
+  "prompt": "Key users logged these findings. Match each one to its correct classification.",
+  "leftLabel": "Finding", "rightLabel": "Classification",
+  "pairs": [
+    { "left": "Invoice for Blue Harbor Traders charges 18% tax; the signed design says 15%", "right": "Defect" },
+    { "left": "Warehouse lead now wants a 'Pallet ID' field that was never in the requirements", "right": "Change request" },
+    { "left": "Accountant cannot find the partner ledger and says Odoo has no such report", "right": "Training issue" },
+    { "left": "Standard Odoo shows a credit limit warning, the business wanted a hard block", "right": "Gap (needs a decision or customisation)" }
+  ],
+  "explanation": "Classifying correctly protects the timeline: defects are fixed within scope, change requests go to change control, training issues are solved by coaching, and gaps need a business decision. Treating a change request as a defect is the classic way UAT never ends." }
+\`\`\`
 
 ## UAT sign-off form
 
@@ -679,6 +919,29 @@ Encourage users to also run **their own day-in-the-life scenarios**: "Do what yo
 | Project manager signature | |
 | Date | |
 
+\`\`\`visual-roleplay
+{ "title": "The key user who will not sign",
+  "setting": "Crestline Furniture, UAT day 13. O2C scripts: 18 executed, 17 passed. The only open defect is DEF-044 (Low, logo alignment on the delivery slip). The sales coordinator refuses to sign the O2C form.",
+  "client": "Sales coordinator",
+  "rounds": [
+    { "says": "I'm not signing. I just don't feel ready with this system.",
+      "options": [
+        { "text": "Everything passed, so you have to sign today.", "quality": "poor", "feedback": "Pressure turns a worried key user into an opponent and a forced signature means nothing at go-live." },
+        { "text": "That's important to hear. Which part of your daily work worries you most? Let's look at it together.", "quality": "best", "feedback": "Turns a feeling into concrete items you can test, train or log." },
+        { "text": "Fine, I'll tell the project manager you rejected UAT.", "quality": "poor", "feedback": "Escalating before understanding the concern wastes the chance to solve it." } ] },
+    { "says": "Credit notes for partial returns. I did it once with you and I'm not sure I can do it alone.",
+      "options": [
+        { "text": "Let's run UAT-SAL-07 again now, and you drive while I only watch.", "quality": "best", "feedback": "A user-executed retest builds confidence and gives real evidence." },
+        { "text": "It's in the manual, page 40.", "quality": "ok", "feedback": "Documentation helps, but confidence comes from doing it." },
+        { "text": "That's not a defect, so it doesn't count.", "quality": "poor", "feedback": "True, but dismissive: it is a training issue that still blocks sign-off." } ] },
+    { "says": "OK, that worked. But the logo on the delivery slip is still wrong.",
+      "options": [
+        { "text": "We can sign as Accepted with conditions: DEF-044 fixed within 2 weeks of go-live, written on the form.", "quality": "best", "feedback": "Uses the formal option for a Low cosmetic defect and records the commitment." },
+        { "text": "I'll fix it tonight in production directly.", "quality": "poor", "feedback": "Untested production changes break change control." } ] }
+  ],
+  "wrapup": "A refusal is information. Find the concrete concern, let the user prove it by doing, and use 'Accepted with conditions' for agreed Low defects." }
+\`\`\`
+
 ## Common UAT pitfalls
 
 | Pitfall | Prevention |
@@ -688,6 +951,13 @@ Encourage users to also run **their own day-in-the-life scenarios**: "Do what yo
 | Consultants execute scripts for users | Users must execute; consultants only guide |
 | Scope creep disguised as defects | Classify change requests separately |
 | No sign-off, just "looks fine" | Formal signed form per process |
+
+\`\`\`visual-check
+{ "question": "To keep the UAT schedule, the consultant offers to execute the remaining 12 P2P scripts himself overnight and give the results to the buyer to sign. Why is this a problem?",
+  "options": ["It is not a problem if the results are correct", "UAT proves the business can run its process; if users do not execute, there is no acceptance and no confidence at go-live", "Consultants are not allowed to log in to the UAT database", "Scripts must always be run during office hours"],
+  "correct": 1,
+  "explanation": "The value of UAT is that the people who will run the process prove they can, with their own exceptions. A consultant-executed UAT is just another SIT cycle and hides training gaps until the first week of go-live." }
+\`\`\`
 
 ## Key takeaways
 
@@ -718,6 +988,20 @@ Every change can break something that worked yesterday: a new custom field, a mo
 | Major version upgrade (e.g. 16.0 → 17.0) | Full regression pack + all customizations + reports + integrations |
 | New app installed | Processes touching shared models (partners, products, accounting) |
 | Configuration change (e.g. switching to 3-step delivery) | All flows using that warehouse |
+
+\`\`\`visual-decision
+{ "title": "Practice: what must be re-tested after this change?",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "What kind of change is it?", "options": [ { "label": "Bug fix in one module", "next": "q2" }, { "label": "New customization or field", "next": "q3" }, { "label": "Major version upgrade", "next": "r3" }, { "label": "Minor Odoo update / patch", "next": "r4" } ] },
+    "q2": { "question": "Does the fixed code or config touch shared data (partners, products, taxes, accounts)?", "options": [ { "label": "No", "next": "r1" }, { "label": "Yes", "next": "r2" } ] },
+    "q3": { "question": "Is the new field mandatory, or used by an integration, import or report?", "options": [ { "label": "No", "next": "r1" }, { "label": "Yes", "next": "r5" } ] },
+    "r1": { "result": "Retest the failed case + its own process", "tone": "success", "detail": "Plus directly connected steps, e.g. a delivery fix also re-runs invoicing." },
+    "r2": { "result": "Retest the process + every flow using that data", "tone": "warning", "detail": "A tax fix affects sales, purchase, POS and the tax report." },
+    "r3": { "result": "Full regression pack + all customizations, reports, integrations", "tone": "danger", "detail": "Compare trial balance, aged AR and stock valuation before and after on the same data." },
+    "r4": { "result": "Smoke tests on O2C, P2P, inventory and accounting", "tone": "info", "detail": "Plus customizations that override standard methods." },
+    "r5": { "result": "Affected processes + every entry channel", "tone": "warning", "detail": "UI, website, import templates, API and the printed report: a mandatory field can silently block web orders." } } }
+\`\`\`
 
 ## Building a regression pack
 
@@ -757,6 +1041,22 @@ What to automate first:
 | Custom integrations (mock the external system) | Hard to test manually |
 | Critical end-to-end flows (tours) | Catch UI breakage after upgrades |
 
+\`\`\`visual-compare
+{ "title": "Manual vs automated regression",
+  "columns": ["Manual regression", "Automated tests"],
+  "rows": [
+    { "label": "Speed per run", "values": ["Hours to days", "Minutes"] },
+    { "label": "Cost to create", "values": ["Low: reuse test cases", "Higher: developer writes the test"] },
+    { "label": "Cost per repeat run", "values": ["High: people time every time", "Near zero"] },
+    { "label": "Judges business sense (is this invoice reasonable?)", "values": [true, false] },
+    { "label": "Catches UI and layout surprises", "values": [true, "Only with tours"] },
+    { "label": "Runs on every build (e.g. Odoo.sh)", "values": [false, true] },
+    { "label": "Best for", "values": ["UAT-style flows, reports, new changes", "Custom logic, pricing, integrations with mocks"] }
+  ],
+  "highlight": 1,
+  "caption": "Use both: automate the stable, repeatable checks of custom code and keep a manual pack for business outcomes." }
+\`\`\`
+
 Automated tests do not replace business testing — they protect what you already verified. On Odoo.sh, tests can run automatically on new builds (verify for your hosting plan).
 
 ## Regression test cycle
@@ -781,6 +1081,13 @@ Change: *Add a mandatory field "Delivery Window" to sales orders.*
 | Delivery slip report | Field printed where specified |
 
 This example shows why "small" changes need regression: a mandatory field can silently break website orders or integrations.
+
+\`\`\`visual-check
+{ "question": "A developer fixes DEF-052 (landed cost allocation by weight). The failed test case now passes. What else must be run before deploying to production?",
+  "options": ["Nothing, the defect is fixed", "Related regression: receipts with and without landed costs, stock valuation report vs stock account, and vendor bills for the same products", "The full 160-case SIT pack", "Only the automated tests"],
+  "correct": 1,
+  "explanation": "A fix to landed costs changes stock layer values, so receipt, valuation and bill flows that touch the same data can break. Running related regression is proportional; the full pack is for upgrades, not single fixes." }
+\`\`\`
 
 ## Key takeaways
 
@@ -831,6 +1138,20 @@ Before testing, agree with the business what the **expected behaviour** is: bloc
 | NEG-11 | Sale below cost | Set unit price lower than product cost | Standard Odoo shows margin if Margins enabled; blocking requires customization or approval rule |
 | NEG-12 | Closed period | Post invoice dated in a locked period | Posting blocked by lock date |
 
+\`\`\`visual-match
+{ "title": "Practice: input and expected system response",
+  "prompt": "Match each invalid input to the expected behaviour agreed for Silverline Trading Co. (Odoo 17).",
+  "leftLabel": "Invalid input", "rightLabel": "Expected response",
+  "pairs": [
+    { "left": "Save a quotation with no customer", "right": "Save blocked; Customer field highlighted as required" },
+    { "left": "Post an invoice dated 15 March when the lock date is 31 March", "right": "Posting blocked with a lock date error" },
+    { "left": "Second bill from Northwind Components with the same bill reference", "right": "Duplicate reference warning before posting" },
+    { "left": "SO of 1,000.00 for Maple Street Electricals (limit 5,000.00, open AR 4,500.00)", "right": "Credit limit warning shown; order can still be confirmed" },
+    { "left": "Web shop sends an order with an unknown product code", "right": "Message logged as failed and an alert is sent; nothing created" }
+  ],
+  "explanation": "The expected response must be agreed before testing: block, warn or log. In standard Odoo 17 the credit limit is a warning, not a block; if the business assumed a block, that is a gap to decide on, not a defect." }
+\`\`\`
+
 ## Boundary value testing
 
 Test **at**, **just below** and **just above** limits:
@@ -842,6 +1163,13 @@ Test **at**, **just below** and **just above** limits:
 | Discount max 15% | 14.99% / 15% / 15.01% |
 
 Clarify whether the limit is inclusive — a common requirement ambiguity.
+
+\`\`\`visual-check
+{ "question": "Requirement: 'Quotations above 10,000.00 need manager approval.' Which set of test values is the best boundary test?",
+  "options": ["5,000.00 and 20,000.00", "9,999.99, 10,000.00 and 10,000.01", "10,000.00 only", "0.00 and 99,999.99"],
+  "correct": 1,
+  "explanation": "Errors cluster at the edges: a developer may code 'greater or equal' instead of 'greater than'. Testing just below, at and just above the limit reveals that, and 10,000.00 itself must NOT need approval because the rule says 'above'." }
+\`\`\`
 
 ## Exception handling in integrations
 
@@ -859,6 +1187,12 @@ When the system does not behave as the business expects, classify the outcome:
 - **Defect** — the agreed design is not met.
 - **Gap** — standard Odoo does not support the rule; needs customization or a process workaround (raise a change request).
 - **Accepted behaviour** — the business accepts the standard behaviour with a procedure (e.g. weekly report of over-deliveries).
+
+\`\`\`visual-dodont
+{ "title": "Negative testing: do and don't",
+  "do": ["Agree block, warn, approve or allow with the business before running the test", "Test at, just below and just above every numeric limit", "Check that a blocked action left no half-created record behind", "Pair every happy-path case with at least one negative case", "Record the actual message text as evidence"],
+  "dont": ["Assume Odoo blocks something because the requirement says 'must not'", "Mark a warning as Fail when the agreed behaviour was a warning", "Test only with the administrator, who bypasses many controls", "Log a standard-behaviour gap as a defect: raise a change request", "Stop after the first invalid value works as expected"] }
+\`\`\`
 
 ## Key takeaways
 
@@ -915,6 +1249,39 @@ A defect report must be reproducible by someone else. "Price wrong" is not a def
 | High severity, low priority | Year-end closing report wrong, but go-live is in March and year end is December |
 | Low severity, high priority | Company logo wrong on invoice the CEO will see tomorrow |
 
+\`\`\`visual-match
+{ "title": "Practice: set the severity",
+  "prompt": "Crestline Furniture UAT logged these defects. Match each to its severity.",
+  "leftLabel": "Defect", "rightLabel": "Severity",
+  "pairs": [
+    { "left": "Customer invoices post revenue to the Bank suspense account instead of Product Sales", "right": "Critical: financial data is silently wrong" },
+    { "left": "Deliveries for lot-tracked tables cannot be validated at all", "right": "Critical: process blocked, no workaround" },
+    { "left": "Wrong 18% tax on the whole Outdoor Furniture category", "right": "High: major function wrong, workaround hard" },
+    { "left": "Aged Payable takes 90 seconds to load; filtering by vendor works fast", "right": "Medium: works, with a reasonable workaround" },
+    { "left": "Typo 'Delivey Address' on the delivery slip PDF", "right": "Low: cosmetic" }
+  ],
+  "explanation": "Severity measures business impact, not how annoying it is. Wrong accounting with no error message is Critical because it corrupts the books and is found only at month end; a blocked delivery stops shipping. A slow report with a workaround is Medium, a typo is Low." }
+\`\`\`
+
+\`\`\`visual-decision
+{ "title": "Practice: triage a new defect",
+  "start": "q1",
+  "nodes": {
+    "q1": { "question": "Is it really a defect (agreed design not met)?", "options": [ { "label": "Yes", "next": "q2" }, { "label": "No, it is a new wish", "next": "r0" } ] },
+    "q2": { "question": "Does it block a process or corrupt financial or stock data?", "options": [ { "label": "Yes", "next": "q3" }, { "label": "No", "next": "q4" } ] },
+    "q3": { "question": "Is there a safe, documented workaround?", "options": [ { "label": "No", "next": "r1" }, { "label": "Yes", "next": "r2" } ] },
+    "q4": { "question": "Is a main function wrong, or only cosmetic?", "options": [ { "label": "Function wrong, easy workaround", "next": "q5" }, { "label": "Cosmetic only", "next": "q6" } ] },
+    "q5": { "question": "Is the process used in the first weeks after go-live?", "options": [ { "label": "Yes", "next": "r3" }, { "label": "No, e.g. year-end only", "next": "r4" } ] },
+    "q6": { "question": "Will customers or management see it soon?", "options": [ { "label": "Yes", "next": "r5" }, { "label": "No", "next": "r6" } ] },
+    "r0": { "result": "Reject as defect, raise a change request", "tone": "info", "detail": "Goes to change control with business reason and estimate." },
+    "r1": { "result": "Critical, P1: blocks go-live", "tone": "danger", "detail": "Fix and retest before any sign-off." },
+    "r2": { "result": "High, P1 or P2", "tone": "warning", "detail": "Workaround documented and trained; fix before go-live unless steering accepts the risk in writing." },
+    "r3": { "result": "Medium, P2", "tone": "warning", "detail": "Fix in the current cycle; workaround in the user guide." },
+    "r4": { "result": "Medium, P3", "tone": "info", "detail": "Plan the fix before the period when it is needed." },
+    "r5": { "result": "Low severity, high priority", "tone": "info", "detail": "Quick fix, e.g. logo or label on the invoice PDF." },
+    "r6": { "result": "Low, P4: can be deferred", "tone": "success", "detail": "Accept with conditions on the sign-off form." } } }
+\`\`\`
+
 ## Defect lifecycle
 
 | Status | Who | Meaning |
@@ -929,6 +1296,33 @@ A defect report must be reproducible by someone else. "Price wrong" is not a def
 | Rejected | Test lead | Not a defect (works as designed, duplicate, change request) |
 | Deferred | Steering/PM | Accepted to fix after go-live |
 
+\`\`\`visual-flow
+{ "title": "Defect lifecycle",
+  "loop": "Reopened defects go back to In Progress until the retest passes",
+  "steps": [
+    { "title": "New", "icon": "alert", "actor": "Tester", "detail": "Logged with steps, expected, actual, evidence and environment." },
+    { "title": "Triaged / Assigned", "icon": "filter", "actor": "Test lead", "detail": "Severity and priority confirmed, owner assigned.", "branch": { "when": "Not a defect or duplicate", "result": "Rejected", "tone": "neutral" } },
+    { "title": "In Progress", "icon": "wrench", "actor": "Consultant / developer", "detail": "Root cause found and fixed in development.", "branch": { "when": "Steering accepts risk", "result": "Deferred", "tone": "warning" } },
+    { "title": "Fixed / Ready for Retest", "icon": "rocket", "actor": "Developer", "detail": "Fix deployed to the test environment; build noted." },
+    { "title": "Retest", "icon": "refresh", "actor": "Tester", "detail": "Same data and steps, plus related regression.", "branch": { "when": "Retest fails", "result": "Reopened", "tone": "danger" } },
+    { "title": "Closed", "icon": "check", "actor": "Tester", "detail": "Verified fixed on a recorded build." }
+  ] }
+\`\`\`
+
+\`\`\`visual-match
+{ "title": "Practice: who moves the defect?",
+  "prompt": "Match each status change to the person who owns it.",
+  "leftLabel": "Status change", "rightLabel": "Owner",
+  "pairs": [
+    { "left": "Log as New with evidence", "right": "Tester / key user" },
+    { "left": "Confirm severity and assign", "right": "Test lead" },
+    { "left": "Move to Fixed / Ready for Retest", "right": "Developer or consultant" },
+    { "left": "Close or Reopen after retest", "right": "The tester who found it" },
+    { "left": "Defer to after go-live", "right": "Steering committee / project manager" }
+  ],
+  "explanation": "Separation matters here too: the developer who fixed it must not close it, because only an independent retest proves the fix. Deferring is a business risk decision, so it belongs to steering, not to the team." }
+\`\`\`
+
 ### Retest and regression
 
 When a fix is delivered:
@@ -941,6 +1335,28 @@ When a fix is delivered:
 
 Run daily during SIT/UAT: review new defects, confirm severity/priority, assign owners, separate change requests, check ageing defects. Keep it short (15–30 minutes).
 
+\`\`\`visual-roleplay
+{ "title": "Pressure to downgrade before go-live",
+  "setting": "Crestline Furniture, triage meeting three days before go-live. DEF-052 (High): landed costs are allocated by quantity instead of weight, so stock values of imported tables are wrong. Exit criteria say: no open Critical or High defects.",
+  "client": "Project manager",
+  "rounds": [
+    { "says": "Let's just mark DEF-052 as Medium so we meet the exit criteria. Nobody will notice.",
+      "options": [
+        { "text": "OK, it's your call as PM.", "quality": "poor", "feedback": "Changing severity to pass a gate hides the risk from the people who must accept it, and wrong stock values will reach the balance sheet." },
+        { "text": "Severity is about impact, and this misstates stock and COGS. I can't change it, but we can take it to steering as a go-live risk decision.", "quality": "best", "feedback": "Keeps the classification honest and moves the decision to the right owner." },
+        { "text": "I'll refuse to work on go-live until it's fixed.", "quality": "poor", "feedback": "Inflexible; it removes you from the solution instead of offering options." } ] },
+    { "says": "Steering will panic. What options do we actually have?",
+      "options": [
+        { "text": "Option 1: fix and retest in 2 days. Option 2: go live, finance books a manual landed cost correction monthly until the fix, with a REC-01 check each month-end.", "quality": "best", "feedback": "Gives costed options with a control, so steering can make a real decision." },
+        { "text": "We'll just fix it after go-live somehow.", "quality": "poor", "feedback": "No plan, no owner, no control: that is how wrong valuations stay for months." } ] },
+    { "says": "Fine. If steering picks option 2, what do you need from me?",
+      "options": [
+        { "text": "Record it as Deferred with steering's written approval, the workaround owner and a fix date on the go-live checklist.", "quality": "best", "feedback": "A deferred defect is legitimate only when the risk acceptance is documented and owned." },
+        { "text": "Nothing, I'll remember it.", "quality": "ok", "feedback": "Good intent, but undocumented risk acceptance protects nobody when the auditor asks." } ] }
+  ],
+  "wrapup": "Never bend severity to meet a gate. Keep the facts honest, offer options with controls, and let steering accept the risk in writing." }
+\`\`\`
+
 ## Test metrics
 
 | Metric | Formula | Use |
@@ -951,6 +1367,13 @@ Run daily during SIT/UAT: review new defects, confirm severity/priority, assign 
 | Open defects by severity | Count | Go-live readiness |
 | Defect ageing | Days open | Bottlenecks |
 | Reopen rate | Reopened / Fixed | Quality of fixes |
+
+\`\`\`visual-check
+{ "question": "SIT Cycle 2: planned 160, executed 158, passed 149. Of 40 fixed defects, 8 were reopened. Which statement is correct?",
+  "options": ["Pass rate 93.1% and reopen rate 5%", "Pass rate 94.3% and reopen rate 20%: fixes are not being tested well before handover", "Pass rate 98.8% and reopen rate 8%", "Pass rate 94.3% and reopen rate 80%"],
+  "correct": 1,
+  "explanation": "Pass rate is passed / executed = 149 / 158 = 94.3% (not / planned). Reopen rate is 8 / 40 = 20%, which is high: one fix in five fails retest, so developers should test fixes better and the team should expect extra retest time." }
+\`\`\`
 
 ## Test summary report template
 
