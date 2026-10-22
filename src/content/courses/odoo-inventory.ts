@@ -40,7 +40,59 @@ export const odooInventory: CourseContent = {
           durationMin: 40,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard"],
-          body: `\`\`\`visual-hero
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/odoo-inventory-live.mp4",
+  "poster": "/videos/odoo-inventory-live.webp",
+  "title": "Odoo Inventory: a receipt with a backorder, recorded live in Odoo 20",
+  "duration": "2:29",
+  "caption": "A short introduction, then the process as a continuous live screen recording in an Odoo 20 database with fictional Northwind data. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 13,
+      "label": "What Odoo Inventory does"
+    },
+    {
+      "t": 36,
+      "label": "Why it matters"
+    },
+    {
+      "t": 55,
+      "label": "Document flow"
+    },
+    {
+      "t": 77,
+      "label": "Live: Open the receipt"
+    },
+    {
+      "t": 87,
+      "label": "Live: Record what arrived"
+    },
+    {
+      "t": 96,
+      "label": "Live: Validate"
+    },
+    {
+      "t": 104,
+      "label": "Live: Create backorder"
+    },
+    {
+      "t": 114,
+      "label": "Live: Stock report"
+    },
+    {
+      "t": 129,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-hero
 {
   "eyebrow": "Odoo Inventory · Lesson 1",
   "title": "Inventory overview and process flow",

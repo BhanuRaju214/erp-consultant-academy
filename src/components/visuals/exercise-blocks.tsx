@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { ArrowDown, ArrowRight, ArrowUp, CircleCheck, CircleX, MessageSquare, RotateCcw, Trophy, User } from "lucide-react";
 import type { VisualData } from "@/lib/visuals/schemas";
 import { cn } from "../ui";
@@ -557,6 +557,53 @@ export function RoleplayBlock({ data }: { data: VisualData<"roleplay"> }) {
           )}
         </>
       )}
+    </VisualFrame>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Narrated video with chapters                                        */
+/* ------------------------------------------------------------------ */
+
+const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+export function VideoBlock({ data }: { data: VisualData<"video"> }) {
+  const isStatic = useStaticRender();
+  const ref = useRef<HTMLVideoElement>(null);
+  const [now, setNow] = useState(0);
+  const current = data.chapters.reduce((acc, c, i) => (now >= c.t ? i : acc), 0);
+  if (isStatic) {
+    return (
+      <VisualFrame kind="Video" title={data.title} caption={data.caption}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {data.poster && <img src={data.poster} alt={`Video: ${data.title}`} className="block w-full rounded-lg" />}
+        <p className="mt-2 text-sm text-muted">Watch the narrated video ({data.duration ?? "MP4"}) in the training portal.</p>
+      </VisualFrame>
+    );
+  }
+  return (
+    <VisualFrame kind={`Video${data.duration ? ` · ${data.duration}` : ""}`} title={data.title} caption={data.caption} bodyClassName="p-0 sm:p-0">
+      <div className={cn("grid", data.chapters.length > 0 && "lg:grid-cols-[minmax(0,1fr)_16rem]")}>
+        <video ref={ref} controls preload="metadata" playsInline poster={data.poster} onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)} onSeeked={(e) => setNow(e.currentTarget.currentTime)} className="block aspect-video w-full bg-black">
+          <source src={data.src} type="video/mp4" />
+        </video>
+        {data.chapters.length > 0 && (
+          <ol className="max-h-[22rem] divide-y divide-border overflow-y-auto border-t border-border text-sm lg:max-h-none lg:border-l lg:border-t-0">
+            {data.chapters.map((c, i) => (
+              <li key={i}>
+                <button
+                  type="button"
+                  onClick={() => { const v = ref.current; if (v) { v.currentTime = c.t; void v.play(); } }}
+                  className={cn("flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-surface-2", i === current && "bg-primary-soft font-semibold text-primary")}
+                >
+                  <span className="w-10 shrink-0 font-mono text-xs text-muted">{fmt(c.t)}</span>
+                  <InlineMd className="min-w-0">{c.label}</InlineMd>
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
     </VisualFrame>
   );
 }

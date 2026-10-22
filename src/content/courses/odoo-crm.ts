@@ -33,7 +33,63 @@ export const odooCrm: CourseContent = {
           durationMin: 30,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard"],
-          body: `## 1. Application overview
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/odoo-crm-live.mp4",
+  "poster": "/videos/odoo-crm-live.webp",
+  "title": "Odoo CRM: from new opportunity to won, recorded live in Odoo 20",
+  "duration": "2:44",
+  "caption": "A short introduction, then the process as a continuous live screen recording in an Odoo 20 database with fictional Northwind data. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 13,
+      "label": "What Odoo CRM does"
+    },
+    {
+      "t": 36,
+      "label": "Why it matters"
+    },
+    {
+      "t": 55,
+      "label": "Document flow"
+    },
+    {
+      "t": 78,
+      "label": "Live: Pipeline"
+    },
+    {
+      "t": 90,
+      "label": "Live: Quick create"
+    },
+    {
+      "t": 103,
+      "label": "Live: Open it"
+    },
+    {
+      "t": 112,
+      "label": "Live: Qualify"
+    },
+    {
+      "t": 119,
+      "label": "Live: Quotation"
+    },
+    {
+      "t": 128,
+      "label": "Live: Won"
+    },
+    {
+      "t": 144,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\`
+
+## 1. Application overview
 
 **Odoo CRM** (Customer Relationship Management) is the front door of the Order-to-Cash cycle. It records every potential deal from the very first contact until the deal is either **won** (and handed to Sales as a quotation) or **lost** (with a reason). It does not post any accounting entries and does not move stock; its job is to organise *selling effort* and *predict revenue*.
 

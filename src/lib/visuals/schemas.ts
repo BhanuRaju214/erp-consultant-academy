@@ -262,6 +262,15 @@ export const visualSchemas = {
       .min(2)
       .max(16),
   }),
+  /** Narrated training video (MP4 under /videos/) with a poster image and clickable chapters (seconds). */
+  video: z.object({
+    src: z.string().regex(/^\/videos\/[a-z0-9_.-]+\.mp4$/, "src must be an MP4 under /videos/"),
+    poster: z.string().regex(/^\/videos\/[a-z0-9_.-]+\.(webp|jpg|png)$/).optional(),
+    title: text,
+    caption: z.string().optional(),
+    duration: z.string().optional(),
+    chapters: z.array(z.object({ t: z.number().min(0), label: text })).max(30).default([]),
+  }),
   /** Exercise: put the items in the right order (items are authored in the correct order and shuffled on screen). */
   order: z.object({ title: z.string().optional(), prompt: text, items: z.array(text).min(3).max(10), explanation: z.string().optional() }),
   /** Exercise: match each left item to its right item (pairs authored correctly; the right side is shuffled). */
