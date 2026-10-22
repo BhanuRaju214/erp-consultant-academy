@@ -45,7 +45,63 @@ export const odooAccounting: CourseContent = {
           durationMin: 40,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard", "enterprise"],
-          body: `## 1. Overview
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/odoo-accounting-live.mp4",
+  "poster": "/videos/odoo-accounting-live.webp",
+  "title": "Odoo Accounting: invoice to payment, recorded live in Odoo 20",
+  "duration": "2:45",
+  "caption": "A short introduction, then the process as a continuous live screen recording in an Odoo 20 database with fictional Northwind data. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 12,
+      "label": "What Odoo Accounting does"
+    },
+    {
+      "t": 39,
+      "label": "Why it matters"
+    },
+    {
+      "t": 57,
+      "label": "Document flow"
+    },
+    {
+      "t": 80,
+      "label": "Live: New invoice"
+    },
+    {
+      "t": 89,
+      "label": "Live: Customer"
+    },
+    {
+      "t": 97,
+      "label": "Live: Invoice line"
+    },
+    {
+      "t": 109,
+      "label": "Live: Post"
+    },
+    {
+      "t": 119,
+      "label": "Live: Register payment"
+    },
+    {
+      "t": 129,
+      "label": "Live: In Payment"
+    },
+    {
+      "t": 142,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\`
+
+## 1. Overview
 
 Accounting is where every operational transaction in Odoo ends up. A sales invoice, a vendor bill, a stock receipt (with automated valuation), a payroll run or a POS session all become **journal entries** made of **journal items** (debit/credit lines on accounts). As a techno-functional consultant you must be able to explain *both* the business document and the entry it produces.
 

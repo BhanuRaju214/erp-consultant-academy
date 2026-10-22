@@ -33,7 +33,79 @@ export const odooPurchase: CourseContent = {
           durationMin: 30,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard"],
-          body: `## 1. Application overview
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/odoo-purchase-live.mp4",
+  "poster": "/videos/odoo-purchase-live.webp",
+  "title": "Odoo Purchase: RFQ to vendor bill, recorded live in Odoo 20",
+  "duration": "3:16",
+  "caption": "A short introduction, then the process as a continuous live screen recording in an Odoo 20 database with fictional Northwind data. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 14,
+      "label": "What Odoo Purchase does"
+    },
+    {
+      "t": 37,
+      "label": "Why it matters"
+    },
+    {
+      "t": 58,
+      "label": "Document flow"
+    },
+    {
+      "t": 80,
+      "label": "Live: Create an RFQ"
+    },
+    {
+      "t": 89,
+      "label": "Live: Vendor"
+    },
+    {
+      "t": 97,
+      "label": "Live: Product"
+    },
+    {
+      "t": 108,
+      "label": "Live: Quantity"
+    },
+    {
+      "t": 117,
+      "label": "Live: Deliver to"
+    },
+    {
+      "t": 124,
+      "label": "Live: Confirm the order"
+    },
+    {
+      "t": 135,
+      "label": "Live: Receive"
+    },
+    {
+      "t": 145,
+      "label": "Live: Vendor bill"
+    },
+    {
+      "t": 152,
+      "label": "Live: Link the order"
+    },
+    {
+      "t": 161,
+      "label": "Live: Post the bill"
+    },
+    {
+      "t": 177,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\`
+
+## 1. Application overview
 
 The **Odoo Purchase** app manages buying from vendors: **Requests for Quotation (RFQ)**, confirmed **Purchase Orders (PO)**, the link to **receipts** in Inventory and the control of **vendor bills** in Accounting. It is the core of the Procure-to-Pay (P2P) cycle.
 

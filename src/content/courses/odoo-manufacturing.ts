@@ -38,7 +38,63 @@ export const odooManufacturing: CourseContent = {
           durationMin: 40,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard"],
-          body: `## 1. Application overview
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/odoo-manufacturing-live.mp4",
+  "poster": "/videos/odoo-manufacturing-live.webp",
+  "title": "Odoo Manufacturing: a manufacturing order, recorded live in Odoo 20",
+  "duration": "2:37",
+  "caption": "A short introduction, then the process as a continuous live screen recording in an Odoo 20 database with fictional Northwind data. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 13,
+      "label": "What Odoo Manufacturing does"
+    },
+    {
+      "t": 33,
+      "label": "Why it matters"
+    },
+    {
+      "t": 52,
+      "label": "Document flow"
+    },
+    {
+      "t": 78,
+      "label": "Live: New MO"
+    },
+    {
+      "t": 87,
+      "label": "Live: Product"
+    },
+    {
+      "t": 95,
+      "label": "Live: Quantity"
+    },
+    {
+      "t": 103,
+      "label": "Live: Operation type"
+    },
+    {
+      "t": 112,
+      "label": "Live: Confirm"
+    },
+    {
+      "t": 120,
+      "label": "Live: Produce"
+    },
+    {
+      "t": 136,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\`
+
+## 1. Application overview
 
 A manufacturer buys raw materials, transforms them using people and machines, and sells something worth more than the sum of its parts. The **Manufacturing** app (technical name *mrp*) records *what* a product is made of, *where and how long* it takes to make, *when* it must be made and *what it cost*. It sits directly on top of Inventory: a manufacturing order (MO) is, underneath, a set of stock moves that consume components into a virtual **Production** location and bring finished goods back out of it.
 

@@ -35,7 +35,59 @@ export const implementationMethodology: CourseContent = {
           durationMin: 25,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-implementation-approaches.mp4",
+  "poster": "/videos/impl-implementation-approaches.webp",
+  "title": "Video: Implementation Approaches: Waterfall, Agile and Hybrid",
+  "duration": "5:19",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "Business context"
+    },
+    {
+      "t": 46,
+      "label": "Why a methodology"
+    },
+    {
+      "t": 77,
+      "label": "Waterfall"
+    },
+    {
+      "t": 107,
+      "label": "Agile"
+    },
+    {
+      "t": 144,
+      "label": "Hybrid"
+    },
+    {
+      "t": 174,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 212,
+      "label": "The nine phases"
+    },
+    {
+      "t": 245,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 286,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 Two fictional clients sign ERP contracts in the same week. **Atlas Precision Engineering** wants a fixed price and a fixed go-live date approved by its board. **BrightPath Learning Services** wants to start using CRM and invoicing within six weeks and "figure out the rest as we go". Both projects need a methodology — but not the same one. A methodology is simply an agreed way of moving from "we signed" to "the business runs on the new system" with predictable quality.
 
@@ -210,7 +262,59 @@ Phases 4–7 often overlap in iterations; phases 1–3 and 8 are usually gated b
           durationMin: 40,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-1-business-discovery.mp4",
+  "poster": "/videos/impl-phase-1-business-discovery.webp",
+  "title": "Video: Phase 1 — Business Discovery",
+  "duration": "5:34",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "Business context"
+    },
+    {
+      "t": 56,
+      "label": "Objectives"
+    },
+    {
+      "t": 90,
+      "label": "Activities"
+    },
+    {
+      "t": 130,
+      "label": "Interviews"
+    },
+    {
+      "t": 165,
+      "label": "Probing a pain point"
+    },
+    {
+      "t": 204,
+      "label": "Pain-point register"
+    },
+    {
+      "t": 230,
+      "label": "Common pitfalls"
+    },
+    {
+      "t": 269,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 299,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Crescent Tiles & Stone** (fictional) imports tiles, stocks them in two warehouses and sells to contractors and walk-in retail customers. The owner says: "We need Odoo for sales and stock." In discovery the consultant learns that tiles are sold by box but quoted by square metre, that batches differ in shade so customers must receive a single batch, and that contractors get credit while retail customers pay upfront. None of this was in the original request. **Discovery exists to find what the client did not think to tell you.**
 
@@ -392,7 +496,59 @@ At **Crescent Tiles & Stone**, discovery revealed three unit-of-measure needs (s
           durationMin: 40,
           odooVersions: "Version-independent (examples use Odoo 17.0)",
           scope: ["standard", "configuration", "customization"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-2-requirement-analysis.mp4",
+  "poster": "/videos/impl-phase-2-requirement-analysis.webp",
+  "title": "Video: Phase 2 — Requirement Analysis",
+  "duration": "5:28",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "Business context"
+    },
+    {
+      "t": 49,
+      "label": "Good requirements"
+    },
+    {
+      "t": 82,
+      "label": "Requirement types"
+    },
+    {
+      "t": 121,
+      "label": "Classification"
+    },
+    {
+      "t": 158,
+      "label": "MoSCoW"
+    },
+    {
+      "t": 190,
+      "label": "Role-play"
+    },
+    {
+      "t": 230,
+      "label": "The RTM"
+    },
+    {
+      "t": 258,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 293,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 Following discovery at **Crescent Tiles & Stone**, the consultant has 40 pages of notes. The client's managing director asks: "So how much will it cost and what exactly will we get?" To answer, notes must become a structured, numbered, classified and prioritised list of requirements. That list — the **Requirement Traceability Matrix (RTM)** — will be used to estimate effort, design, test and accept the system.
 
@@ -585,7 +741,59 @@ Crescent's draft RTM had 112 requirements, 70% marked Must. In a prioritisation 
           durationMin: 40,
           odooVersions: "Version-independent (examples use Odoo 17.0)",
           scope: ["standard", "configuration", "customization"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-3-to-be-process-design.mp4",
+  "poster": "/videos/impl-phase-3-to-be-process-design.webp",
+  "title": "Video: Phase 3 — TO-BE Process Design",
+  "duration": "5:28",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 19,
+      "label": "Business context"
+    },
+    {
+      "t": 54,
+      "label": "Designing TO-BE"
+    },
+    {
+      "t": 89,
+      "label": "TO-BE flow"
+    },
+    {
+      "t": 126,
+      "label": "Mapping"
+    },
+    {
+      "t": 158,
+      "label": "Approvals"
+    },
+    {
+      "t": 194,
+      "label": "Fit-gap"
+    },
+    {
+      "t": 225,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 258,
+      "label": "Common pitfalls"
+    },
+    {
+      "t": 293,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Maple Leaf Office Interiors** (fictional) designs and fits out offices. Today, a designer prepares a quotation in a spreadsheet, the owner approves it by email, a buyer orders items from several vendors, and installation is scheduled on a whiteboard. Requirements are now signed off. The next question is: **how will the business work in the future, using the ERP?** That is the TO-BE design — the bridge between requirements and configuration.
 
@@ -791,7 +999,59 @@ Maple Leaf initially wanted three approval levels for every quotation. In a conf
           durationMin: 45,
           odooVersions: "Odoo 17.0 (concepts version-independent)",
           scope: ["standard", "configuration", "enterprise"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-4-solution-configuration.mp4",
+  "poster": "/videos/impl-phase-4-solution-configuration.webp",
+  "title": "Video: Phase 4 — Solution Configuration",
+  "duration": "5:32",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "Business context"
+    },
+    {
+      "t": 52,
+      "label": "Objectives"
+    },
+    {
+      "t": 79,
+      "label": "Configuration order"
+    },
+    {
+      "t": 122,
+      "label": "Key areas"
+    },
+    {
+      "t": 159,
+      "label": "Key areas"
+    },
+    {
+      "t": 195,
+      "label": "Configuration workbook"
+    },
+    {
+      "t": 229,
+      "label": "Do and don't"
+    },
+    {
+      "t": 263,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 293,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Riverbend Distributors** (fictional) has two companies (a trading company and a service company), three warehouses and 45 users. TO-BE is signed off. The consultant now turns design into a working system. Configuration done in the wrong order — or not documented — causes rework: for example, products created before units of measure are finalised, or journals created before the chart of accounts is reviewed.
 
@@ -962,7 +1222,59 @@ At Riverbend, the consultant initially set up branches as separate companies. Du
           durationMin: 45,
           odooVersions: "Version-independent (examples use Odoo 17.0)",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-5-data-migration.mp4",
+  "poster": "/videos/impl-phase-5-data-migration.webp",
+  "title": "Video: Phase 5 — Data Migration",
+  "duration": "5:12",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "Business context"
+    },
+    {
+      "t": 49,
+      "label": "Migration process"
+    },
+    {
+      "t": 86,
+      "label": "Dependency order"
+    },
+    {
+      "t": 119,
+      "label": "Opening balances"
+    },
+    {
+      "t": 153,
+      "label": "Mapping sheet"
+    },
+    {
+      "t": 184,
+      "label": "Reconciliation"
+    },
+    {
+      "t": 217,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 246,
+      "label": "Common mistakes"
+    },
+    {
+      "t": 279,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Summit Hardware Supplies** (fictional) has 6,200 products, 1,100 customers, 240 vendors and four years of history spread across an old accounting package and spreadsheets. On go-live morning, the sales team must find every customer, the warehouse must see correct stock, and finance must start with balances matching the old system to the cent. Data migration is where many projects slip — because data is always dirtier than the client believes.
 
@@ -1140,7 +1452,63 @@ Summit's first trial load rejected 900 products because category codes in the it
           durationMin: 40,
           odooVersions: "Version-independent (examples use Odoo 17.0)",
           scope: ["customization", "third-party"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-6-development-integration.mp4",
+  "poster": "/videos/impl-phase-6-development-integration.webp",
+  "title": "Video: Phase 6 — Development and Integration",
+  "duration": "5:36",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 19,
+      "label": "Business context"
+    },
+    {
+      "t": 53,
+      "label": "Delivery path"
+    },
+    {
+      "t": 87,
+      "label": "Technical specification"
+    },
+    {
+      "t": 119,
+      "label": "Business logic"
+    },
+    {
+      "t": 150,
+      "label": "Build practices"
+    },
+    {
+      "t": 182,
+      "label": "Integration design"
+    },
+    {
+      "t": 218,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 249,
+      "label": "Testing before UAT"
+    },
+    {
+      "t": 276,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 302,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Lakeside Fresh Foods** (fictional) needs three things the standard system does not provide: a pallet label in a retailer's format, an automatic order import from a retail chain's EDI provider, and an expiry-date warning on delivery screens. Each gap was approved in the fit-gap analysis. The techno-functional consultant's job is now to turn approved gaps into **clear technical specifications**, coordinate the build and verify the result — so the developer builds the right thing, once.
 
@@ -1356,7 +1724,59 @@ The EDI integration for Lakeside was specified with a payload mapping table and 
           durationMin: 45,
           odooVersions: "Version-independent (examples use Odoo 17.0)",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-7-testing-training.mp4",
+  "poster": "/videos/impl-phase-7-testing-training.webp",
+  "title": "Video: Phase 7 — Testing and Training",
+  "duration": "5:16",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 19,
+      "label": "Business context"
+    },
+    {
+      "t": 53,
+      "label": "Test layers"
+    },
+    {
+      "t": 87,
+      "label": "Test cases"
+    },
+    {
+      "t": 118,
+      "label": "Defect severity"
+    },
+    {
+      "t": 155,
+      "label": "User acceptance testing"
+    },
+    {
+      "t": 190,
+      "label": "Training"
+    },
+    {
+      "t": 220,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 253,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 283,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Pinecrest Building Materials** (fictional) planned one week for testing. On day two, users found that invoices for partial deliveries were wrong, a purchase approval blocked every order, and two warehouse users could not see delivery orders at all. Testing was extended to four weeks — painful, but far cheaper than finding these problems after go-live. Testing proves the system works; training proves people can use it. Both are required for **business acceptance**.
 
@@ -1534,7 +1954,63 @@ Pinecrest's revised UAT used 85 test cases traced to 62 Must/Should requirements
           durationMin: 40,
           odooVersions: "Version-independent (examples use Odoo 17.0)",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-8-go-live.mp4",
+  "poster": "/videos/impl-phase-8-go-live.webp",
+  "title": "Video: Phase 8 — Go-Live",
+  "duration": "5:31",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "Business context"
+    },
+    {
+      "t": 46,
+      "label": "Key concepts"
+    },
+    {
+      "t": 75,
+      "label": "Cutover timeline"
+    },
+    {
+      "t": 108,
+      "label": "Cutover weekend"
+    },
+    {
+      "t": 138,
+      "label": "Readiness criteria"
+    },
+    {
+      "t": 170,
+      "label": "Go or no-go"
+    },
+    {
+      "t": 202,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 237,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 268,
+      "label": "Hypercare"
+    },
+    {
+      "t": 299,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Bluewater Marine Supplies** (fictional) chose to go live on the first working day of a new month. On Friday evening the old system was frozen; over the weekend the team loaded final data and reconciled balances; on Monday 40 users logged in and started trading. Behind this calm Monday sat a detailed **cutover plan** rehearsed twice. Go-live is not a single click — it is a carefully choreographed sequence of tasks with owners, timings and checkpoints.
 
@@ -1735,7 +2211,63 @@ At Bluewater, the rehearsal showed the opening stock load took 5 hours instead o
           durationMin: 40,
           odooVersions: "Version-independent (examples use Odoo 17.0)",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/impl-phase-9-post-go-live-support.mp4",
+  "poster": "/videos/impl-phase-9-post-go-live-support.webp",
+  "title": "Video: Phase 9 — Post-Go-Live Support",
+  "duration": "5:43",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 20,
+      "label": "Business context"
+    },
+    {
+      "t": 51,
+      "label": "Ticket lifecycle"
+    },
+    {
+      "t": 79,
+      "label": "Categories"
+    },
+    {
+      "t": 114,
+      "label": "Priority"
+    },
+    {
+      "t": 148,
+      "label": "Support ticket"
+    },
+    {
+      "t": 182,
+      "label": "Root-cause analysis"
+    },
+    {
+      "t": 219,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 253,
+      "label": "Adoption and KPIs"
+    },
+    {
+      "t": 283,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 313,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 Three months after go-live, **Orchid Event Rentals** (fictional) has a growing pile of emails titled "urgent!!", users who have quietly returned to spreadsheets for quotations, and a manager asking whether the ERP was worth it. Go-live is the beginning of value, not the end of the project. Structured post-go-live support protects the investment: issues are logged and solved systematically, knowledge is captured, and adoption is measured.
 

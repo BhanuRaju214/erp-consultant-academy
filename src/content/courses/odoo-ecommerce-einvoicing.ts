@@ -38,7 +38,59 @@ export const odooEcommerceEinvoicing: CourseContent = {
           durationMin: 40,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard"],
-          body: `## 1. Overview
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/odoo-ecommerce-live.mp4",
+  "poster": "/videos/odoo-ecommerce-live.webp",
+  "title": "Odoo eCommerce: fulfilling a web order, recorded live in Odoo 20",
+  "duration": "2:37",
+  "caption": "A short introduction, then the process as a continuous live screen recording in an Odoo 20 database with fictional Northwind data. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 13,
+      "label": "What Odoo eCommerce does"
+    },
+    {
+      "t": 41,
+      "label": "Why it matters"
+    },
+    {
+      "t": 61,
+      "label": "Document flow"
+    },
+    {
+      "t": 82,
+      "label": "Live: Web orders"
+    },
+    {
+      "t": 93,
+      "label": "Live: Confirm payment"
+    },
+    {
+      "t": 103,
+      "label": "Live: Pick"
+    },
+    {
+      "t": 111,
+      "label": "Live: Deliver"
+    },
+    {
+      "t": 122,
+      "label": "Live: Invoice"
+    },
+    {
+      "t": 138,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\`
+
+## 1. Overview
 
 An online retailer sells through a web shop instead of (or next to) a physical store. The customer serves themselves: they browse, add items to a cart, pay online and expect a confirmation email within seconds. Behind that experience the retailer still has to do everything a classic distributor does — reserve stock, pick and ship, invoice, collect cash and handle returns — but at **high volume, low value per order and with almost no human touch**. That is why automation and clean master data matter more in eCommerce than in almost any other industry.
 

@@ -50,6 +50,8 @@ export default async function ProcessPage({ params }: { params: Promise<{ slug: 
         ))}
       </div>
 
+      {p.video && <Markdown>{p.video}</Markdown>}
+
       <Card>
         <CardTitle>Business objective</CardTitle>
         <p className="mt-2 text-sm leading-relaxed text-fg">{p.objective}</p>
@@ -61,7 +63,7 @@ export default async function ProcessPage({ params }: { params: Promise<{ slug: 
         <ProcessFlow steps={p.steps} />
       </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <Card>
           <CardTitle>Stakeholders & responsibilities</CardTitle>
           <table className="mt-3 w-full text-sm">
@@ -97,7 +99,7 @@ export default async function ProcessPage({ params }: { params: Promise<{ slug: 
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <Card>
           <CardTitle>Accounting impact</CardTitle>
           <Markdown className="mt-2 text-sm">{p.accountingImpact}</Markdown>
@@ -108,7 +110,7 @@ export default async function ProcessPage({ params }: { params: Promise<{ slug: 
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2 [&>*]:min-w-0">
         <Card>
           <CardTitle>Exceptions & business risks</CardTitle>
           <ul className="mt-3 space-y-3 text-sm">

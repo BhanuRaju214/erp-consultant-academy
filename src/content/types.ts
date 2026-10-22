@@ -145,6 +145,8 @@ export interface BusinessProcessContent {
   reports: string[];
   odooHandling: string; // markdown
   example: { company: string; narrative: string }; // narrative markdown
+  /** Optional narrated video (a visual-video block, markdown). */
+  video?: string;
   quiz?: AssessmentContent;
 }
 

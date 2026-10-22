@@ -35,7 +35,59 @@ export const odooSales: CourseContent = {
           durationMin: 30,
           odooVersions: "Odoo 17.0 / 18.0",
           scope: ["standard"],
-          body: `## 1. Application overview
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/odoo-sales-q2i.mp4",
+  "poster": "/videos/odoo-sales-q2i.webp",
+  "title": "Odoo Sales: quotation to invoice, recorded live in Odoo 20",
+  "duration": "3:37",
+  "caption": "A short introduction, then the full process as a continuous live screen recording in an Odoo 20 database with fictional Northwind data.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 12,
+      "label": "What Odoo Sales does"
+    },
+    {
+      "t": 33,
+      "label": "Why it matters"
+    },
+    {
+      "t": 50,
+      "label": "Document flow"
+    },
+    {
+      "t": 72,
+      "label": "Live: create the quotation"
+    },
+    {
+      "t": 120,
+      "label": "Live: confirm the order"
+    },
+    {
+      "t": 132,
+      "label": "Live: pick and deliver"
+    },
+    {
+      "t": 156,
+      "label": "Live: create and post the invoice"
+    },
+    {
+      "t": 177,
+      "label": "Live: register the payment"
+    },
+    {
+      "t": 200,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\`
+
+## 1. Application overview
 
 The **Odoo Sales** app manages the commercial agreement with the customer: the **quotation**, its approval by the customer, and the confirmed **sales order** that triggers delivery and invoicing. It sits between CRM (opportunities) and Inventory/Accounting (delivery and invoice).
 

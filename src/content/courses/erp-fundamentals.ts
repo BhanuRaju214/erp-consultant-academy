@@ -53,7 +53,55 @@ export const erpFundamentals: CourseContent = {
           durationMin: 20,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-why-businesses-implement-erp.mp4",
+  "poster": "/videos/erpf-why-businesses-implement-erp.webp",
+  "title": "Video: Why Businesses Implement ERP",
+  "duration": "5:23",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "Business context"
+    },
+    {
+      "t": 53,
+      "label": "Business drivers"
+    },
+    {
+      "t": 94,
+      "label": "Benefits"
+    },
+    {
+      "t": 131,
+      "label": "Triggers by industry"
+    },
+    {
+      "t": 172,
+      "label": "The business case"
+    },
+    {
+      "t": 206,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 247,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 282,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 Companies rarely buy an ERP because it is fashionable. They buy one because something hurts: customers complain about late deliveries, the auditor finds stock differences, the owner cannot get a profit figure without waiting three weeks, or the business has grown from one branch to five and the old tools cannot cope.
 
@@ -196,7 +244,55 @@ You must turn vague wishes ("we want everything automated") into prioritised, me
           durationMin: 25,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-problems-with-disconnected-applications.mp4",
+  "poster": "/videos/erpf-problems-with-disconnected-applications.webp",
+  "title": "Video: Problems with Disconnected Applications",
+  "duration": "5:13",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 16,
+      "label": "Business context"
+    },
+    {
+      "t": 52,
+      "label": "Core problems"
+    },
+    {
+      "t": 93,
+      "label": "Core problems"
+    },
+    {
+      "t": 127,
+      "label": "Core problems"
+    },
+    {
+      "t": 164,
+      "label": "Measuring the cost"
+    },
+    {
+      "t": 199,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 235,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 270,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 Most small and medium businesses grow organically. They start with spreadsheets, add a standalone accounting package, then an online store, a separate CRM, perhaps a courier portal. Each tool solves one problem well. Over time, the company ends up with **islands of data** connected only by people re-typing information.
 
@@ -359,7 +455,55 @@ Some companies try to "glue" separate tools together with integrations. This can
           durationMin: 30,
           odooVersions: "Version-independent (Odoo used as example)",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-erp-architecture-components.mp4",
+  "poster": "/videos/erpf-erp-architecture-components.webp",
+  "title": "Video: ERP Architecture and Major Components",
+  "duration": "5:33",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 19,
+      "label": "Business context"
+    },
+    {
+      "t": 53,
+      "label": "The layered view"
+    },
+    {
+      "t": 96,
+      "label": "Components"
+    },
+    {
+      "t": 140,
+      "label": "Components"
+    },
+    {
+      "t": 177,
+      "label": "Shared master data"
+    },
+    {
+      "t": 216,
+      "label": "Three kinds of data"
+    },
+    {
+      "t": 255,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 292,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 A finance director of **Vertex Build Contractors** (fictional) asks: "If I change a customer's payment terms in the sales screen, will the accountant see it?" To answer confidently you need to understand how an ERP is put together. A techno-functional consultant does not need to be a system architect, but must understand the layers well enough to explain behaviour, diagnose issues and talk to developers.
 
@@ -524,7 +668,55 @@ At **Vertex Build Contractors** the finance director's question has a simple ans
           durationMin: 20,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-crm-vs-erp-vs-accounting.mp4",
+  "poster": "/videos/erpf-crm-vs-erp-vs-accounting.webp",
+  "title": "Video: CRM vs ERP vs Accounting Software vs Standalone Apps",
+  "duration": "5:25",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 16,
+      "label": "Business context"
+    },
+    {
+      "t": 50,
+      "label": "The categories"
+    },
+    {
+      "t": 89,
+      "label": "Comparison"
+    },
+    {
+      "t": 129,
+      "label": "When to choose"
+    },
+    {
+      "t": 174,
+      "label": "Hidden cost"
+    },
+    {
+      "t": 209,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 253,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 282,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 Clients often say "we already have software". **PeakForm Retail** (fictional, 6 sports-goods stores) has a popular accounting package, a cloud CRM, and a point-of-sale system. The owner asks: "Why do I need ERP? Can't I just connect what I have?" To answer honestly you must understand what each category of software does and where its boundaries lie.
 
@@ -646,7 +838,55 @@ For **PeakForm Retail** the consultant mapped the flows. Store sales went from P
           durationMin: 20,
           odooVersions: "Version-independent (Odoo used as example)",
           scope: ["standard", "enterprise"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-cloud-vs-on-premises.mp4",
+  "poster": "/videos/erpf-cloud-vs-on-premises.webp",
+  "title": "Video: Cloud vs On-Premises ERP",
+  "duration": "5:29",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 17,
+      "label": "Business context"
+    },
+    {
+      "t": 51,
+      "label": "Deployment models"
+    },
+    {
+      "t": 89,
+      "label": "Comparison"
+    },
+    {
+      "t": 126,
+      "label": "Odoo example"
+    },
+    {
+      "t": 169,
+      "label": "Selection criteria"
+    },
+    {
+      "t": 211,
+      "label": "Shared responsibility"
+    },
+    {
+      "t": 248,
+      "label": "Real-world scenario"
+    },
+    {
+      "t": 282,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Harbor Steelworks** (fictional) is a fabrication workshop in an industrial zone with unreliable internet. **Lumen Consulting Group** (fictional) is a 25-person advisory firm whose staff work from client sites and home. Both are choosing an ERP — and the right deployment model for each is different. Deployment choice affects cost, control, customization options, upgrades and who is responsible for security.
 
@@ -791,7 +1031,59 @@ Note the last two rows: **users, access and data quality are always the client's
           durationMin: 25,
           odooVersions: "Version-independent (Odoo used as example)",
           scope: ["standard", "configuration"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-saas-hosting-environments-access.mp4",
+  "poster": "/videos/erpf-saas-hosting-environments-access.webp",
+  "title": "Video: SaaS, Hosting, Environments, Databases and User Access",
+  "duration": "5:38",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 27,
+      "label": "Business context"
+    },
+    {
+      "t": 55,
+      "label": "Environments"
+    },
+    {
+      "t": 87,
+      "label": "Promotion path"
+    },
+    {
+      "t": 116,
+      "label": "Config vs code"
+    },
+    {
+      "t": 149,
+      "label": "Databases"
+    },
+    {
+      "t": 185,
+      "label": "User access"
+    },
+    {
+      "t": 224,
+      "label": "Access matrix"
+    },
+    {
+      "t": 254,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 296,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 Two weeks before go-live at **Meridian Wholesale Foods** (fictional), a junior consultant tested a new tax setting directly in the live database. Invoices issued that afternoon used the wrong tax rate and had to be credited and re-issued. The lesson: **never experiment in production**. Professional implementations use separate environments, controlled databases and disciplined user access.
 
@@ -957,7 +1249,59 @@ Support tickets about "mysterious" setting changes dropped to zero.
           durationMin: 25,
           odooVersions: "Version-independent (Odoo used as example)",
           scope: ["standard", "configuration", "customization", "enterprise"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-standard-vs-customization.mp4",
+  "poster": "/videos/erpf-standard-vs-customization.webp",
+  "title": "Video: Standard ERP vs Customization",
+  "duration": "5:42",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "Business context"
+    },
+    {
+      "t": 55,
+      "label": "Three levels"
+    },
+    {
+      "t": 92,
+      "label": "Low-code"
+    },
+    {
+      "t": 121,
+      "label": "Standard first"
+    },
+    {
+      "t": 157,
+      "label": "Long-term cost"
+    },
+    {
+      "t": 197,
+      "label": "Good reasons"
+    },
+    {
+      "t": 222,
+      "label": "Classify"
+    },
+    {
+      "t": 265,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 303,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Granite & Co Construction** (fictional) asked for 140 changes during their ERP project: custom screens, renamed fields, new approval steps, special reports. Two years later, upgrading to a newer version was quoted at almost the cost of the original implementation, because every customization had to be re-tested and many re-written. Meanwhile **Oakridge Distributors** (fictional) adapted its processes to the standard system, kept just six customizations, and upgraded in three weeks.
 
@@ -1114,7 +1458,59 @@ This classification drives effort estimates and the fit-gap analysis covered in 
           durationMin: 20,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-consultant-types.mp4",
+  "poster": "/videos/erpf-consultant-types.webp",
+  "title": "Video: Functional vs Technical vs Techno-Functional Consultant",
+  "duration": "5:38",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 23,
+      "label": "Business context"
+    },
+    {
+      "t": 55,
+      "label": "Three profiles"
+    },
+    {
+      "t": 100,
+      "label": "Skills"
+    },
+    {
+      "t": 136,
+      "label": "A day in the life"
+    },
+    {
+      "t": 174,
+      "label": "Diagnosing tickets"
+    },
+    {
+      "t": 215,
+      "label": "Real-world fix"
+    },
+    {
+      "t": 251,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 275,
+      "label": "Career path"
+    },
+    {
+      "t": 300,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 A client of the fictional partner **Northwind ERP Partners** reports: "When we deliver a partial order, the backorder doesn't appear on the warehouse screen." Who should take this ticket? A functional consultant might find it is a configuration choice. A technical consultant might find a bug in a customization. A techno-functional consultant can investigate both — and that is why the role is in demand.
 
@@ -1284,7 +1680,55 @@ At **Northwind ERP Partners**, the backorder ticket went to a techno-functional 
           durationMin: 25,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-roles-and-raci.mp4",
+  "poster": "/videos/erpf-roles-and-raci.webp",
+  "title": "Video: Project Roles and RACI",
+  "duration": "5:21",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 22,
+      "label": "Business context"
+    },
+    {
+      "t": 50,
+      "label": "Client side"
+    },
+    {
+      "t": 94,
+      "label": "Partner and vendor"
+    },
+    {
+      "t": 132,
+      "label": "RACI explained"
+    },
+    {
+      "t": 163,
+      "label": "Sample RACI"
+    },
+    {
+      "t": 202,
+      "label": "Common problems"
+    },
+    {
+      "t": 241,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 282,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 At **Sunrise Retail Group** (fictional, 12 stores), the ERP project stalled for six weeks because nobody could approve the pricing design. Sales said finance owned it; finance said it was a sales decision; the implementation partner was waiting. Clear roles — and a **RACI** matrix — would have prevented this.
 
@@ -1431,7 +1875,55 @@ Notice two patterns:
           durationMin: 30,
           odooVersions: "Version-independent",
           scope: ["standard"],
-          body: `## Business context
+          body: `\`\`\`visual-video
+{
+  "src": "/videos/erpf-costs-benefits-risks-success-factors.mp4",
+  "poster": "/videos/erpf-costs-benefits-risks-success-factors.webp",
+  "title": "Video: Implementation Costs, Benefits, Risks and Success Factors",
+  "duration": "5:24",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 19,
+      "label": "Business context"
+    },
+    {
+      "t": 56,
+      "label": "Full cost picture"
+    },
+    {
+      "t": 93,
+      "label": "Benefits"
+    },
+    {
+      "t": 128,
+      "label": "Major risks"
+    },
+    {
+      "t": 167,
+      "label": "Success factors"
+    },
+    {
+      "t": 210,
+      "label": "Phased vs big bang"
+    },
+    {
+      "t": 241,
+      "label": "Consultant tip"
+    },
+    {
+      "t": 281,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+## Business context
 
 **Tidewater Components** (fictional, an electronics assembler with 200 staff) approved an ERP budget based only on software subscription and consultant fees. Six months in, they discovered the "hidden" costs: staff overtime for testing, a new barcode scanner fleet, data cleansing by a temporary team and two extra months of the old system's licence. The project went 45% over budget — not because anyone was dishonest, but because the full cost picture was never drawn.
 

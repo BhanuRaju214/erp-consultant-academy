@@ -4,7 +4,55 @@
  * hero → problem (before/after) → definition → resources → history → integration flow →
  * scenario → misconceptions → try it → check → takeaways.
  */
-export const whatIsErpBody = `\`\`\`visual-hero
+export const whatIsErpBody = `\`\`\`visual-video
+{
+  "src": "/videos/erpf-what-is-erp.mp4",
+  "poster": "/videos/erpf-what-is-erp.webp",
+  "title": "Video: What is ERP?",
+  "duration": "5:44",
+  "caption": "Narrated video lesson built from this lesson's content. Narration: Indian English neural voice.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 21,
+      "label": "The business problem"
+    },
+    {
+      "t": 60,
+      "label": "Definition"
+    },
+    {
+      "t": 100,
+      "label": "The resources"
+    },
+    {
+      "t": 141,
+      "label": "A short history"
+    },
+    {
+      "t": 187,
+      "label": "How integration works"
+    },
+    {
+      "t": 225,
+      "label": "After go-live"
+    },
+    {
+      "t": 260,
+      "label": "What ERP is not"
+    },
+    {
+      "t": 300,
+      "label": "Key takeaways"
+    }
+  ]
+}
+\`\`\`
+
+\`\`\`visual-hero
 {
   "eyebrow": "ERP Fundamentals · Lesson 1",
   "title": "What is ERP?",

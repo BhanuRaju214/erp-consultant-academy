@@ -299,6 +299,73 @@ Example: sale of goods for 10,000 net + 15% tax (1,500). Cost of the goods: 6,00
 - Decide **invoicing policy** per product type early — it drives cash-flow timing and customer disputes.
 - Explain the **interim accounts** (Stock Output, Outstanding Receipts) to the finance team during design; they are a frequent source of confusion.
 - Odoo 18.0 note: payments can be configured without an outstanding account, so the journal entry appears only at bank reconciliation — confirm the client's preference.`,
+  video: `\`\`\`visual-video
+{
+  "src": "/videos/o2c-explained.mp4",
+  "poster": "/videos/o2c-explained.webp",
+  "title": "Order to Cash, explained",
+  "duration": "6:03",
+  "caption": "Narrated explainer built from this process: the steps, who does what, the Odoo documents, the journal entries, risks and controls.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 14,
+      "label": "What is O2C?"
+    },
+    {
+      "t": 38,
+      "label": "Who is involved"
+    },
+    {
+      "t": 68,
+      "label": "The 9 steps"
+    },
+    {
+      "t": 98,
+      "label": "Steps 1 and 2"
+    },
+    {
+      "t": 128,
+      "label": "Step 3"
+    },
+    {
+      "t": 156,
+      "label": "Step 4"
+    },
+    {
+      "t": 182,
+      "label": "Step 5"
+    },
+    {
+      "t": 207,
+      "label": "Step 6"
+    },
+    {
+      "t": 235,
+      "label": "Step 7"
+    },
+    {
+      "t": 258,
+      "label": "Steps 8 and 9"
+    },
+    {
+      "t": 281,
+      "label": "Accounting impact"
+    },
+    {
+      "t": 314,
+      "label": "Risks and controls"
+    },
+    {
+      "t": 340,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\``,
   example: {
     company: "Northwind Office Supplies Pvt. Ltd. (fictional distributor of office furniture and stationery)",
     narrative: `\`\`\`visual-story
@@ -1047,6 +1114,69 @@ No journal entry — a PO is a commitment, not a liability.
 - Agree the meaning of "requisition" with the client — many expect an internal request, while the Odoo module named purchase_requisition provides vendor agreements.
 - Use **'Received quantities'** bill control for stock items to enforce the 3-way match in practice.
 - Reconcile the **Stock Input** account every month end — it is the best indicator of unmatched receipts and bills.`,
+  video: `\`\`\`visual-video
+{
+  "src": "/videos/p2p-explained.mp4",
+  "poster": "/videos/p2p-explained.webp",
+  "title": "Procure to Pay, explained",
+  "duration": "5:37",
+  "caption": "Narrated explainer built from this process: the steps, who does what, the Odoo documents, the journal entries, risks and controls.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 17,
+      "label": "What is P2P?"
+    },
+    {
+      "t": 41,
+      "label": "Who is involved"
+    },
+    {
+      "t": 67,
+      "label": "The 7 steps"
+    },
+    {
+      "t": 93,
+      "label": "Steps 1 and 2"
+    },
+    {
+      "t": 119,
+      "label": "Step 3"
+    },
+    {
+      "t": 143,
+      "label": "Step 4"
+    },
+    {
+      "t": 172,
+      "label": "Step 5"
+    },
+    {
+      "t": 200,
+      "label": "Step 6"
+    },
+    {
+      "t": 229,
+      "label": "Step 7"
+    },
+    {
+      "t": 252,
+      "label": "Accounting impact"
+    },
+    {
+      "t": 284,
+      "label": "Risks and controls"
+    },
+    {
+      "t": 316,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\``,
   example: {
     company: "Stonebridge Builders Ltd. (fictional mid-size construction contractor)",
     narrative: `\`\`\`visual-story
@@ -1749,6 +1879,73 @@ FIFO (first in, first out), LIFO, FEFO (first expiry first out), Closest Locatio
 - Decide costing method per category **before** go-live — changing later requires revaluation.
 - Keep the number of steps minimal; every extra step is daily work for operators.
 - Use a dedicated **opening balance clearing account** for opening stock and reconcile it to the legacy trial balance.`,
+  video: `\`\`\`visual-video
+{
+  "src": "/videos/inventory-explained.mp4",
+  "poster": "/videos/inventory-explained.webp",
+  "title": "Inventory Management, explained",
+  "duration": "6:21",
+  "caption": "Narrated explainer built from this process: the steps, who does what, the Odoo documents, the journal entries, risks and controls.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 16,
+      "label": "What is it?"
+    },
+    {
+      "t": 43,
+      "label": "Who is involved"
+    },
+    {
+      "t": 70,
+      "label": "The 9 steps"
+    },
+    {
+      "t": 98,
+      "label": "Steps 1 and 2"
+    },
+    {
+      "t": 130,
+      "label": "Step 3"
+    },
+    {
+      "t": 156,
+      "label": "Step 4"
+    },
+    {
+      "t": 184,
+      "label": "Step 5"
+    },
+    {
+      "t": 208,
+      "label": "Steps 6 and 7"
+    },
+    {
+      "t": 238,
+      "label": "Step 8"
+    },
+    {
+      "t": 268,
+      "label": "Step 9"
+    },
+    {
+      "t": 295,
+      "label": "Accounting impact"
+    },
+    {
+      "t": 325,
+      "label": "Risks and controls"
+    },
+    {
+      "t": 357,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\``,
   example: {
     company: "UrbanThread Retail Pvt. Ltd. (fictional fashion retailer with one central warehouse and two stores)",
     narrative: `\`\`\`visual-story
@@ -2405,6 +2602,73 @@ Record to Report has no physical stock movements, but inventory is one of the la
 ### Consultant tips
 - Map the legacy CoA to the localization CoA early; avoid duplicating accounts that analytic accounts can handle.
 - Agree on a **month-end close checklist** that names the Odoo report used for each reconciliation.`,
+  video: `\`\`\`visual-video
+{
+  "src": "/videos/r2r-explained.mp4",
+  "poster": "/videos/r2r-explained.webp",
+  "title": "Record to Report, explained",
+  "duration": "6:49",
+  "caption": "Narrated explainer built from this process: the steps, who does what, the Odoo documents, the journal entries, risks and controls.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 17,
+      "label": "What is R2R?"
+    },
+    {
+      "t": 46,
+      "label": "Who is involved"
+    },
+    {
+      "t": 77,
+      "label": "The 9 steps"
+    },
+    {
+      "t": 108,
+      "label": "Steps 1 and 2"
+    },
+    {
+      "t": 140,
+      "label": "Step 3"
+    },
+    {
+      "t": 173,
+      "label": "Step 4"
+    },
+    {
+      "t": 202,
+      "label": "Steps 5 and 6"
+    },
+    {
+      "t": 233,
+      "label": "Step 7"
+    },
+    {
+      "t": 261,
+      "label": "Step 8"
+    },
+    {
+      "t": 289,
+      "label": "Step 9"
+    },
+    {
+      "t": 319,
+      "label": "Closing entries"
+    },
+    {
+      "t": 352,
+      "label": "Risks and controls"
+    },
+    {
+      "t": 384,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\``,
   example: {
     company: "Clearview Advisory LLP (fictional 35-person management consulting firm)",
     narrative: `\`\`\`visual-story
@@ -3048,6 +3312,69 @@ Odoo 18.0 adds options for posting WIP and labour accounting entries for manufac
 - Start simple: 1-step manufacturing and backflushing, then add steps only when the business really controls a pre-production area.
 - Make sure every work center has a realistic **cost per hour** — otherwise finished goods are undervalued.
 - Explain the **WIP / production location account** to finance before go-live.`,
+  video: `\`\`\`visual-video
+{
+  "src": "/videos/plan-to-produce-explained.mp4",
+  "poster": "/videos/plan-to-produce-explained.webp",
+  "title": "Plan to Produce, explained",
+  "duration": "5:46",
+  "caption": "Narrated explainer built from this process: the steps, who does what, the Odoo documents, the journal entries, risks and controls.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 15,
+      "label": "What is it?"
+    },
+    {
+      "t": 41,
+      "label": "Who is involved"
+    },
+    {
+      "t": 69,
+      "label": "The 7 steps"
+    },
+    {
+      "t": 96,
+      "label": "Steps 1 and 2"
+    },
+    {
+      "t": 127,
+      "label": "Step 3"
+    },
+    {
+      "t": 158,
+      "label": "Step 4"
+    },
+    {
+      "t": 184,
+      "label": "Step 5"
+    },
+    {
+      "t": 211,
+      "label": "Step 6"
+    },
+    {
+      "t": 234,
+      "label": "Step 7"
+    },
+    {
+      "t": 265,
+      "label": "Accounting impact"
+    },
+    {
+      "t": 296,
+      "label": "Risks and controls"
+    },
+    {
+      "t": 326,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\``,
   example: {
     company: "Oakridge Furniture Works Ltd. (fictional furniture manufacturer)",
     narrative: `\`\`\`visual-story
@@ -3684,6 +4011,69 @@ Most project businesses carry little stock, but materials still need control:
 ### Consultant tips
 - Choose the invoicing policy per product line, not per project — one sales order can mix fixed-fee design, timesheet-based supervision and re-billed materials.
 - Set realistic **employee costs**; otherwise profitability looks better than reality.`,
+  video: `\`\`\`visual-video
+{
+  "src": "/videos/project-to-profit-explained.mp4",
+  "poster": "/videos/project-to-profit-explained.webp",
+  "title": "Project to Profit, explained",
+  "duration": "5:48",
+  "caption": "Narrated explainer built from this process: the steps, who does what, the Odoo documents, the journal entries, risks and controls.",
+  "chapters": [
+    {
+      "t": 0,
+      "label": "Introduction"
+    },
+    {
+      "t": 18,
+      "label": "What is it?"
+    },
+    {
+      "t": 45,
+      "label": "Who is involved"
+    },
+    {
+      "t": 70,
+      "label": "The 6 steps"
+    },
+    {
+      "t": 96,
+      "label": "Step 1"
+    },
+    {
+      "t": 123,
+      "label": "Step 2"
+    },
+    {
+      "t": 149,
+      "label": "Step 3"
+    },
+    {
+      "t": 175,
+      "label": "Step 4"
+    },
+    {
+      "t": 203,
+      "label": "Step 5"
+    },
+    {
+      "t": 233,
+      "label": "Step 6"
+    },
+    {
+      "t": 262,
+      "label": "Accounting impact"
+    },
+    {
+      "t": 296,
+      "label": "Risks and controls"
+    },
+    {
+      "t": 326,
+      "label": "Recap"
+    }
+  ]
+}
+\`\`\``,
   example: {
     company: "Lumen & Loom Interiors (fictional interior design studio)",
     narrative: `\`\`\`visual-story
