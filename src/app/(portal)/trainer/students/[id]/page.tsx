@@ -25,7 +25,7 @@ export default async function StudentDetailPage({ params }: { params: Promise<{ 
 
   return (
     <div className="space-y-6">
-      <PageHeader eyebrow={<Link href="/trainer">Trainer dashboard</Link>} title={student.name} description={`${student.email} · ${d.path?.title ?? "no learning path"} · joined ${student.createdAt.toLocaleDateString()}`} />
+      <PageHeader compact eyebrow={<Link href="/trainer">Overview</Link>} title={student.name} description={`${student.email} · ${d.path?.title ?? "no learning path"} · joined ${student.createdAt.toLocaleDateString()}`} />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Lessons" value={`${d.totals.done}/${d.totals.lessons}`} />
         <Stat label="Assessments" value={d.scores.length} />

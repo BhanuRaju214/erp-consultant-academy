@@ -4,7 +4,7 @@ import type { ImportTemplate } from "./templates";
 /** Builds an import workbook: "Data" sheet (Odoo-ready) + "Field Guide" sheet. */
 export async function buildTemplateWorkbook(template: ImportTemplate, rows: Record<string, string>[]): Promise<Buffer> {
   const wb = new ExcelJS.Workbook();
-  wb.creator = "ERP Consultant Academy";
+  wb.creator = "Nexsademy";
   const header = template.fields.map((f) => f.column);
 
   const data = wb.addWorksheet("Data");

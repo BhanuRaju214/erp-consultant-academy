@@ -2,13 +2,12 @@ import Link from "next/link";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { Paperclip } from "lucide-react";
 import { requirePermission } from "@/lib/auth";
-import { can } from "@/lib/auth/rbac";
 import { getDb } from "@/lib/db";
 import { assignments, discussions, submissions, users } from "@/lib/db/schema";
 import { getTrainerOverview } from "@/lib/services/dashboard";
 import { ReviewForm } from "@/components/assignment-forms";
 import { SimpleBarChart } from "@/components/charts";
-import { Badge, ButtonLink, Card, CardTitle, EmptyState, PageHeader, ProgressBar, Stat } from "@/components/ui";
+import { Badge, Card, CardTitle, EmptyState, PageHeader, ProgressBar, Stat } from "@/components/ui";
 
 export const metadata = { title: "Trainer Dashboard" };
 
@@ -47,14 +46,9 @@ export default async function TrainerPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader
-        eyebrow="Admin & Trainer Management"
-        title="Trainer dashboard"
-        description="Monitor trainee progress, review submissions, answer questions and give feedback."
-        actions={can(user.role, "admin:content") && <ButtonLink href="/admin" variant="secondary">Admin console</ButtonLink>}
-      />
+      <PageHeader compact title="Overview" description="Learner progress, submissions to review, open questions and feedback." />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Trainees" value={o.students.length} />
+        <Stat label="Learners" value={o.students.length} />
         <Stat label="Active last 7 days" value={active7d} />
         <Stat label="Submissions to review" value={pending.length} />
         <Stat label="Open questions" value={openQuestions.length} />
@@ -63,16 +57,32 @@ export default async function TrainerPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardTitle>Assessment score distribution</CardTitle>
-          <SimpleBarChart data={dist} xKey="bucket" yKey="attempts" label="Number of assessment attempts per score band" />
+          <SimpleBarChart data={dist} xKey="bucket" yKey="attempts" label="Number of assessment attempts per score band" empty="No assessment attempts yet." />
         </Card>
         <Card>
-          <CardTitle>Trainees active per course</CardTitle>
-          <SimpleBarChart data={o.courseCompletion.map((c) => ({ course: c.title, trainees: c.started }))} xKey="course" yKey="trainees" layout="vertical" height={320} label="Trainees who started each course" />
+          <CardTitle>Active learners per module</CardTitle>
+          {/* A labelled bar list reads better than a chart for long module names. */}
+          <ul className="mt-4 space-y-2.5" aria-label="Learners who started each module">
+            {o.courseCompletion.map((c) => {
+              const max = Math.max(1, ...o.courseCompletion.map((x) => x.started));
+              return (
+                <li key={c.title} className="grid grid-cols-[minmax(0,1fr)_7rem_1.5rem] items-center gap-3 text-sm">
+                  <span className="truncate text-fg" title={c.title}>
+                    {c.title}
+                  </span>
+                  <span className="h-2 overflow-hidden rounded-full bg-surface-2">
+                    <span className="block h-full rounded-full bg-primary" style={{ width: `${(c.started / max) * 100}%` }} />
+                  </span>
+                  <span className="text-right text-xs font-semibold text-muted">{c.started}</span>
+                </li>
+              );
+            })}
+          </ul>
         </Card>
       </div>
 
       <Card>
-        <CardTitle>Trainees</CardTitle>
+        <CardTitle>Learners</CardTitle>
         {o.students.length ? (
           <div className="mt-3 overflow-x-auto">
             <table className="w-full text-sm">

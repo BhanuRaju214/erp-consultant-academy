@@ -181,7 +181,7 @@ export function SampleGenerator() {
                 className={cn(inputClass, err && "border-danger focus:border-danger focus:ring-danger/20")}
               />
               {err && (
-                <span id={`gen-${f.key}-err`} className="mt-0.5 block text-[11px] text-danger">
+                <span id={`gen-${f.key}-err`} className="mt-0.5 block text-[0.6875rem] text-danger">
                   {f.min}–{f.max.toLocaleString()}
                 </span>
               )}

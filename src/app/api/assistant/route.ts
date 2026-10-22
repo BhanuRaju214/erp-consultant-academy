@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { and, asc, eq, lt } from "drizzle-orm";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth";
+import { courseApiUser } from "@/lib/auth/course-access";
 import { getDb } from "@/lib/db";
 import { aiConversations, aiMessages } from "@/lib/db/schema";
 import { askAssistant } from "@/lib/ai/assistant";
@@ -23,8 +23,9 @@ const RETENTION_DAYS = Number(process.env.AI_RETENTION_DAYS ?? 30);
 
 /** POST /api/assistant — one assistant turn. All provider calls happen server-side. */
 export async function POST(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gate = await courseApiUser();
+  if (!gate.ok) return gate.response;
+  const user = gate.user;
   if (!rateLimit(`ai:${user.id}`, 20, 60_000)) return NextResponse.json({ error: "Too many questions in a minute — slow down a little." }, { status: 429 });
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
@@ -68,8 +69,9 @@ export async function POST(req: NextRequest) {
 
 /** GET /api/assistant?conversationId=… — load a conversation's messages (owner only). */
 export async function GET(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gate = await courseApiUser();
+  if (!gate.ok) return gate.response;
+  const user = gate.user;
   const id = z.string().uuid().safeParse(req.nextUrl.searchParams.get("conversationId"));
   if (!id.success) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   const db = await getDb();
@@ -85,8 +87,9 @@ export async function GET(req: NextRequest) {
 
 /** DELETE /api/assistant?conversationId=… — user deletes their own conversation. */
 export async function DELETE(req: NextRequest) {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gate = await courseApiUser();
+  if (!gate.ok) return gate.response;
+  const user = gate.user;
   const id = z.string().uuid().safeParse(req.nextUrl.searchParams.get("conversationId"));
   if (!id.success) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
   await (await getDb()).delete(aiConversations).where(and(eq(aiConversations.id, id.data), eq(aiConversations.userId, user.id)));

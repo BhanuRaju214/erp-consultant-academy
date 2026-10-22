@@ -1,9 +1,10 @@
 "use server";
 
 import { eq } from "drizzle-orm";
+import { requireCourseUser } from "@/lib/auth/course-access";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requirePermission, requireUser } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { assignments, submissions, trainerFeedback } from "@/lib/db/schema";
 import { saveUpload, validateUpload } from "@/lib/storage";
@@ -11,7 +12,7 @@ import { saveUpload, validateUpload } from "@/lib/storage";
 export type SubmitState = { error?: string; ok?: boolean };
 
 export async function submitAssignment(_: SubmitState, formData: FormData): Promise<SubmitState> {
-  const user = await requireUser();
+  const user = await requireCourseUser();
   const db = await getDb();
   const assignmentId = z.string().uuid().safeParse(formData.get("assignmentId"));
   if (!assignmentId.success) return { error: "Unknown assignment." };

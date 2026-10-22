@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { createUserAction, updateLessonAction, type AdminState } from "@/app/actions/admin";
 import { Callout, buttonClass, inputClass } from "./ui";
+import { PasswordInput } from "./password-input";
 
 export function CreateUserForm() {
   const [state, action, pending] = useActionState<AdminState, FormData>(createUserAction, {});
@@ -19,7 +20,7 @@ export function CreateUserForm() {
       <label className="sr-only" htmlFor="nu-password">
         Initial password
       </label>
-      <input id="nu-password" name="password" type="password" placeholder="Initial password (10+ chars)" className={inputClass} required autoComplete="new-password" />
+      <PasswordInput id="nu-password" name="password" placeholder="Initial password (10+ chars)" required autoComplete="new-password" />
       <label className="sr-only" htmlFor="nu-role">
         Role
       </label>
@@ -42,7 +43,14 @@ export function CreateUserForm() {
 
 const SCOPES = ["standard", "configuration", "enterprise", "customization", "third-party"] as const;
 
-export function LessonEditor({ lesson }: { lesson: { id: string; title: string; durationMin: number; odooVersions: string | null; scope: string[]; body: string } }) {
+export function LessonEditor({
+  lesson,
+  odooFields = true,
+}: {
+  lesson: { id: string; title: string; durationMin: number; odooVersions: string | null; scope: string[]; body: string };
+  /** Odoo version and feature-scope labels only apply to the Odoo course. */
+  odooFields?: boolean;
+}) {
   const [state, action, pending] = useActionState<AdminState, FormData>(updateLessonAction, {});
   return (
     <form action={action} className="space-y-4">
@@ -61,13 +69,18 @@ export function LessonEditor({ lesson }: { lesson: { id: string; title: string; 
           </label>
           <input id="le-duration" name="durationMin" type="number" min={1} defaultValue={lesson.durationMin} className={inputClass} />
         </div>
-        <div className="sm:col-span-2">
-          <label htmlFor="le-versions" className="mb-1 block text-sm font-medium text-fg">
-            Applicable Odoo version(s)
-          </label>
-          <input id="le-versions" name="odooVersions" defaultValue={lesson.odooVersions ?? ""} className={inputClass} placeholder="Odoo 17.0 / 18.0 or Version-independent" />
-        </div>
+        {odooFields ? (
+          <div className="sm:col-span-2">
+            <label htmlFor="le-versions" className="mb-1 block text-sm font-medium text-fg">
+              Applicable Odoo version(s)
+            </label>
+            <input id="le-versions" name="odooVersions" defaultValue={lesson.odooVersions ?? ""} className={inputClass} placeholder="Odoo 17.0 / 18.0 or Version-independent" />
+          </div>
+        ) : (
+          <input type="hidden" name="odooVersions" value={lesson.odooVersions ?? ""} />
+        )}
       </div>
+      {odooFields && (
       <fieldset>
         <legend className="mb-1 text-sm font-medium text-fg">Feature scope labels</legend>
         <div className="flex flex-wrap gap-3">
@@ -79,6 +92,7 @@ export function LessonEditor({ lesson }: { lesson: { id: string; title: string; 
           ))}
         </div>
       </fieldset>
+      )}
       <div>
         <label htmlFor="le-body" className="mb-1 block text-sm font-medium text-fg">
           Body (Markdown, GitHub-flavoured; raw HTML is not rendered)

@@ -5,6 +5,7 @@ import { CircleAlert, Info, Lightbulb, TriangleAlert, Waypoints } from "lucide-r
 import { enhanceMarkdown, slugify } from "@/lib/visuals/enhance";
 import { VisualBlock } from "./visuals/visual-block";
 import { TaskCheckbox } from "./visuals/interactive-blocks";
+import { MediaVideo } from "./media-video";
 import { cn } from "./ui";
 
 /* Minimal hast typing — enough to read text and attributes from react-markdown's `node` prop. */
@@ -62,7 +63,12 @@ export function Markdown({ children, className, enhance = false }: { children: s
   const source = enhance ? enhanceMarkdown(children) : children;
   const components: Components = {
     a: ({ href = "", children }) =>
-      href.startsWith("/") || href.startsWith("#") ? (
+      // /media/<id> is a route handler that redirects to storage, so it needs a full navigation.
+      href.startsWith("/media/") ? (
+        <a href={href} target="_blank" rel="noopener">
+          {children}
+        </a>
+      ) : href.startsWith("/") || href.startsWith("#") ? (
         <Link href={href}>{children}</Link>
       ) : (
         <a href={href} target="_blank" rel="noopener noreferrer">
@@ -77,14 +83,15 @@ export function Markdown({ children, className, enhance = false }: { children: s
       const lang = classes.find((c) => c.startsWith("language-"))?.slice("language-".length) ?? "";
       const text = hastText(code);
       if (lang.startsWith("visual-")) return <VisualBlock type={lang.slice("visual-".length)} source={text} />;
+      if (lang === "media-video") return <MediaVideo id={text.trim()} />;
       // ASCII process diagrams get a light, labelled frame instead of a dark code box.
       if ((lang === "text" || lang === "") && /(-->|→|↓|─|│|\|\s*\n\s*v\b)/.test(text)) {
         return (
           <figure className="not-prose my-6 overflow-hidden rounded-xl border border-border bg-surface">
-            <div className="flex items-center gap-2 border-b border-border bg-surface-2/60 px-4 py-2 text-[10px] font-semibold uppercase tracking-wider text-muted">
+            <div className="flex items-center gap-2 border-b border-border bg-surface-2/60 px-4 py-2 text-[0.625rem] font-semibold uppercase tracking-wider text-muted">
               <Waypoints className="h-3.5 w-3.5" aria-hidden /> Diagram
             </div>
-            <pre className="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-fg">{text.replace(/\n$/, "")}</pre>
+            <pre className="overflow-x-auto p-4 font-mono text-[0.8125rem] leading-relaxed text-fg">{text.replace(/\n$/, "")}</pre>
           </figure>
         );
       }

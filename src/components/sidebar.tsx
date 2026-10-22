@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ArrowLeft,
   Award,
   Boxes,
   Briefcase,
@@ -18,6 +19,7 @@ import {
   GraduationCap,
   LayoutDashboard,
   Library,
+  LibraryBig,
   Menu,
   MessagesSquare,
   Plug,
@@ -30,10 +32,10 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { NAV, SECONDARY_NAV, type NavItem } from "@/lib/nav";
-import { BRAND, copyrightLine } from "@/lib/brand";
+import { NAV, PLATFORM_NAV, SECONDARY_NAV, isCoursePath, type NavItem } from "@/lib/nav";
+import { copyrightLine } from "@/lib/brand";
 import type { NavTree } from "@/lib/services/nav-tree";
-import { BrandLogo } from "./brand-logo";
+import { Wordmark } from "./wordmark";
 import { Collapsible, NavTreeList, collectGroupIds, filterNodes, findActivePath } from "./nav-tree";
 import { cn } from "./ui";
 
@@ -51,6 +53,7 @@ const ICONS: Record<string, LucideIcon> = {
   Briefcase,
   Award,
   Library,
+  LibraryBig,
   ChartNoAxesCombined,
   ShieldCheck,
   Sparkles,
@@ -125,11 +128,13 @@ function activeIds(items: NavItem[], tree: NavTree, pathname: string): string[] 
   return ids;
 }
 
-export function Sidebar({ role, tree }: { role: "student" | "trainer" | "admin"; tree: NavTree }) {
+export function Sidebar({ role, tree, courseTitle }: { role: "student" | "trainer" | "admin"; tree: NavTree; courseTitle: string }) {
   const pathname = usePathname();
+  // Inside the course: its 14 sections. Elsewhere: platform pages (dashboard, catalogue, admin).
+  const inCourse = isCoursePath(pathname);
   const [open, setOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const items = useMemo(() => NAV.filter((i) => !i.roles || i.roles.includes(role)), [role]);
+  const items = useMemo(() => (inCourse ? NAV : PLATFORM_NAV).filter((i) => !i.roles || i.roles.includes(role)), [role, inCourse]);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(activeIds(items, tree, pathname)));
   const [query, setQuery] = useState("");
   useEffect(() => setOpen(false), [pathname]);
@@ -182,14 +187,14 @@ export function Sidebar({ role, tree }: { role: "student" | "trainer" | "admin";
 
   const allGroupIds = useMemo(() => items.flatMap((i) => (tree[i.href]?.length ? [i.href, ...collectGroupIds(tree[i.href])] : [])), [items, tree]);
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(href + "/");
+  const isActive = (item: NavItem) => (item.exact ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/"));
   const q = query.trim().toLowerCase();
   const closeDrawer = () => setOpen(false);
 
   // Visible top-level sections and their (possibly filtered) sub-trees.
   const sections = items
     .map((item, idx) => {
-      const label = `${idx + 1}. ${item.label}`;
+      const label = inCourse ? `${idx + 1}. ${item.label}` : item.label;
       const sub = tree[item.href] ?? [];
       const matchesSelf = q !== "" && label.toLowerCase().includes(q);
       const visibleSub = q && !matchesSelf ? filterNodes(sub, q) : sub;
@@ -199,6 +204,18 @@ export function Sidebar({ role, tree }: { role: "student" | "trainer" | "admin";
 
   const nav = (
     <nav aria-label="Main" className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto overflow-x-hidden px-3 pb-6 [scrollbar-width:thin] rail:lg:px-2">
+      {inCourse && (
+        <Link
+          href="/dashboard"
+          onClick={() => setOpen(false)}
+          title="All courses"
+          className="mb-2 flex items-center gap-2 rounded-lg px-3 py-2 text-[0.8125rem] text-sidebar-text hover:bg-white/5 hover:text-white rail:lg:justify-center rail:lg:px-0"
+        >
+          <ArrowLeft className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="rail:lg:sr-only">All courses</span>
+        </Link>
+      )}
+      {inCourse && (
       <div className="mb-2 flex items-center gap-1 rail:lg:hidden">
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-text/60" aria-hidden />
@@ -209,7 +226,7 @@ export function Sidebar({ role, tree }: { role: "student" | "trainer" | "admin";
             onKeyDown={(e) => e.key === "Escape" && setQuery("")}
             placeholder="Filter sections & lessons…"
             aria-label="Filter navigation"
-            className="w-full rounded-md border border-white/10 bg-white/5 py-1.5 pl-8 pr-2 text-[13px] text-white placeholder:text-sidebar-text/60 focus:border-accent focus:outline-none"
+            className="w-full rounded-md border border-white/10 bg-white/5 py-1.5 pl-8 pr-2 text-[0.8125rem] text-white placeholder:text-sidebar-text/60 focus:border-accent focus:outline-none"
           />
         </div>
         <button
@@ -231,6 +248,7 @@ export function Sidebar({ role, tree }: { role: "student" | "trainer" | "admin";
           <ChevronsDownUp className="h-4 w-4" aria-hidden />
         </button>
       </div>
+      )}
 
       <ul className="space-y-1" role="list">
         {sections.map(({ item, idx, label, visibleSub }) => {
@@ -241,7 +259,7 @@ export function Sidebar({ role, tree }: { role: "student" | "trainer" | "admin";
             <li key={item.href}>
               <NavRow
                 item={{ ...item, label }}
-                active={isActive(item.href)}
+                active={isActive(item)}
                 onNavigate={closeDrawer}
                 dropdown={hasSub ? { open: isOpen, controls: panelId, onToggle: () => toggle(item.href) } : undefined}
               />
@@ -266,30 +284,40 @@ export function Sidebar({ role, tree }: { role: "student" | "trainer" | "admin";
       </ul>
       {q && sections.length === 0 && <p className="px-3 py-2 text-xs text-sidebar-text/70 rail:lg:hidden">No sections or lessons match “{query}”.</p>}
 
-      <div className="mx-3 my-3 border-t border-white/10 rail:lg:mx-1" />
-      {SECONDARY_NAV.map((item) => (
-        <NavRow key={item.href} item={item} active={isActive(item.href)} onNavigate={closeDrawer} />
-      ))}
-      <p className="mt-auto px-3 pt-6 text-[11px] leading-snug text-sidebar-text/80 rail:lg:hidden">{copyrightLine()}</p>
+      {inCourse && (
+        <>
+          <div className="mx-3 my-3 border-t border-white/10 rail:lg:mx-1" />
+          {SECONDARY_NAV.map((item) => (
+            <NavRow key={item.href} item={item} active={isActive(item)} onNavigate={closeDrawer} />
+          ))}
+        </>
+      )}
+      <p className="mt-auto px-3 pt-6 text-[0.6875rem] leading-snug text-sidebar-text/80 rail:lg:hidden">{copyrightLine()}</p>
     </nav>
   );
 
   const brand = (
-    <Link href="/dashboard" className="block px-6 py-5 text-white rail:lg:px-0 rail:lg:py-4" aria-label={`${BRAND.company} ${BRAND.productName} — dashboard`}>
-      <span className="block rail:lg:hidden">
-        <BrandLogo chip height={22} />
-        <span className="mt-2 block text-sm font-semibold leading-tight">{BRAND.productName}</span>
-        <span className="block text-[11px] text-sidebar-text">Odoo techno-functional track</span>
-      </span>
-      {/* Compact mark for the collapsed rail */}
-      <span className="mx-auto hidden h-10 w-10 items-center justify-center overflow-hidden rounded-lg bg-white rail:lg:flex">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/icon.png" alt="" width={32} height={32} className="h-8 w-8" />
-      </span>
-    </Link>
+    <div className="px-5 pb-4 pt-5 rail:lg:px-0 rail:lg:py-4">
+      <Link href="/dashboard" className="block rail:lg:flex rail:lg:justify-center" aria-label="Nexsademy dashboard">
+        {/* Full logo normally, monogram only in the collapsed rail. Visibility is set on wrappers so it can't clash with the logo's own display class. */}
+        <span className="block rail:lg:hidden">
+          <Wordmark inverse />
+        </span>
+        <span className="hidden rail:lg:block">
+          <Wordmark compact />
+        </span>
+      </Link>
+      <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.04] p-3 rail:lg:hidden">
+        <div className="text-[0.625rem] font-semibold uppercase tracking-[0.16em] text-[#f2c35b]">Your course</div>
+        <div className="mt-1 font-display text-[0.9375rem] font-semibold leading-snug text-white">{courseTitle}</div>
+      </div>
+    </div>
   );
 
   const toggleLabel = collapsed ? "Expand navigation" : "Collapse navigation";
+
+  // Platform pages (dashboard, catalogue, admin) use the top navigation only.
+  if (!inCourse) return null;
 
   return (
     <>
@@ -315,7 +343,7 @@ export function Sidebar({ role, tree }: { role: "student" | "trainer" | "admin";
           aria-expanded={!collapsed}
           aria-label={toggleLabel}
           title={`${toggleLabel} (Ctrl+B)`}
-          className="absolute -right-3.5 top-8 flex h-7 w-7 items-center justify-center rounded-full border border-border bg-surface text-muted shadow-md ring-4 ring-bg transition hover:scale-110 hover:border-primary hover:text-primary focus-visible:scale-110"
+          className="absolute -right-3.5 top-[18px] z-40 flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-[#0b1b3f] text-white/80 shadow-md transition hover:scale-110 hover:border-[#7fb0ff] hover:text-white focus-visible:scale-110"
         >
           <ChevronLeft className="h-4 w-4 transition-transform duration-200 rail:rotate-180" aria-hidden />
         </button>

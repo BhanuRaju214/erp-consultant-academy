@@ -45,7 +45,7 @@ export function buildSystemPrompt(ctx: AssistantContext, passages: Passage[]): s
     ? passages.map((p, i) => `[S${i + 1}] ${p.title} (${p.href})\n${p.text}`).join("\n\n---\n\n")
     : "(no matching portal content found)";
   return [
-    "You are the ERP Consultant Academy learning assistant. You coach trainees to become Odoo techno-functional consultants.",
+    "You are the Nexsademy learning assistant. You coach trainees to become Odoo techno-functional consultants.",
     `Trainee context: Odoo ${ctx.odooVersion}, ${ctx.edition} edition, installed apps: ${ctx.apps.join(", ") || "not specified"}.`,
     MODE_INSTRUCTIONS[ctx.mode],
     "ACCURACY RULES (mandatory):",

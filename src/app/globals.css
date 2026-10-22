@@ -6,48 +6,56 @@
 @custom-variant rail (&:where([data-sidebar="collapsed"] *));
 
 :root {
-  --bg: #f5f6fa;
+  --bg: #ffffff;
   --surface: #ffffff;
-  --surface-2: #f0f2f7;
-  --border: #e2e5ee;
-  --text: #141a2b;
-  --muted: #5d667c;
-  --primary: #0a6d84;
+  --surface-2: #f5f7fa;
+  --border: #e1e6ee;
+  --text: #0e1726;
+  --muted: #5b6575;
+  --primary: #1a56db;
   --primary-fg: #ffffff;
-  --primary-soft: #e6f8fc;
-  --accent: #0e7490;
-  --success: #146c34;
-  --success-soft: #e8f6ed;
+  --primary-soft: #eef4ff;
+  --accent: #1e429f;
+  --gold: #b45309;
+  --gold-soft: #fff7e6;
+  --success: #0e7a43;
+  --success-soft: #e8f6ee;
   --warning: #b45309;
   --warning-soft: #fdf3e2;
-  --danger: #b91c1c;
+  --danger: #c81e1e;
   --danger-soft: #fdecec;
-  --sidebar: #0b1120;
-  --sidebar-text: #c9cfdd;
-  --sidebar-active: #13304a;
+  --sidebar: #0b1b3f;
+  --sidebar-text: #c3cbd9;
+  --sidebar-active: #1a2f5e;
+  --ink: #0b1b3f;
+  --shadow-color: 15 23 42;
   color-scheme: light;
 }
 
 .dark {
-  --bg: #0b1120;
-  --surface: #121829;
-  --surface-2: #19203a;
-  --border: #263050;
-  --text: #e6e9f2;
-  --muted: #9aa3ba;
-  --primary: #17c0e2;
-  --primary-fg: #0b0f1a;
-  --primary-soft: #0f2a36;
-  --accent: #38bdf8;
+  --bg: #0b1220;
+  --surface: #111a2c;
+  --surface-2: #17223a;
+  --border: #243150;
+  --text: #e8edf6;
+  --muted: #9aa6bb;
+  --primary: #6b9bff;
+  --primary-fg: #0b1220;
+  --primary-soft: #16264a;
+  --accent: #9bbcff;
+  --gold: #f5b544;
+  --gold-soft: #2a2010;
   --success: #4ade80;
   --success-soft: #11261a;
   --warning: #fbbf24;
   --warning-soft: #2a2010;
   --danger: #f87171;
   --danger-soft: #2c1414;
-  --sidebar: #070b16;
-  --sidebar-text: #aeb6cb;
-  --sidebar-active: #102a3a;
+  --sidebar: #070f22;
+  --sidebar-text: #b3bdcf;
+  --sidebar-active: #16264a;
+  --ink: #060c18;
+  --shadow-color: 0 0 0;
   color-scheme: dark;
 }
 
@@ -62,6 +70,8 @@
   --color-primary-fg: var(--primary-fg);
   --color-primary-soft: var(--primary-soft);
   --color-accent: var(--accent);
+  --color-gold: var(--gold);
+  --color-gold-soft: var(--gold-soft);
   --color-success: var(--success);
   --color-success-soft: var(--success-soft);
   --color-warning: var(--warning);
@@ -71,9 +81,24 @@
   --color-sidebar: var(--sidebar);
   --color-sidebar-text: var(--sidebar-text);
   --color-sidebar-active: var(--sidebar-active);
-  --color-brand: #17c0e2;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --color-ink: var(--ink);
+  --color-brand: #1a56db;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "Cascadia Code", Menlo, Consolas, monospace;
+  --shadow-soft: 0 1px 2px rgb(var(--shadow-color) / 0.05);
+  --shadow-lift: 0 1px 3px rgb(var(--shadow-color) / 0.08), 0 12px 32px -12px rgb(var(--shadow-color) / 0.18);
+}
+
+/* Flat brand bands (no gradients). */
+.bg-hero {
+  background: var(--ink);
+}
+.bg-grid {
+  display: none;
+}
+.text-gradient {
+  color: inherit;
 }
 
 html,
@@ -85,6 +110,13 @@ body {
 body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
 }
 
 :focus-visible {
@@ -184,4 +216,21 @@ body {
 .story-dust { animation: story-dust 0.6s ease-out infinite; transform-box: fill-box; transform-origin: center; }
 @media (prefers-reduced-motion: reduce) {
   .story-spin, .story-dust { animation: none; }
+}
+
+/* Very wide screens (large monitors, TVs without OS scaling): scale the whole rem-based layout up. */
+@media (min-width: 2200px) {
+  html {
+    font-size: 112.5%;
+  }
+}
+@media (min-width: 2800px) {
+  html {
+    font-size: 137.5%;
+  }
+}
+@media (min-width: 3600px) {
+  html {
+    font-size: 175%;
+  }
 }

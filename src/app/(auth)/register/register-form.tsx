@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { registerAction, type FormState } from "@/app/actions/auth";
 import { Callout, Field, buttonClass, inputClass } from "@/components/ui";
+import { PasswordInput } from "@/components/password-input";
 
 interface PathOption {
   slug: string;
@@ -23,12 +24,12 @@ export function RegisterForm({ paths }: { paths: PathOption[] }) {
         <input id="email" name="email" type="email" autoComplete="email" required className={inputClass} />
       </Field>
       <Field label="Password" htmlFor="password" hint="At least 10 characters with letters and numbers.">
-        <input id="password" name="password" type="password" autoComplete="new-password" minLength={10} required className={inputClass} />
+        <PasswordInput id="password" name="password" autoComplete="new-password" minLength={10} required />
       </Field>
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium text-fg">Learning path</legend>
+        <legend className="mb-1 text-sm font-semibold text-fg">Learning path</legend>
         {paths.map((p, i) => (
-          <label key={p.slug} className="flex cursor-pointer gap-3 rounded-lg border border-border bg-surface p-3 has-[:checked]:border-primary has-[:checked]:bg-primary-soft">
+          <label key={p.slug} className="flex cursor-pointer gap-3 rounded-xl border border-border bg-surface p-3.5 shadow-sm transition hover:border-primary/40 has-[:checked]:border-primary has-[:checked]:bg-primary-soft has-[:checked]:ring-4 has-[:checked]:ring-primary/10">
             <input type="radio" name="path" value={p.slug} defaultChecked={i === 0} className="mt-1 accent-[var(--primary)]" />
             <span>
               <span className="block text-sm font-medium text-fg">
@@ -39,7 +40,7 @@ export function RegisterForm({ paths }: { paths: PathOption[] }) {
           </label>
         ))}
       </fieldset>
-      <button type="submit" disabled={pending} className={buttonClass("primary", "w-full")}>
+      <button type="submit" disabled={pending} className={buttonClass("primary", "w-full py-3 text-[0.9375rem]")}>
         {pending ? "Creating account…" : "Create account"}
       </button>
     </form>

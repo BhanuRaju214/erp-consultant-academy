@@ -1,5 +1,7 @@
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
+  bigint,
   boolean,
   index,
   integer,
@@ -57,7 +59,8 @@ export const users = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     email: text("email").notNull(),
     name: text("name").notNull(),
-    passwordHash: text("password_hash").notNull(),
+    /** Null for accounts that only sign in with an OAuth provider. */
+    passwordHash: text("password_hash"),
     role: roleEnum("role").notNull().default("student"),
     learningPathId: uuid("learning_path_id").references(() => learningPaths.id, { onDelete: "set null" }),
     active: boolean("active").notNull().default(true),
@@ -81,6 +84,41 @@ export const sessions = pgTable(
   (t) => [index("sessions_user_idx").on(t.userId)],
 );
 
+/** Single-use password reset links. Only the token hash is stored. */
+export const passwordResetTokens = pgTable(
+  "password_reset_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    tokenHash: text("token_hash").notNull().unique(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    usedAt: timestamp("used_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("password_reset_tokens_user_idx").on(t.userId)],
+);
+
+/** External identities (e.g. Google) linked to a user. */
+export const oauthAccounts = pgTable(
+  "oauth_accounts",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    provider: text("provider").notNull(),
+    providerAccountId: text("provider_account_id").notNull(),
+    email: text("email"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("oauth_accounts_provider_account_idx").on(t.provider, t.providerAccountId),
+    index("oauth_accounts_user_idx").on(t.userId),
+  ],
+);
+
 /* ------------------------------------------------------------------ */
 /* Catalogue: learning paths → courses → modules → lessons             */
 /* ------------------------------------------------------------------ */
@@ -95,11 +133,66 @@ export const learningPaths = pgTable("learning_paths", {
   ...timestamps,
 });
 
+/* ------------------------------------------------------------------ */
+/* Programs: the courses learners see in the catalogue and enrol in.   */
+/* A program groups the internal `courses` (sub-courses) below.        */
+/* ------------------------------------------------------------------ */
+
+export const programStatusEnum = pgEnum("program_status", ["draft", "published", "archived"]);
+/** open: free self-enrolment · paid: enrol after payment · invite: only admins enrol learners. */
+export const enrollmentModeEnum = pgEnum("enrollment_mode", ["open", "invite", "paid"]);
+export const enrollmentSourceEnum = pgEnum("enrollment_source", ["auto", "admin", "self", "purchase"]);
+
+export const programs = pgTable(
+  "programs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    slug: text("slug").notNull().unique(),
+    title: text("title").notNull(),
+    subtitle: text("subtitle").notNull().default(""),
+    /** Markdown shown on the course page. */
+    description: text("description").notNull().default(""),
+    level: levelEnum("level").notNull().default("beginner"),
+    durationHours: integer("duration_hours"),
+    highlights: jsonb("highlights").$type<string[]>().notNull().default([]),
+    coverAssetId: uuid("cover_asset_id").references((): AnyPgColumn => mediaAssets.id, { onDelete: "set null" }),
+    /** Where "Go to course" leads, e.g. /learn for the flagship program. */
+    homePath: text("home_path").notNull(),
+    /** Price in paise, inclusive of GST. Used when enrollmentMode is "paid". */
+    pricePaise: integer("price_paise"),
+    status: programStatusEnum("status").notNull().default("draft"),
+    enrollmentMode: enrollmentModeEnum("enrollment_mode").notNull().default("invite"),
+    position: integer("position").notNull().default(0),
+    ...timestamps,
+  },
+  (t) => [index("programs_status_idx").on(t.status, t.position)],
+);
+
+export const enrollments = pgTable(
+  "enrollments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    programId: uuid("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    source: enrollmentSourceEnum("source").notNull(),
+    enrolledById: uuid("enrolled_by_id").references(() => users.id, { onDelete: "set null" }),
+    /** Set when access is removed; the row is kept for history and re-activated on re-enrolment. */
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("enrollments_program_user_idx").on(t.programId, t.userId), index("enrollments_user_idx").on(t.userId)],
+);
+
 export const courses = pgTable(
   "courses",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     slug: text("slug").notNull().unique(),
+    programId: uuid("program_id").references(() => programs.id, { onDelete: "set null" }),
     platformId: uuid("platform_id").references(() => erpPlatforms.id, { onDelete: "set null" }),
     section: text("section").notNull(),
     title: text("title").notNull(),
@@ -113,7 +206,7 @@ export const courses = pgTable(
     certMinScore: integer("cert_min_score").notNull().default(70),
     ...timestamps,
   },
-  (t) => [index("courses_section_idx").on(t.section, t.position)],
+  (t) => [index("courses_section_idx").on(t.section, t.position), index("courses_program_idx").on(t.programId)],
 );
 
 export const learningPathCourses = pgTable(
@@ -158,6 +251,9 @@ export const lessons = pgTable(
     scope: jsonb("scope").$type<string[]>().notNull().default([]),
     flashcards: jsonb("flashcards").$type<{ term: string; definition: string }[]>().notNull().default([]),
     position: integer("position").notNull().default(0),
+    /** AI course builder: null for hand-written lessons, otherwise pending → generating → done | error. */
+    aiStatus: text("ai_status"),
+    aiError: text("ai_error"),
     ...timestamps,
   },
   (t) => [
@@ -461,6 +557,28 @@ export const certificates = pgTable(
   (t) => [uniqueIndex("certificates_user_course_idx").on(t.userId, t.courseId)],
 );
 
+/**
+ * Course (program) certificate for courses built in the course builder: every lesson
+ * completed and every module quiz passed. The Odoo course issues per-module certificates.
+ */
+export const programCertificates = pgTable(
+  "program_certificates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    serial: text("serial").notNull().unique(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    programId: uuid("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    /** Average of the best module quiz scores (100 when the course has no quizzes). */
+    score: integer("score").notNull(),
+    issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("program_certificates_user_program_idx").on(t.userId, t.programId)],
+);
+
 export const trainerFeedback = pgTable(
   "trainer_feedback",
   {
@@ -573,6 +691,52 @@ export const aiMessages = pgTable(
 );
 
 /* ------------------------------------------------------------------ */
+/* Media library: files live in R2 (or local disk in development),     */
+/* videos in Mux. This table is the source of truth for every asset.   */
+/* ------------------------------------------------------------------ */
+
+export const mediaKindEnum = pgEnum("media_kind", ["image", "document", "video", "other"]);
+export const mediaStatusEnum = pgEnum("media_status", ["pending", "ready", "errored"]);
+/**
+ * public: anyone · authenticated: any signed-in user (e.g. course covers) ·
+ * enrolled: learners enrolled in the course (paid content) · private: the uploader plus trainers/admins.
+ */
+export const mediaVisibilityEnum = pgEnum("media_visibility", ["public", "authenticated", "private", "enrolled"]);
+
+export const mediaAssets = pgTable(
+  "media_assets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    kind: mediaKindEnum("kind").notNull(),
+    status: mediaStatusEnum("status").notNull().default("ready"),
+    visibility: mediaVisibilityEnum("visibility").notNull().default("authenticated"),
+    title: text("title").notNull().default(""),
+    fileName: text("file_name").notNull(),
+    contentType: text("content_type").notNull().default("application/octet-stream"),
+    sizeBytes: bigint("size_bytes", { mode: "number" }),
+    /** "r2" | "local" for files, "mux" for videos. */
+    storage: text("storage").notNull(),
+    /** Object key in R2 / path under STORAGE_DIR. Null for Mux videos. */
+    storageKey: text("storage_key"),
+    muxUploadId: text("mux_upload_id"),
+    muxAssetId: text("mux_asset_id"),
+    muxPlaybackId: text("mux_playback_id"),
+    durationSeconds: integer("duration_seconds"),
+    error: text("error"),
+    /** Optional link to a course, for enrollment-based access once payments are added. */
+    courseId: uuid("course_id").references(() => courses.id, { onDelete: "set null" }),
+    uploadedById: uuid("uploaded_by_id").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("media_assets_storage_key_idx").on(t.storage, t.storageKey),
+    uniqueIndex("media_assets_mux_upload_idx").on(t.muxUploadId),
+    uniqueIndex("media_assets_mux_asset_idx").on(t.muxAssetId),
+    index("media_assets_kind_idx").on(t.kind, t.createdAt),
+  ],
+);
+
+/* ------------------------------------------------------------------ */
 /* Relations (for the relational query builder)                        */
 /* ------------------------------------------------------------------ */
 
@@ -612,3 +776,125 @@ export const projectTasksRelations = relations(projectTasks, ({ one }) => ({
 
 export type User = typeof users.$inferSelect;
 export type Role = (typeof roleEnum.enumValues)[number];
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+export type Program = typeof programs.$inferSelect;
+export type Enrollment = typeof enrollments.$inferSelect;
+export type Order = typeof orders.$inferSelect;
+export type Coupon = typeof coupons.$inferSelect;
+export type MediaKind = (typeof mediaKindEnum.enumValues)[number];
+export type MediaVisibility = (typeof mediaVisibilityEnum.enumValues)[number];
+
+/* ------------------------------------------------------------------ */
+/* Payments (Razorpay): coupons, orders and GST invoice numbering      */
+/* ------------------------------------------------------------------ */
+
+export const couponKindEnum = pgEnum("coupon_kind", ["percent", "amount"]);
+export const orderStatusEnum = pgEnum("order_status", ["created", "paid", "failed", "refunded"]);
+
+export const coupons = pgTable(
+  "coupons",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    /** Stored upper-case; matched case-insensitively. */
+    code: text("code").notNull(),
+    kind: couponKindEnum("kind").notNull(),
+    /** Percent (1–100) or amount in paise, depending on kind. */
+    value: integer("value").notNull(),
+    /** Null = valid for every course. */
+    programId: uuid("program_id").references(() => programs.id, { onDelete: "cascade" }),
+    maxRedemptions: integer("max_redemptions"),
+    validUntil: timestamp("valid_until", { withTimezone: true }),
+    active: boolean("active").notNull().default(true),
+    ...timestamps,
+  },
+  (t) => [uniqueIndex("coupons_code_idx").on(t.code)],
+);
+
+export const orders = pgTable(
+  "orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    programId: uuid("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "restrict" }),
+    couponId: uuid("coupon_id").references(() => coupons.id, { onDelete: "set null" }),
+    status: orderStatusEnum("status").notNull().default("created"),
+    currency: text("currency").notNull().default("INR"),
+    /** All amounts in paise. amount = list − discount, inclusive of GST. */
+    listPricePaise: integer("list_price_paise").notNull(),
+    discountPaise: integer("discount_paise").notNull().default(0),
+    amountPaise: integer("amount_paise").notNull(),
+    taxablePaise: integer("taxable_paise").notNull(),
+    cgstPaise: integer("cgst_paise").notNull().default(0),
+    sgstPaise: integer("sgst_paise").notNull().default(0),
+    igstPaise: integer("igst_paise").notNull().default(0),
+    billingName: text("billing_name").notNull(),
+    billingEmail: text("billing_email").notNull(),
+    /** GST state code of the buyer (place of supply), e.g. "36". */
+    billingStateCode: text("billing_state_code").notNull(),
+    billingGstin: text("billing_gstin"),
+    razorpayOrderId: text("razorpay_order_id"),
+    razorpayPaymentId: text("razorpay_payment_id"),
+    razorpayRefundId: text("razorpay_refund_id"),
+    paymentMethod: text("payment_method"),
+    invoiceNumber: text("invoice_number"),
+    paidAt: timestamp("paid_at", { withTimezone: true }),
+    refundedAt: timestamp("refunded_at", { withTimezone: true }),
+    failureReason: text("failure_reason"),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("orders_razorpay_order_idx").on(t.razorpayOrderId),
+    uniqueIndex("orders_razorpay_payment_idx").on(t.razorpayPaymentId),
+    uniqueIndex("orders_invoice_number_idx").on(t.invoiceNumber),
+    index("orders_user_idx").on(t.userId, t.createdAt),
+    index("orders_status_idx").on(t.status, t.createdAt),
+  ],
+);
+
+/** Gap-free invoice numbers per Indian financial year (e.g. "2026-27"). */
+export const invoiceSequences = pgTable("invoice_sequences", {
+  financialYear: text("financial_year").primaryKey(),
+  lastNumber: integer("last_number").notNull().default(0),
+});
+
+/* ------------------------------------------------------------------ */
+/* AI course builder                                                   */
+/* ------------------------------------------------------------------ */
+
+export const aiGenerationStatusEnum = pgEnum("ai_generation_status", ["generating", "done", "failed", "cancelled"]);
+
+/** One AI course build: the brief, progress of the lesson-writing job and token usage. */
+export const aiGenerations = pgTable(
+  "ai_generations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    programId: uuid("program_id")
+      .notNull()
+      .references(() => programs.id, { onDelete: "cascade" }),
+    status: aiGenerationStatusEnum("status").notNull().default("generating"),
+    /** The admin's brief (topic, audience, level, sizes, instructions). */
+    brief: jsonb("brief").$type<Record<string, unknown>>().notNull(),
+    model: text("model").notNull(),
+    lessonsTotal: integer("lessons_total").notNull().default(0),
+    lessonsDone: integer("lessons_done").notNull().default(0),
+    lessonsFailed: integer("lessons_failed").notNull().default(0),
+    /** One graded quiz per module, written after the lessons. */
+    quizzesTotal: integer("quizzes_total").notNull().default(0),
+    quizzesDone: integer("quizzes_done").notNull().default(0),
+    quizzesFailed: integer("quizzes_failed").notNull().default(0),
+    promptTokens: integer("prompt_tokens").notNull().default(0),
+    completionTokens: integer("completion_tokens").notNull().default(0),
+    error: text("error"),
+    /** Updated while the job runs; a stale heartbeat means the job stopped and can be resumed. */
+    heartbeatAt: timestamp("heartbeat_at", { withTimezone: true }),
+    createdById: uuid("created_by_id").references(() => users.id, { onDelete: "set null" }),
+    ...timestamps,
+  },
+  (t) => [index("ai_generations_program_idx").on(t.programId)],
+);
+
+export type AiGeneration = typeof aiGenerations.$inferSelect;

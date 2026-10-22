@@ -9,10 +9,13 @@ import {
   courses,
   lessonProgress,
   lessons,
+  programCertificates,
+  programs,
   questions,
   studentAnswers,
 } from "@/lib/db/schema";
 import { gradeQuiz } from "@/lib/quiz";
+import { FLAGSHIP_PROGRAM } from "./programs";
 
 /* ------------------------------------------------------------------ */
 /* Catalogue                                                           */
@@ -203,6 +206,14 @@ export async function submitAssessment(db: Db, userId: string, assessmentId: str
 export async function maybeIssueCertificate(db: Db, userId: string, courseId: string) {
   const course = await db.query.courses.findFirst({ where: eq(courses.id, courseId) });
   if (!course) return null;
+  // Courses built in the course builder certify the whole course, not each module.
+  if (course.programId) {
+    const program = await db.query.programs.findFirst({ where: eq(programs.id, course.programId), columns: { slug: true } });
+    if (program && program.slug !== FLAGSHIP_PROGRAM.slug) {
+      await maybeIssueProgramCertificate(db, userId, course.programId);
+      return null;
+    }
+  }
   const [counts] = await db
     .select({
       total: sql<number>`count(${lessons.id})::int`,
@@ -224,4 +235,78 @@ export async function maybeIssueCertificate(db: Db, userId: string, courseId: st
   const serial = `ECA-${new Date().getFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`;
   const [cert] = await db.insert(certificates).values({ userId, courseId, score, serial }).onConflictDoNothing().returning();
   return cert ?? null;
+}
+
+/**
+ * Where a learner stands on the certificate of a course built in the course builder.
+ * Only visible modules count: every lesson completed and every module quiz (with at
+ * least one question) passed at its pass mark.
+ */
+export async function getProgramCertificateStatus(db: Db, userId: string, programId: string) {
+  const mods = await db
+    .select({ id: courses.id })
+    .from(courses)
+    .where(and(eq(courses.programId, programId), eq(courses.published, true)));
+  const moduleIds = mods.map((m) => m.id);
+  let lessonsTotal = 0;
+  let lessonsDone = 0;
+  const quizzes: { assessmentId: string; passMark: number; best: number | null; passed: boolean }[] = [];
+  if (moduleIds.length) {
+    const [counts] = await db
+      .select({
+        total: sql<number>`count(${lessons.id})::int`,
+        done: sql<number>`count(${lessonProgress.lessonId}) filter (where ${lessonProgress.status} = 'completed')::int`,
+      })
+      .from(lessons)
+      .innerJoin(courseModules, eq(courseModules.id, lessons.moduleId))
+      .leftJoin(lessonProgress, and(eq(lessonProgress.lessonId, lessons.id), eq(lessonProgress.userId, userId)))
+      .where(inArray(courseModules.courseId, moduleIds));
+    lessonsTotal = counts?.total ?? 0;
+    lessonsDone = counts?.done ?? 0;
+    const rows = await db
+      .select({
+        id: assessments.id,
+        passMark: assessments.passMark,
+        questions: sql<number>`(select count(*) from "questions" q where q.assessment_id = "assessments"."id")::int`,
+        best: sql<number | null>`(select max(a.score) from "assessment_attempts" a where a.assessment_id = "assessments"."id" and a.user_id = ${userId})::int`,
+      })
+      .from(assessments)
+      .where(inArray(assessments.courseId, moduleIds));
+    for (const r of rows) {
+      if (r.questions > 0) quizzes.push({ assessmentId: r.id, passMark: r.passMark, best: r.best, passed: r.best !== null && r.best >= r.passMark });
+    }
+  }
+  const certificate =
+    (await db.query.programCertificates.findFirst({ where: and(eq(programCertificates.userId, userId), eq(programCertificates.programId, programId)) })) ?? null;
+  const eligible = lessonsTotal > 0 && lessonsDone >= lessonsTotal && quizzes.every((q) => q.passed);
+  const score = quizzes.length ? Math.round(quizzes.reduce((n, q) => n + (q.best ?? 0), 0) / quizzes.length) : 100;
+  return { lessonsTotal, lessonsDone, quizzesTotal: quizzes.length, quizzesPassed: quizzes.filter((q) => q.passed).length, eligible, score, certificate };
+}
+
+/** Issues the course certificate once the learner meets every requirement (idempotent). */
+export async function maybeIssueProgramCertificate(db: Db, userId: string, programId: string) {
+  const status = await getProgramCertificateStatus(db, userId, programId);
+  if (status.certificate) return status.certificate;
+  if (!status.eligible) return null;
+  const serial = `NXS-${new Date().getFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`;
+  await db.insert(programCertificates).values({ userId, programId, score: status.score, serial }).onConflictDoNothing();
+  return (await db.query.programCertificates.findFirst({ where: and(eq(programCertificates.userId, userId), eq(programCertificates.programId, programId)) })) ?? null;
+}
+
+/** All of a learner's certificates (Odoo modules and whole courses), newest first. */
+export async function listCertificates(db: Db, userId: string, limit?: number) {
+  const [moduleCerts, courseCerts] = await Promise.all([
+    db
+      .select({ serial: certificates.serial, title: courses.title, issuedAt: certificates.issuedAt, score: certificates.score })
+      .from(certificates)
+      .innerJoin(courses, eq(courses.id, certificates.courseId))
+      .where(eq(certificates.userId, userId)),
+    db
+      .select({ serial: programCertificates.serial, title: programs.title, issuedAt: programCertificates.issuedAt, score: programCertificates.score })
+      .from(programCertificates)
+      .innerJoin(programs, eq(programs.id, programCertificates.programId))
+      .where(eq(programCertificates.userId, userId)),
+  ]);
+  const all = [...courseCerts, ...moduleCerts].sort((a, b) => b.issuedAt.getTime() - a.issuedAt.getTime());
+  return limit ? all.slice(0, limit) : all;
 }

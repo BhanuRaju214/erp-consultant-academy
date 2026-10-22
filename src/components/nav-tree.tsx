@@ -86,7 +86,7 @@ export function NavTreeList({ nodes, depth, pathname, expanded, forceOpen, onTog
             <Circle className="h-3.5 w-3.5 shrink-0 text-sidebar-text/40" aria-label="Not completed" />
           );
 
-        const badge = n.badge && <span className="ml-auto shrink-0 rounded bg-white/10 px-1.5 py-px text-[10px] tabular-nums text-sidebar-text">{n.badge}</span>;
+        const badge = n.badge && <span className="ml-auto shrink-0 rounded bg-white/10 px-1.5 py-px text-[0.625rem] tabular-nums text-sidebar-text">{n.badge}</span>;
 
         return (
           <li key={n.id}>
@@ -97,7 +97,7 @@ export function NavTreeList({ nodes, depth, pathname, expanded, forceOpen, onTog
                 aria-expanded={isOpen}
                 aria-controls={panelId}
                 title={n.label}
-                className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[13px] text-sidebar-text transition hover:bg-white/5 hover:text-white"
+                className="flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-left text-[0.8125rem] text-sidebar-text transition hover:bg-white/5 hover:text-white"
               >
                 <ChevronRight className={cn("h-3.5 w-3.5 shrink-0 transition-transform duration-200", isOpen && "rotate-90")} aria-hidden />
                 <span className="truncate font-medium">{n.label}</span>
@@ -111,7 +111,7 @@ export function NavTreeList({ nodes, depth, pathname, expanded, forceOpen, onTog
                   title={n.label}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-[13px] transition",
+                    "flex min-w-0 flex-1 items-center gap-2 rounded-md px-2 py-1.5 text-[0.8125rem] transition",
                     active ? "bg-white/10 font-medium text-white shadow-[inset_2px_0_0_var(--accent)]" : "text-sidebar-text hover:bg-white/5 hover:text-white",
                   )}
                 >

@@ -8,6 +8,55 @@
       "when": 1791534879049,
       "tag": "0000_init",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792563445169,
+      "tag": "0001_auth_reset_and_oauth",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792564526124,
+      "tag": "0002_media_assets",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792575356114,
+      "tag": "0003_programs_and_enrollments",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792582533666,
+      "tag": "0004_payments",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792583354476,
+      "tag": "0005_media_enrolled_visibility",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792654670253,
+      "tag": "0006_course_builder_ai",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792660029776,
+      "tag": "0007_course_quizzes_certificates",
+      "breakpoints": true
     }
   ]
 }

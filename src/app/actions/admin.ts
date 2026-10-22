@@ -1,6 +1,6 @@
 "use server";
 
-import { and, eq, lt, ne } from "drizzle-orm";
+import { and, eq, lt, ne, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requirePermission } from "@/lib/auth";
@@ -47,6 +47,7 @@ export async function updateCourseAction(formData: FormData) {
     .update(courses)
     .set({ published: parsed.published === "true", certMinScore: parsed.certMinScore })
     .where(eq(courses.id, parsed.courseId));
+  revalidatePath("/admin/programs", "layout");
   revalidatePath("/admin");
 }
 
@@ -71,7 +72,11 @@ export async function updateLessonAction(_: AdminState, formData: FormData): Pro
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
   const { lessonId, ...rest } = parsed.data;
-  await (await getDb()).update(lessons).set(rest).where(eq(lessons.id, lessonId));
+  // A hand-edited lesson is no longer waiting for the AI writer, so it won't be overwritten.
+  await (await getDb())
+    .update(lessons)
+    .set({ ...rest, aiStatus: sql`case when ${lessons.aiStatus} in ('pending', 'error') then null else ${lessons.aiStatus} end`, aiError: null })
+    .where(eq(lessons.id, lessonId));
   revalidatePath("/", "layout");
   return { ok: "Lesson saved. Changes are live for all trainees." };
 }
@@ -100,5 +105,6 @@ export async function syncNewContent() {
 export async function purgeExpiredAiConversations() {
   await requirePermission("admin:content");
   await (await getDb()).delete(aiConversations).where(lt(aiConversations.expiresAt, new Date()));
+  revalidatePath("/admin/programs", "layout");
   revalidatePath("/admin");
 }

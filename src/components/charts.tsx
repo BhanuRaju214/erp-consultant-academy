@@ -4,8 +4,36 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 
 const axis = { fontSize: 12, fill: "var(--muted)" };
 
-export function SimpleBarChart({ data, xKey, yKey, label, height = 240, layout = "horizontal" }: { data: Record<string, string | number>[]; xKey: string; yKey: string; label: string; height?: number; layout?: "horizontal" | "vertical" }) {
-  if (!data.length) return <p className="py-8 text-center text-sm text-muted">No data yet.</p>;
+/** Long category names (e.g. module titles) are shortened on the axis; the tooltip shows them in full. */
+function shorten(value: string, max = 28) {
+  return value.length > max ? `${value.slice(0, max - 1).trimEnd()}…` : value;
+}
+
+export function SimpleBarChart({
+  data,
+  xKey,
+  yKey,
+  label,
+  height = 240,
+  layout = "horizontal",
+  empty = "No data yet.",
+}: {
+  data: Record<string, string | number>[];
+  xKey: string;
+  yKey: string;
+  label: string;
+  height?: number;
+  layout?: "horizontal" | "vertical";
+  /** Message shown when there is nothing to plot. */
+  empty?: string;
+}) {
+  if (!data.length || data.every((d) => !Number(d[yKey]))) {
+    return (
+      <div className="flex items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted" style={{ height }}>
+        {empty}
+      </div>
+    );
+  }
   const vertical = layout === "vertical";
   return (
     <div style={{ height }} role="img" aria-label={label}>
@@ -15,7 +43,7 @@ export function SimpleBarChart({ data, xKey, yKey, label, height = 240, layout =
           {vertical ? (
             <>
               <XAxis type="number" tick={axis} allowDecimals={false} stroke="var(--border)" />
-              <YAxis type="category" dataKey={xKey} tick={axis} width={170} stroke="var(--border)" />
+              <YAxis type="category" dataKey={xKey} tick={axis} width={190} stroke="var(--border)" tickFormatter={(v: string) => shorten(String(v))} interval={0} />
             </>
           ) : (
             <>

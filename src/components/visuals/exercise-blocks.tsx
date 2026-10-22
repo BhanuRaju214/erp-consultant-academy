@@ -152,7 +152,7 @@ export function MatchBlock({ data }: { data: VisualData<"match"> }) {
     <VisualFrame kind="Match the pairs" title={data.title}>
       <InlineMd className="mb-3 block text-sm font-medium text-fg">{data.prompt}</InlineMd>
       {(data.leftLabel || data.rightLabel) && (
-        <div className="mb-1 hidden grid-cols-2 gap-3 text-[11px] font-semibold uppercase tracking-wide text-muted sm:grid">
+        <div className="mb-1 hidden grid-cols-2 gap-3 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted sm:grid">
           <span>{data.leftLabel}</span>
           <span>{data.rightLabel}</span>
         </div>
@@ -293,7 +293,7 @@ export function GstBlock({ data }: { data: VisualData<"gst"> }) {
             {intra ? `Same state: intra-state supply, so CGST + SGST (${rate / 2}% each).` : `Different states: inter-state supply, so IGST ${rate}%.`}
           </div>
           {valid ? <GstTable amount={amount} rate={rate} intra={intra} /> : <p className="text-sm text-danger">Enter a valid amount.</p>}
-          <p className="mt-2 text-[11px] text-muted">The place of supply, not the seller&apos;s choice, decides intra- vs inter-state. Rounded to paise per tax line.</p>
+          <p className="mt-2 text-[0.6875rem] text-muted">The place of supply, not the seller&apos;s choice, decides intra- vs inter-state. Rounded to paise per tax line.</p>
         </div>
       </div>
     </VisualFrame>
@@ -343,7 +343,7 @@ export function SequenceBlock({ data }: { data: VisualData<"sequence"> }) {
                     {self ? (
                       <div className="absolute top-2" style={{ left: `${from}%` }}>
                         <div className={cn("h-7 w-10 rounded-r-md border-2 border-l-0", active ? "border-accent" : "border-primary/60")} />
-                        <span className={cn("absolute left-12 top-0 whitespace-nowrap rounded px-1 text-[11px] font-medium", active ? "bg-accent text-white" : "bg-surface text-fg")}>
+                        <span className={cn("absolute left-12 top-0 whitespace-nowrap rounded px-1 text-[0.6875rem] font-medium", active ? "bg-accent text-white" : "bg-surface text-fg")}>
                           {i + 1}. {m.label}
                         </span>
                       </div>
@@ -355,7 +355,7 @@ export function SequenceBlock({ data }: { data: VisualData<"sequence"> }) {
                             aria-hidden
                           />
                         </div>
-                        <span className={cn("absolute -top-6 left-1/2 max-w-[18rem] -translate-x-1/2 truncate whitespace-nowrap rounded px-1.5 text-[11px] font-medium", active ? "bg-accent text-white" : "bg-surface text-fg")} title={m.label}>
+                        <span className={cn("absolute -top-6 left-1/2 max-w-[18rem] -translate-x-1/2 truncate whitespace-nowrap rounded px-1.5 text-[0.6875rem] font-medium", active ? "bg-accent text-white" : "bg-surface text-fg")} title={m.label}>
                           {i + 1}. {m.label}
                         </span>
                       </div>
@@ -425,7 +425,7 @@ export function CodewalkBlock({ data }: { data: VisualData<"codewalk"> }) {
                     <span className={cn("w-10 shrink-0 select-none pr-3 text-right", on ? "text-amber-300" : "text-slate-500")}>{ln}</span>
                     <span className="whitespace-pre">{line || " "}</span>
                     {!isStatic && noteIdx >= 0 && (
-                      <button type="button" onClick={() => setActive(noteIdx)} className="ml-3 shrink-0 rounded-full bg-[#e8590c] px-1.5 text-[10px] font-bold leading-5 text-white" aria-label={`Note ${noteIdx + 1}: ${data.notes[noteIdx].title}`}>
+                      <button type="button" onClick={() => setActive(noteIdx)} className="ml-3 shrink-0 rounded-full bg-[#e8590c] px-1.5 text-[0.625rem] font-bold leading-5 text-white" aria-label={`Note ${noteIdx + 1}: ${data.notes[noteIdx].title}`}>
                         {noteIdx + 1}
                       </button>
                     )}
@@ -444,10 +444,10 @@ export function CodewalkBlock({ data }: { data: VisualData<"codewalk"> }) {
                 onClick={() => setActive(i)}
                 className={cn("flex w-full gap-2.5 px-3 py-2.5 text-left transition", !isStatic && active === i ? "bg-primary-soft" : "hover:bg-surface-2")}
               >
-                <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", !isStatic && active === i ? "bg-accent" : "bg-[#e8590c]")}>{i + 1}</span>
+                <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-bold text-white", !isStatic && active === i ? "bg-accent" : "bg-[#e8590c]")}>{i + 1}</span>
                 <span className="min-w-0">
                   <span className="block font-semibold text-fg">
-                    {n.title} <span className="font-mono text-[11px] font-normal text-muted">L{n.lines}</span>
+                    {n.title} <span className="font-mono text-[0.6875rem] font-normal text-muted">L{n.lines}</span>
                   </span>
                   {n.text && <InlineMd className="block text-xs leading-relaxed text-muted">{n.text}</InlineMd>}
                 </span>
@@ -520,7 +520,7 @@ export function RoleplayBlock({ data }: { data: VisualData<"roleplay"> }) {
           <div className="flex items-start gap-2">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-muted"><User className="h-4 w-4" /></span>
             <div className="rounded-2xl rounded-tl-sm bg-surface-2 px-3 py-2 text-sm text-fg">
-              <div className="text-[11px] font-semibold text-muted">{data.client}</div>
+              <div className="text-[0.6875rem] font-semibold text-muted">{data.client}</div>
               <InlineMd>{r.says}</InlineMd>
             </div>
           </div>
@@ -536,7 +536,7 @@ export function RoleplayBlock({ data }: { data: VisualData<"roleplay"> }) {
                   onClick={() => { setChoice(i); setScore((s) => [...s, o.quality === "best" ? 1 : 0]); }}
                   className={cn("rounded-lg border px-3 py-2 text-left text-sm transition", isPicked ? q.box : choice !== null && o.quality === "best" ? "border-success/60" : "border-border hover:bg-surface-2", choice !== null && !isPicked && "opacity-70")}
                 >
-                  <span className="text-[11px] font-semibold text-muted">You: </span>
+                  <span className="text-[0.6875rem] font-semibold text-muted">You: </span>
                   <InlineMd className="text-fg">{o.text}</InlineMd>
                 </button>
               );

@@ -144,7 +144,7 @@ function InteractiveSimulate({ data }: { data: Sim }) {
           ))}
         </div>
         {step.path && <span className="hidden rounded-md bg-surface-2 px-2 py-0.5 font-mono text-xs text-accent sm:inline">{step.path}</span>}
-        {data.version && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary">Real screens · {data.version}</span>}
+        {data.version && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[0.6875rem] font-semibold text-primary">Real screens · {data.version}</span>}
       </div>
 
       {/* Task: above the screen, so it stays put while the learner clicks */}
@@ -194,7 +194,7 @@ function InteractiveSimulate({ data }: { data: Sim }) {
             className={cn("pointer-events-none absolute z-10 -translate-x-1/2", bubbleBelow ? "pt-2" : "-translate-y-full pb-2")}
             aria-hidden
           >
-            <span className="sim-bob flex items-center gap-1 whitespace-nowrap rounded-full bg-[#e8590c] px-2 py-0.5 text-[11px] font-bold text-white shadow-lg sm:px-2.5 sm:py-1 sm:text-xs">
+            <span className="sim-bob flex items-center gap-1 whitespace-nowrap rounded-full bg-[#e8590c] px-2 py-0.5 text-[0.6875rem] font-bold text-white shadow-lg sm:px-2.5 sm:py-1 sm:text-xs">
               <MousePointerClick className="h-3.5 w-3.5" /> Click here
             </span>
           </span>

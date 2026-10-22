@@ -1,55 +1,60 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { eq } from "drizzle-orm";
-import { GraduationCap } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { requireUser } from "@/lib/auth";
+import { appUrl } from "@/lib/auth/cookie";
 import { can } from "@/lib/auth/rbac";
 import { getDb } from "@/lib/db";
-import { certificates, courses, users } from "@/lib/db/schema";
-import { PrintButton } from "@/components/print-button";
-import { BrandLogo } from "@/components/brand-logo";
-import { BRAND, copyrightLine } from "@/lib/brand";
+import { formatIssued, getCertificate, linkedInAddToProfileUrl, linkedInShareUrl, verifyPath, whatsAppShareUrl } from "@/lib/services/certificates";
+import { CertificateShare } from "@/components/certificate-share";
+import { Card, PageHeader } from "@/components/ui";
 
 export const metadata = { title: "Certificate" };
 
+/** The learner's own certificate, with LinkedIn, sharing and download options. */
 export default async function CertificatePage({ params }: { params: Promise<{ serial: string }> }) {
   const { serial } = await params;
   const viewer = await requireUser();
-  const db = await getDb();
-  const [row] = await db
-    .select({ serial: certificates.serial, issuedAt: certificates.issuedAt, score: certificates.score, userId: users.id, name: users.name, course: courses.title, level: courses.level })
-    .from(certificates)
-    .innerJoin(users, eq(users.id, certificates.userId))
-    .innerJoin(courses, eq(courses.id, certificates.courseId))
-    .where(eq(certificates.serial, serial))
-    .limit(1);
-  if (!row || (row.userId !== viewer.id && !can(viewer.role, "trainer:dashboard"))) notFound();
+  const cert = await getCertificate(await getDb(), serial);
+  if (!cert || (cert.userId !== viewer.id && !can(viewer.role, "trainer:dashboard"))) notFound();
+  const verifyUrl = `${await appUrl()}${verifyPath(cert.serial)}`;
+  const own = cert.userId === viewer.id;
 
   return (
-    <div className="mx-auto max-w-3xl">
-      <div className="mb-4 flex justify-end no-print">
-        <PrintButton />
-      </div>
-      <div className="rounded-2xl border-4 border-double border-primary/40 bg-surface p-10 text-center shadow-sm sm:p-14">
-        <BrandLogo height={34} className="mx-auto" />
-        <div className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-muted">
-          <GraduationCap className="h-4 w-4 text-primary" aria-hidden /> {BRAND.productName}
+    <div className="space-y-6">
+      <PageHeader
+        compact
+        eyebrow="Certificate"
+        title={cert.title}
+        description={`${own ? "Congratulations! " : `Issued to ${cert.name}. `}Issued ${formatIssued(cert.issuedAt)} · ${cert.kind === "module" ? "Final assessment" : "Overall assessment"} score ${cert.score}% · ID ${cert.serial}`}
+      />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="min-w-0 space-y-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={`${verifyPath(cert.serial)}/image`}
+            width={2000}
+            height={1414}
+            alt={`Certificate of completion: ${cert.name}, ${cert.title}, issued ${formatIssued(cert.issuedAt)}, ID ${cert.serial}`}
+            className="h-auto w-full rounded-lg border border-border bg-white shadow-lg"
+          />
+          <p className="text-sm text-muted">
+            Anyone can check this certificate at{" "}
+            <Link href={verifyPath(cert.serial)} className="inline-flex items-center gap-1 font-semibold text-primary hover:underline">
+              {verifyUrl.replace(/^https?:\/\//, "")} <ExternalLink className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+            . It shows your name, the course and the issue date, never your email or scores.
+          </p>
         </div>
-        <h1 className="mt-6 text-3xl font-semibold text-fg">Certificate of Completion</h1>
-        <p className="mt-6 text-muted">This certifies that</p>
-        <p className="mt-2 text-2xl font-semibold text-fg">{row.name}</p>
-        <p className="mt-4 text-muted">has completed all lessons and passed the final assessment of</p>
-        <p className="mt-2 text-xl font-medium text-primary">{row.course}</p>
-        <p className="mt-6 text-sm text-muted">
-          Final assessment score: {row.score}% · Level: <span className="capitalize">{row.level}</span>
-        </p>
-        <div className="mt-10 flex flex-col justify-between gap-2 border-t border-border pt-4 text-xs text-muted sm:flex-row">
-          <span>Issued {row.issuedAt.toLocaleDateString(undefined, { dateStyle: "long" })}</span>
-          <span>Certificate ID {row.serial}</span>
-        </div>
-        <p className="mt-4 text-[11px] text-muted">
-          Training certificate issued by {BRAND.legalName} ({BRAND.company} {BRAND.productName}). It is not an official Odoo S.A. certification.
-        </p>
-        <p className="mt-1 text-[11px] text-muted">{copyrightLine()}</p>
+        <Card>
+          <CertificateShare
+            serial={cert.serial}
+            verifyUrl={verifyUrl}
+            addToProfileUrl={linkedInAddToProfileUrl(cert, verifyUrl)}
+            linkedInShareUrl={linkedInShareUrl(verifyUrl)}
+            whatsAppUrl={whatsAppShareUrl(cert, verifyUrl)}
+          />
+        </Card>
       </div>
     </div>
   );

@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
   experimental: {
     serverActions: { bodySizeLimit: "6mb" },
   },
+  // After `npm run media:upload-visuals`, lesson images are served from the public R2 bucket.
+  async redirects() {
+    const base = process.env.R2_PUBLIC_URL?.replace(/\/+$/, "");
+    if (process.env.VISUALS_ON_R2 !== "true" || !base) return [];
+    return [{ source: "/visuals/:path*", destination: `${base}/visuals/:path*`, permanent: false }];
+  },
 };
 
 export default nextConfig;

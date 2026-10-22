@@ -438,7 +438,7 @@ export function StoryPlayer({ data }: { data: Story }) {
               {spokenParts[sentence] ?? sentences(subtitle)[0]}
             </div>
           ) : (
-            data.legend && <div className="absolute inset-x-3 bottom-3 rounded-lg bg-surface/90 px-3 py-1.5 text-[11px] leading-snug text-muted shadow-sm">{data.legend}</div>
+            data.legend && <div className="absolute inset-x-3 bottom-3 rounded-lg bg-surface/90 px-3 py-1.5 text-[0.6875rem] leading-snug text-muted shadow-sm">{data.legend}</div>
           )}
           {data.company && <div className="absolute right-3 top-3 hidden rounded-lg bg-surface/90 px-2.5 py-1 text-xs text-muted shadow-sm sm:block">{data.company}</div>}
 
@@ -448,17 +448,17 @@ export function StoryPlayer({ data }: { data: Story }) {
           <div className="space-y-3 border-t border-border p-4 sm:p-5 lg:overflow-y-auto lg:border-l lg:border-t-0" aria-live="polite">
             <div key={scene} className={reduced ? undefined : "story-fade"}>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-primary-fg">Step {scene + 1} of {data.scenes.length}</span>
+                <span className="rounded-full bg-primary px-2 py-0.5 text-[0.6875rem] font-bold text-primary-fg">Step {scene + 1} of {data.scenes.length}</span>
                 <span className="text-xs font-semibold uppercase tracking-wide text-primary">{current.at}</span>
-                {target.app && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">{target.app}</span>}
-                {current.document && <span className="rounded-md bg-surface-2 px-2 py-0.5 font-mono text-[11px] text-fg">{current.document}</span>}
+                {target.app && <span className="rounded-full bg-accent/10 px-2 py-0.5 text-[0.625rem] font-semibold text-accent">{target.app}</span>}
+                {current.document && <span className="rounded-md bg-surface-2 px-2 py-0.5 font-mono text-[0.6875rem] text-fg">{current.document}</span>}
               </div>
               <div className={cn("mt-1 text-lg font-semibold leading-snug", current.tone ? toneBg[current.tone as Tone].split(" ")[1] : "text-fg")}>{current.title}</div>
               <InlineMd className="mt-1 block text-sm leading-relaxed text-fg">{current.text}</InlineMd>
             </div>
             {current.entries.length > 0 && (
               <div key={`j${scene}`} className={cn("rounded-xl border border-border bg-surface p-3", !reduced && "story-fade")}>
-                <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted">Journal entry</div>
+                <div className="mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted">Journal entry</div>
                 <ul className="space-y-1 text-sm">
                   {[...dr, ...cr].map((e, i) => (
                     <li key={i} className={cn("flex justify-between gap-3", e.credit && "pl-4")}>
@@ -478,7 +478,7 @@ export function StoryPlayer({ data }: { data: Story }) {
                   const changed = scene > 0 && c.values[scene] !== c.values[scene - 1];
                   return (
                     <div key={c.label} className={cn("rounded-xl border p-2.5 transition-colors", changed ? "border-primary/50 bg-primary-soft/60" : "border-border")}>
-                      <dt className="text-[11px] text-muted">{c.label}</dt>
+                      <dt className="text-[0.6875rem] text-muted">{c.label}</dt>
                       <dd className="text-base font-semibold tabular-nums text-fg">{c.values[scene]}</dd>
                     </div>
                   );
@@ -511,7 +511,7 @@ export function StoryPlayer({ data }: { data: Story }) {
                 <dl className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3">
                   {data.results.map((r) => (
                     <div key={r.label} className="rounded-xl bg-white/10 p-3 ring-1 ring-white/10">
-                      <dt className="text-[11px] text-white/75">{r.label}</dt>
+                      <dt className="text-[0.6875rem] text-white/75">{r.label}</dt>
                       <dd className="mt-0.5 text-base font-semibold">{r.value}</dd>
                     </div>
                   ))}
@@ -591,7 +591,7 @@ export function StoryPlayer({ data }: { data: Story }) {
                     i === scene ? "border-primary bg-primary-soft" : i < scene ? "border-border bg-surface-2/50" : "border-border hover:border-primary/40",
                   )}
                 >
-                  <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold", i <= scene ? "bg-primary text-primary-fg" : "bg-surface-2 text-muted")}>{i + 1}</span>
+                  <span className={cn("flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold", i <= scene ? "bg-primary text-primary-fg" : "bg-surface-2 text-muted")}>{i + 1}</span>
                   <span className="min-w-0">
                     <span className="block font-semibold text-fg">{s.title}</span>
                     <span className="mt-0.5 flex flex-wrap items-center gap-1 text-muted">

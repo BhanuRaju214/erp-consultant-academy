@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
-import { getCurrentUser } from "@/lib/auth";
+import { courseApiUser } from "@/lib/auth/course-access";
 import { getDb } from "@/lib/db";
 import { projects } from "@/lib/db/schema";
 import { toCsv } from "@/lib/import/csv";
@@ -9,7 +9,8 @@ import type { ProjectContent } from "@/content/types";
 
 /** GET /api/projects/:slug/files/:index — downloads a project master data file as CSV. */
 export async function GET(_: Request, { params }: { params: Promise<{ slug: string; index: string }> }) {
-  if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gate = await courseApiUser();
+  if (!gate.ok) return gate.response;
   const { slug, index } = await params;
   const project = await (await getDb()).query.projects.findFirst({ where: eq(projects.slug, slug) });
   if (!project) return NextResponse.json({ error: "Not found" }, { status: 404 });

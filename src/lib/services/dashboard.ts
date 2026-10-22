@@ -4,6 +4,7 @@ import {
   assessmentAttempts,
   assessments,
   certificates,
+  programCertificates,
   courseModules,
   courses,
   learningPathCourses,
@@ -123,7 +124,7 @@ export async function getTrainerOverview(db: Db) {
       lessonsDone: sql<number>`(select count(*) from ${lessonProgress} lp where lp.user_id = ${users.id} and lp.status = 'completed')::int`,
       avgScore: sql<number | null>`(select round(avg(best))::int from (select max(a.score) as best from ${assessmentAttempts} a where a.user_id = ${users.id} group by a.assessment_id) s)`,
       stepsDone: sql<number>`(select count(*) from ${studentExerciseSteps} s where s.user_id = ${users.id})::int`,
-      certCount: sql<number>`(select count(*) from ${certificates} c where c.user_id = ${users.id})::int`,
+      certCount: sql<number>`((select count(*) from ${certificates} c where c.user_id = ${users.id}) + (select count(*) from ${programCertificates} pc where pc.user_id = ${users.id}))::int`,
       pendingSubmissions: sql<number>`(select count(*) from ${submissions} s where s.user_id = ${users.id} and s.status = 'submitted')::int`,
     })
     .from(users)

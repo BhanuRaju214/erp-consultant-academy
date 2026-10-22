@@ -33,7 +33,7 @@ export function LessonToc({ items, variant = "sidebar" }: { items: TocItem[]; va
             href={`#${i.id}`}
             aria-current={active === i.id ? "location" : undefined}
             className={cn(
-              "-ml-px block border-l-2 py-1 pl-3 text-[13px] leading-snug transition",
+              "-ml-px block border-l-2 py-1 pl-3 text-[0.8125rem] leading-snug transition",
               active === i.id ? "border-primary font-medium text-primary" : "border-transparent text-muted hover:border-border hover:text-fg",
             )}
           >

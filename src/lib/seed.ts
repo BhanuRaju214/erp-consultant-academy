@@ -31,6 +31,7 @@ import {
 import type { AssessmentContent, CourseContent } from "@/content/types";
 import { hashPassword } from "@/lib/auth/password";
 import { findUserByEmail } from "@/lib/services/users";
+import { FLAGSHIP_PROGRAM, ensureFlagshipProgram } from "@/lib/services/programs";
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
@@ -385,5 +386,13 @@ export async function seedAll(
       log.push(`✓ user ${a.email} (${a.role})`);
     }
   }
+
+  // ---- Programs (catalogue level) ----------------------------------------------
+  const flagship = await ensureFlagshipProgram(db);
+  log.push(
+    `✓ program ${FLAGSHIP_PROGRAM.slug}` +
+      (flagship.created ? ` created, ${flagship.enrolled} existing users enrolled` : "") +
+      (flagship.linked ? `, ${flagship.linked} courses linked` : ""),
+  );
   return log;
 }

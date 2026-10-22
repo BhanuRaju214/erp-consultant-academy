@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth";
+import { courseApiUser } from "@/lib/auth/course-access";
 import { detectDelimiter, parseCsv, rowsToRecords } from "@/lib/import/csv";
 import { getTemplate, type TemplateKey } from "@/lib/import/templates";
 import { validateImport } from "@/lib/import/validator";
@@ -20,7 +20,8 @@ const knownIdsSchema = z.record(z.string(), z.array(z.string().max(200)).max(20_
  * Runs the import SIMULATOR. Nothing is written to Odoo or to the portal database.
  */
 export async function POST(req: NextRequest) {
-  if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gate = await courseApiUser();
+  if (!gate.ok) return gate.response;
 
   let form: FormData;
   try {

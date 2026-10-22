@@ -1,7 +1,7 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db/client";
-import { learningPaths, users, type Role, type User } from "@/lib/db/schema";
+import { learningPaths, oauthAccounts, users, type Role, type User } from "@/lib/db/schema";
 import { hashPassword, passwordPolicyError, verifyPassword } from "@/lib/auth/password";
 
 export const registerSchema = z.object({
@@ -44,6 +44,56 @@ export async function registerUser(
       learningPathId,
     })
     .returning();
+  return { ok: true, value: user };
+}
+
+/** Error codes (used in redirect URLs) and the messages shown for them. */
+export const OAUTH_ERRORS = {
+  account_disabled: "This account is disabled.",
+  email_unverified: "Your Google email address is not verified.",
+  registration_closed: "Self-registration is disabled. Ask your trainer for an account.",
+} as const;
+
+export interface OAuthIdentity {
+  provider: string;
+  providerAccountId: string;
+  email: string;
+  emailVerified: boolean;
+  name: string;
+}
+
+/**
+ * Resolves an external identity to a user: an already-linked account wins; otherwise
+ * a verified email links to the existing user with that email; otherwise a new
+ * student is created (when self-registration is allowed). OAuth-only users have no password.
+ */
+export async function signInWithOAuth(
+  db: Db,
+  identity: OAuthIdentity,
+  opts: { allowRegistration: boolean },
+): Promise<ServiceResult<User>> {
+  const linked = await db
+    .select({ user: users })
+    .from(oauthAccounts)
+    .innerJoin(users, eq(users.id, oauthAccounts.userId))
+    .where(and(eq(oauthAccounts.provider, identity.provider), eq(oauthAccounts.providerAccountId, identity.providerAccountId)))
+    .limit(1);
+  if (linked[0]) {
+    return linked[0].user.active ? { ok: true, value: linked[0].user } : { ok: false, error: OAUTH_ERRORS.account_disabled };
+  }
+  if (!identity.emailVerified) return { ok: false, error: OAUTH_ERRORS.email_unverified };
+
+  let user = await findUserByEmail(db, identity.email);
+  if (user && !user.active) return { ok: false, error: OAUTH_ERRORS.account_disabled };
+  if (!user) {
+    if (!opts.allowRegistration) return { ok: false, error: OAUTH_ERRORS.registration_closed };
+    const email = identity.email.trim().toLowerCase();
+    [user] = await db.insert(users).values({ name: identity.name.slice(0, 80), email, passwordHash: null, role: "student" }).returning();
+  }
+  await db
+    .insert(oauthAccounts)
+    .values({ userId: user.id, provider: identity.provider, providerAccountId: identity.providerAccountId, email: identity.email })
+    .onConflictDoNothing();
   return { ok: true, value: user };
 }
 

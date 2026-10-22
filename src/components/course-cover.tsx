@@ -31,7 +31,7 @@ export function CourseCover({ slug, section, size = "card", className }: { slug:
         </svg>
       )}
       <div className={cn("relative flex h-full items-center", size === "mini" ? "justify-center" : "justify-between px-5")}>
-        {size !== "mini" && <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand">{v.label}</span>}
+        {size !== "mini" && <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-brand">{v.label}</span>}
         <span className={cn("flex items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15", size === "mini" ? "h-full w-full rounded-xl" : "h-16 w-16")}>
           <VisualIcon name={v.icon} className={cn("text-brand", size === "mini" ? "h-6 w-6" : "h-8 w-8")} />
         </span>

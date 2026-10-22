@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { asc, eq } from "drizzle-orm";
-import { getCurrentUser } from "@/lib/auth";
+import { courseApiUser } from "@/lib/auth/course-access";
 import { getDb } from "@/lib/db";
 import { testCases } from "@/lib/db/schema";
 import { toCsv } from "@/lib/import/csv";
@@ -21,8 +21,9 @@ const COLUMNS: [string, keyof typeof testCases.$inferSelect][] = [
 ];
 
 export async function GET() {
-  const user = await getCurrentUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gate = await courseApiUser();
+  if (!gate.ok) return gate.response;
+  const user = gate.user;
   const rows = await (await getDb()).select().from(testCases).where(eq(testCases.userId, user.id)).orderBy(asc(testCases.code));
   const header = COLUMNS.map(([h]) => h);
   const records = rows.map((r) => Object.fromEntries(COLUMNS.map(([h, k]) => [h, String(r[k] ?? "")])));

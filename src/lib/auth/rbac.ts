@@ -6,6 +6,7 @@ const PERMISSIONS = {
   "trainer:dashboard": ["trainer", "admin"],
   "trainer:review": ["trainer", "admin"],
   "admin:content": ["admin"],
+  "media:manage": ["trainer", "admin"],
   "admin:users": ["admin"],
 } as const satisfies Record<string, readonly Role[]>;
 

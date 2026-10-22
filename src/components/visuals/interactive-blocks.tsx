@@ -50,7 +50,7 @@ function HubDiagram({ hub, dark = false, label }: { hub: Pick<Hub, "center" | "n
         </svg>
         <div className="absolute left-1/2 top-1/2 flex h-[30%] w-[30%] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-full bg-primary p-2 text-center text-primary-fg shadow-lg ring-8 ring-primary/15">
           <VisualIcon name={hub.center.icon ?? "database"} className="h-6 w-6" />
-          <span className="mt-1 text-[11px] font-semibold leading-tight">{hub.center.label}</span>
+          <span className="mt-1 text-[0.6875rem] font-semibold leading-tight">{hub.center.label}</span>
         </div>
         {hub.nodes.map((node, i) => (
           <button
@@ -70,7 +70,7 @@ function HubDiagram({ hub, dark = false, label }: { hub: Pick<Hub, "center" | "n
             )}
           >
             <VisualIcon name={node.icon} className="h-5 w-5" />
-            <span className="text-[11px] font-medium leading-tight">{node.label}</span>
+            <span className="text-[0.6875rem] font-medium leading-tight">{node.label}</span>
           </button>
         ))}
       </div>
@@ -181,7 +181,7 @@ export function FlowBlock({ data }: { data: VisualData<"flow"> }) {
           {data.steps.map((s, i) => (
             <li key={i} className="flex items-center gap-1.5">
               <span className="flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary-soft px-3 py-1 text-sm font-medium text-fg">
-                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-fg">{i + 1}</span>
+                <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[0.625rem] font-bold text-primary-fg">{i + 1}</span>
                 {s.title}
               </span>
               {i < data.steps.length - 1 && <ArrowRight className="h-4 w-4 shrink-0 text-muted" aria-hidden />}
@@ -215,26 +215,26 @@ export function FlowBlock({ data }: { data: VisualData<"flow"> }) {
                 <VisualIcon name={s.icon ?? "workflow"} className="h-4 w-4" />
               </span>
               <span className="min-w-0">
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-muted">Step {i + 1}</span>
+                <span className="block text-[0.625rem] font-semibold uppercase tracking-wide text-muted">Step {i + 1}</span>
                 <span className="block text-sm font-semibold leading-snug text-fg">{s.title}</span>
-                {s.app && <span className="mt-1 inline-block rounded-full bg-accent/10 px-2 py-0.5 text-[10px] font-semibold text-accent">{s.app}</span>}
+                {s.app && <span className="mt-1 inline-block rounded-full bg-accent/10 px-2 py-0.5 text-[0.625rem] font-semibold text-accent">{s.app}</span>}
                 {s.parallel && (
                   <span className="mt-2 grid gap-1.5">
-                    <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">In parallel</span>
+                    <span className="text-[0.625rem] font-semibold uppercase tracking-wide text-muted">In parallel</span>
                     {s.parallel.map((p) => (
                       <span key={p.title} className="flex items-start gap-1.5 rounded-lg border border-border bg-surface px-2 py-1.5 text-xs text-fg">
                         <VisualIcon name={p.icon ?? "workflow"} className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
                         <span className="min-w-0">
                           <span className="font-medium">{p.title}</span>
-                          {p.app && <span className="ml-1 text-[10px] font-semibold text-accent">· {p.app}</span>}
-                          {p.detail && <span className="block text-[11px] leading-snug text-muted">{p.detail}</span>}
+                          {p.app && <span className="ml-1 text-[0.625rem] font-semibold text-accent">· {p.app}</span>}
+                          {p.detail && <span className="block text-[0.6875rem] leading-snug text-muted">{p.detail}</span>}
                         </span>
                       </span>
                     ))}
                   </span>
                 )}
                 {s.branch && (
-                  <span className={cn("mt-2 flex items-start gap-1 rounded-lg px-2 py-1 text-[11px] leading-snug", toneBg[(s.branch.tone as Tone) ?? "warning"])}>
+                  <span className={cn("mt-2 flex items-start gap-1 rounded-lg px-2 py-1 text-[0.6875rem] leading-snug", toneBg[(s.branch.tone as Tone) ?? "warning"])}>
                     <CornerDownRight className="mt-px h-3 w-3 shrink-0" aria-hidden />
                     <span>
                       <span className="font-semibold">{s.branch.when}:</span> {s.branch.result}
@@ -301,7 +301,7 @@ export function FlowBlock({ data }: { data: VisualData<"flow"> }) {
               .filter(([, v]) => v)
               .map(([k, v]) => (
                 <div key={k} className="rounded-lg bg-surface p-2.5">
-                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted">{k}</dt>
+                  <dt className="text-[0.6875rem] font-semibold uppercase tracking-wide text-muted">{k}</dt>
                   <dd className="mt-0.5 text-fg">
                     <InlineMd>{v!}</InlineMd>
                   </dd>
@@ -474,7 +474,7 @@ export function CheckBlock({ data }: { data: VisualData<"check"> }) {
           )}
         </div>
       )}
-      <p className="mt-2 text-[11px] text-muted">Practice question — not graded.</p>
+      <p className="mt-2 text-[0.6875rem] text-muted">Practice question — not graded.</p>
     </VisualFrame>
   );
 }
@@ -491,7 +491,7 @@ function Marker({ n, active, onSelect }: { n?: number; active: number | null; on
       onClick={() => onSelect(n)}
       aria-label={`Annotation ${n}`}
       className={cn(
-        "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ring-2 ring-surface transition",
+        "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.625rem] font-bold ring-2 ring-surface transition",
         active === n ? "scale-125 bg-accent text-white" : "bg-warning text-white hover:scale-110",
       )}
     >
@@ -505,12 +505,12 @@ export function MockupBlock({ data }: { data: VisualData<"mockup"> }) {
   const hl = (n?: number) => (n && active === n ? "outline outline-2 outline-offset-2 outline-[var(--accent)] rounded" : "");
   return (
     <VisualFrame kind="Odoo screen" title={data.title} caption={data.note}>
-      <div className="mb-3 inline-flex items-center gap-1.5 rounded-md bg-warning-soft px-2 py-1 text-[11px] font-semibold text-warning">
+      <div className="mb-3 inline-flex items-center gap-1.5 rounded-md bg-warning-soft px-2 py-1 text-[0.6875rem] font-semibold text-warning">
         <TriangleAlert className="h-3.5 w-3.5" aria-hidden /> Illustrative mockup — not an Odoo screenshot
       </div>
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         {/* Window */}
-        <div className="overflow-hidden rounded-xl border border-border bg-surface text-[13px] shadow-sm" aria-hidden="false">
+        <div className="overflow-hidden rounded-xl border border-border bg-surface text-[0.8125rem] shadow-sm" aria-hidden="false">
           <div className="flex items-center gap-2 bg-[#714b67] px-3 py-1.5 text-xs font-medium text-white">
             <span className="flex gap-1" aria-hidden>
               <span className="h-2 w-2 rounded-full bg-white/40" />
@@ -539,7 +539,7 @@ export function MockupBlock({ data }: { data: VisualData<"mockup"> }) {
               ))}
             </div>
             {data.status && (
-              <ol className="flex overflow-hidden rounded border border-border text-[11px]" aria-label="Status bar">
+              <ol className="flex overflow-hidden rounded border border-border text-[0.6875rem]" aria-label="Status bar">
                 {data.status.steps.map((s, i) => (
                   <li
                     key={s}
@@ -700,7 +700,7 @@ export function ScreenBlock({ data }: { data: VisualData<"screen"> }) {
             aria-label={`${i + 1}: ${c.title}`}
             className={cn(
               "absolute z-10 flex items-center justify-center rounded-full font-bold text-white shadow-md ring-2 ring-white transition",
-              big ? "h-7 w-7 text-xs" : "h-5 w-5 text-[10px] sm:h-6 sm:w-6 sm:text-[11px]",
+              big ? "h-7 w-7 text-xs" : "h-5 w-5 text-[0.625rem] sm:h-6 sm:w-6 sm:text-[0.6875rem]",
               on ? "scale-110 bg-accent" : "bg-[#e8590c]",
             )}
           >
@@ -714,7 +714,7 @@ export function ScreenBlock({ data }: { data: VisualData<"screen"> }) {
       {(data.path || data.version) && (
         <div className="flex flex-wrap items-center gap-2 border-b border-border px-4 py-2 sm:px-5">
           {data.path && <span className="rounded-md bg-surface-2 px-2 py-0.5 font-mono text-xs text-accent">{data.path}</span>}
-          {data.version && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[11px] font-semibold text-primary">Real screen · {data.version}</span>}
+          {data.version && <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[0.6875rem] font-semibold text-primary">Real screen · {data.version}</span>}
         </div>
       )}
       <div className="grid gap-0 lg:grid-cols-[minmax(0,1fr)_17rem]">
@@ -735,7 +735,7 @@ export function ScreenBlock({ data }: { data: VisualData<"screen"> }) {
           <ol className="divide-y divide-border border-t border-border text-sm lg:border-l lg:border-t-0">
             {data.callouts.map((c, i) => (
               <li key={i} onMouseEnter={() => setActive(i)} onMouseLeave={() => setActive(null)} className={cn("flex gap-2.5 px-3 py-2.5 transition", active === i && "bg-primary-soft")}>
-                <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white", active === i ? "bg-accent" : "bg-[#e8590c]")}>{i + 1}</span>
+                <span className={cn("mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[0.6875rem] font-bold text-white", active === i ? "bg-accent" : "bg-[#e8590c]")}>{i + 1}</span>
                 <span className="min-w-0">
                   <span className="block font-semibold text-fg">{c.title}</span>
                   {c.text && <InlineMd className="block text-xs leading-relaxed text-muted">{c.text}</InlineMd>}

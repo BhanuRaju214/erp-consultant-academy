@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/auth";
+import { courseApiUser } from "@/lib/auth/course-access";
 import { generateDataset } from "@/lib/import/generator";
 import { getTemplate, isTemplateKey } from "@/lib/import/templates";
 import { toCsv } from "@/lib/import/csv";
@@ -20,7 +20,8 @@ const schema = z.object({
  * GET /api/sample-data?...&file=customers                           → CSV download of one file
  */
 export async function GET(req: NextRequest) {
-  if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gate = await courseApiUser();
+  if (!gate.ok) return gate.response;
   const parsed = schema.safeParse(Object.fromEntries(req.nextUrl.searchParams));
   if (!parsed.success) return NextResponse.json({ error: parsed.error.issues[0]?.message }, { status: 400 });
   const o = parsed.data;

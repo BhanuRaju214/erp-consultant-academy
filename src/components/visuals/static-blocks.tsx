@@ -36,7 +36,7 @@ export function VisualFrame({
     <figure className={cn("not-prose my-8 overflow-hidden rounded-2xl border border-border bg-surface shadow-sm", className)}>
       {(title || kind) && (
         <div className="flex items-center gap-2 border-b border-border bg-surface-2/60 px-4 py-2.5 sm:px-5">
-          <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-primary">{kind}</span>
+          <span className="rounded-full bg-primary-soft px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider text-primary">{kind}</span>
           {title && <span className="text-sm font-semibold text-fg">{title}</span>}
         </div>
       )}
@@ -296,7 +296,7 @@ export function ScenarioBlock({ data }: { data: VisualData<"scenario"> }) {
         <ol className="mt-4 grid gap-2 sm:grid-cols-2">
           {data.steps.map((s, i) => (
             <li key={i} className="flex gap-2 rounded-lg bg-surface-2 p-2.5 text-sm text-fg">
-              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-fg">{i + 1}</span>
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary text-[0.6875rem] font-semibold text-primary-fg">{i + 1}</span>
               <InlineMd>{s}</InlineMd>
             </li>
           ))}
@@ -402,7 +402,7 @@ export function LayersBlock({ data }: { data: VisualData<"layers"> }) {
       </ol>
       {data.connects.length > 0 && (
         <div className="mt-4 border-t border-dashed border-border pt-4">
-          <div className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">Connects to</div>
+          <div className="mb-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-muted">Connects to</div>
           <div className={cn("grid gap-3", data.connects.length > 1 && "sm:grid-cols-2", data.connects.length > 2 && "lg:grid-cols-3")}>
             {data.connects.map((c) => (
               <div key={c.title} className="flex items-start gap-3 rounded-xl border border-dashed border-primary/40 p-3">

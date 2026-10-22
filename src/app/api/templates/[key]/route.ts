@@ -1,12 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
+import { courseApiUser } from "@/lib/auth/course-access";
 import { getTemplate } from "@/lib/import/templates";
 import { toCsv } from "@/lib/import/csv";
 import { buildTemplateWorkbook } from "@/lib/import/xlsx";
 
 /** GET /api/templates/:key?format=csv|xlsx&sample=0|1 — downloadable import templates. */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ key: string }> }) {
-  if (!(await getCurrentUser())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const gate = await courseApiUser();
+  if (!gate.ok) return gate.response;
   const { key } = await params;
   const template = getTemplate(key);
   if (!template) return NextResponse.json({ error: "Unknown template" }, { status: 404 });

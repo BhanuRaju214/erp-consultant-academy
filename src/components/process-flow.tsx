@@ -33,12 +33,12 @@ export function ProcessFlow({ steps }: { steps: ProcessStep[] }) {
                 i === active ? "border-primary bg-primary-soft shadow-sm" : "border-border bg-surface hover:border-primary/50",
               )}
             >
-              <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted">
+              <span className="flex items-center gap-1.5 text-[0.6875rem] font-semibold text-muted">
                 <span className={cn("h-2 w-2 rounded-full", deptColor(s.department))} aria-hidden />
                 Step {i + 1}
               </span>
               <span className="mt-1 text-sm font-medium leading-snug text-fg">{s.title}</span>
-              {s.approval && <span className="mt-1 text-[10px] font-medium uppercase text-warning">Approval</span>}
+              {s.approval && <span className="mt-1 text-[0.625rem] font-medium uppercase text-warning">Approval</span>}
             </button>
             {i < steps.length - 1 && <ArrowRight className="mx-1 h-4 w-4 shrink-0 text-muted" aria-hidden />}
           </li>

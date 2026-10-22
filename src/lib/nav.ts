@@ -7,10 +7,45 @@ export interface NavItem {
   /** Course section rendered by /learn/[section]. */
   section?: SectionKey;
   roles?: ("student" | "trainer" | "admin")[];
+  /** Highlight only on this exact URL (not on pages below it). */
+  exact?: boolean;
 }
 
+/** Platform-level navigation (outside a course). */
+export const PLATFORM_NAV: NavItem[] = [
+  { href: "/dashboard", label: "Dashboard", icon: "LayoutDashboard", exact: true },
+  { href: "/catalog", label: "Course catalog", icon: "LibraryBig" },
+  { href: "/trainer", label: "Admin & Trainer Management", icon: "ShieldCheck", roles: ["trainer", "admin"] },
+];
+
+/**
+ * URL prefixes that belong to the Odoo ERP Consultant Program (the (academy) route
+ * group). The sidebar shows the course navigation on these pages.
+ */
+export const COURSE_PATH_PREFIXES = [
+  "/learn",
+  "/processes",
+  "/courses",
+  "/config-lab",
+  "/import-lab",
+  "/testing",
+  "/projects",
+  "/assessments",
+  "/docs",
+  "/progress",
+  "/assignments",
+  "/assistant",
+  "/discussions",
+  "/search",
+];
+
+export function isCoursePath(pathname: string): boolean {
+  return COURSE_PATH_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + "/"));
+}
+
+/** Navigation inside the Odoo ERP Consultant Program. */
 export const NAV: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: "LayoutDashboard" },
+  { href: "/learn", label: "Course home", icon: "LayoutDashboard", exact: true },
   { href: "/learn/erp-fundamentals", label: "ERP Fundamentals", icon: "GraduationCap", section: "erp-fundamentals" },
   { href: "/processes", label: "Business Process Academy", icon: "Workflow" },
   { href: "/learn/odoo-apps", label: "Odoo Application Training", icon: "Boxes", section: "odoo-apps" },
@@ -24,7 +59,6 @@ export const NAV: NavItem[] = [
   { href: "/assessments", label: "Assessments & Certifications", icon: "Award" },
   { href: "/docs", label: "Documentation Library", icon: "Library" },
   { href: "/progress", label: "Progress & Reports", icon: "ChartNoAxesCombined" },
-  { href: "/trainer", label: "Admin & Trainer Management", icon: "ShieldCheck", roles: ["trainer", "admin"] },
 ];
 
 export const SECONDARY_NAV: NavItem[] = [
@@ -70,3 +104,6 @@ export const SCOPE_LABELS: Record<string, { label: string; tone: "neutral" | "in
   customization: { label: "Custom development", tone: "danger" },
   "third-party": { label: "Third-party", tone: "neutral" },
 };
+
+/** Course sections in learning order (the order of NAV), used to sort modules. */
+export const SECTION_ORDER: string[] = NAV.flatMap((n) => (n.section ? [n.section] : []));

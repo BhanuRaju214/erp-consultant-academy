@@ -1,6 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/register"];
+// /media and /api/webhooks check access themselves (public assets; signed Mux webhooks).
+// /verify is public so employers can check certificates.
+const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password", "/api/auth", "/media", "/api/webhooks", "/verify"];
 
 /**
  * Cheap edge check: requests without a session cookie are sent to /login.
@@ -9,7 +11,8 @@ const PUBLIC_PATHS = ["/login", "/register"];
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const hasSession = Boolean(req.cookies.get("erp_session")?.value);
-  const isPublic = PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
+  // "/" is the public home page (exact match only).
+  const isPublic = pathname === "/" || PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(p + "/"));
 
   if (!hasSession && !isPublic) {
     if (pathname.startsWith("/api/")) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,5 +26,5 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   // Public assets (brand logo, app icons) must load on the login page too.
-  matcher: ["/((?!_next/static|_next/image|brand/|icon\\.png|apple-icon\\.png|favicon.ico|robots.txt).*)"],
+  matcher: ["/((?!_next/static|_next/image|brand/|marketing/|icon\\.png|apple-icon\\.png|favicon.ico|robots.txt).*)"],
 };

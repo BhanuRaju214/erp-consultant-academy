@@ -1,236 +1,224 @@
 import Link from "next/link";
-import { asc } from "drizzle-orm";
-import { ArrowRight, Award, Briefcase, CircleCheck, Clock, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, Award, Code2, DatabaseZap, Plug, ClipboardCheck, Briefcase, UserRound, PlayCircle } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { learningPaths } from "@/lib/db/schema";
 import { getStudentDashboard } from "@/lib/services/dashboard";
-import { changeLearningPath } from "@/app/actions/learning";
-import { Badge, ButtonLink, Callout, Card, CardTitle, EmptyState, LevelBadge, PageHeader, ProgressBar, Stat, buttonClass, inputClass } from "@/components/ui";
+import { listCertificates } from "@/lib/services/learning";
+import { getLibraryItems, ROLES } from "@/lib/services/library";
+import { FLAGSHIP_PROGRAM, isStaff, listMyPrograms } from "@/lib/services/programs";
+import { LibraryCard } from "@/components/library-browser";
+import { LibraryThumb } from "@/components/library-thumb";
+import { Callout, Container } from "@/components/ui";
 
-export const metadata = { title: "Dashboard" };
+export const metadata = { title: "Home" };
+
+const ROLE_ICONS = {
+  "Functional consultant": Briefcase,
+  "Technical consultant": Code2,
+  "Data migration": DatabaseZap,
+  Integration: Plug,
+  "QA & testing": ClipboardCheck,
+  "Business user": UserRound,
+} as const;
+
+function SectionHeading({ title, href, linkLabel }: { title: string; href?: string; linkLabel?: string }) {
+  return (
+    <div className="mb-4 flex items-baseline justify-between gap-3">
+      <h2 className="text-xl font-extrabold tracking-[-0.02em] text-fg">{title}</h2>
+      {href && (
+        <Link href={href} className="text-sm font-semibold text-primary hover:underline">
+          {linkLabel}
+        </Link>
+      )}
+    </div>
+  );
+}
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ welcome?: string; denied?: string }> }) {
   const user = await requireUser();
   const db = await getDb();
-  const d = await getStudentDashboard(db, user.id);
-  const paths = await db.select().from(learningPaths).orderBy(asc(learningPaths.position));
   const sp = await searchParams;
-  const overall = d.totals.lessons ? (d.totals.done / d.totals.lessons) * 100 : 0;
-  const pathDone = d.pathCourses.reduce((n, c) => n + c.completedLessons, 0);
-  const pathTotal = d.pathCourses.reduce((n, c) => n + c.totalLessons, 0);
+  const [mine, items, certs] = await Promise.all([
+    listMyPrograms(db, user),
+    getLibraryItems(db, user.id),
+    listCertificates(db, user.id, 4),
+  ]);
+  const flagship = mine.find((m) => m.program.slug === FLAGSHIP_PROGRAM.slug && (m.enrolled || isStaff(user)));
+  const next = flagship ? (await getStudentDashboard(db, user.id)).nextLesson : null;
+  const pct = flagship?.lessonsTotal ? Math.round((flagship.lessonsDone / flagship.lessonsTotal) * 100) : 0;
+
+  const courseItems = items.filter((i) => i.type === "course");
+  const inProgress = courseItems.filter((i) => i.progress && i.progress.done > 0 && i.progress.done < i.progress.total);
+  const recommended = courseItems.filter((i) => i.progress && i.progress.done === 0).slice(0, 3);
+  const handsOn = items.filter((i) => i.type === "lab" || i.type === "project").slice(0, 3);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        eyebrow="Student dashboard"
-        title={`Welcome${sp.welcome ? "" : " back"}, ${user.name.split(" ")[0]}`}
-        description="Understand the business → understand the process → learn the app → configure → import data → execute transactions → test → customize → implement → support."
-      />
-      {sp.denied && <Callout tone="warning">You don&apos;t have access to that area with your current role.</Callout>}
+    <>
+      <section className="bg-[#1a56db] text-white">
+        <Container className="py-9">
+          <p className="text-sm font-semibold text-white/80">{sp.welcome ? "Welcome to Nexsademy" : "Welcome back"}</p>
+          <h1 className="mt-1 text-3xl font-extrabold tracking-[-0.025em] sm:text-4xl">{user.name.split(" ")[0]}&apos;s learning</h1>
+          <p className="mt-1 text-white/80">Pick up where you left off, or find something new in the Library.</p>
+        </Container>
+      </section>
 
-      {d.nextLesson ? (
-        <Card className="flex flex-col gap-4 border-primary/30 bg-primary-soft sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="text-xs font-semibold uppercase tracking-wide text-primary">Recommended next lesson</div>
-            <div className="mt-1 text-lg font-semibold text-fg">{d.nextLesson.lessonTitle}</div>
-            <div className="text-sm text-muted">{d.nextLesson.courseTitle}</div>
-          </div>
-          <ButtonLink href={`/courses/${d.nextLesson.courseSlug}/${d.nextLesson.lessonSlug}`}>
-            Continue <ArrowRight className="h-4 w-4" />
-          </ButtonLink>
-        </Card>
-      ) : (
-        <Callout tone="success" title="All lessons completed">
-          Great work — move on to the implementation project and assessments.
-        </Callout>
-      )}
-
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <Stat label="Lessons completed" value={`${d.totals.done} / ${d.totals.lessons}`} hint={<ProgressBar value={overall} className="mt-2" label="Overall lesson progress" />} />
-        <Stat label="Assessments taken" value={d.scores.length} hint={d.scores.length ? `Avg best score ${Math.round(d.scores.reduce((n, s) => n + s.best, 0) / d.scores.length)}%` : "No attempts yet"} />
-        <Stat label="Practical steps done" value={d.exerciseStepsDone} hint="Configuration lab checklist steps" />
-        <Stat label="Certificates" value={d.certificates.length} hint={<Link href="/assessments" className="text-primary hover:underline">View certificates</Link>} />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <CardTitle>Current learning path</CardTitle>
-              {d.path ? (
-                <p className="mt-1 text-sm text-muted">
-                  <span className="font-medium text-fg">{d.path.title}</span> · {d.path.description}
-                </p>
-              ) : (
-                <p className="mt-1 text-sm text-muted">No path selected — choose one to get a recommended sequence.</p>
-              )}
-            </div>
-            <form action={changeLearningPath} className="flex gap-2">
-              <label htmlFor="path" className="sr-only">
-                Learning path
-              </label>
-              <select id="path" name="path" defaultValue={d.path?.slug ?? ""} className={`${inputClass} w-auto`}>
-                <option value="">— none —</option>
-                {paths.map((p) => (
-                  <option key={p.slug} value={p.slug}>
-                    {p.title} ({p.level})
-                  </option>
-                ))}
-              </select>
-              <button className={buttonClass("secondary")}>Change</button>
-            </form>
-          </div>
-          {d.pathCourses.length > 0 && (
-            <>
-              <div className="mb-4 flex items-center gap-3 text-sm text-muted">
-                <ProgressBar value={pathTotal ? (pathDone / pathTotal) * 100 : 0} label="Learning path progress" />
-                <span className="whitespace-nowrap">
-                  {pathDone}/{pathTotal}
+      {next && flagship ? (
+        <section className="border-b border-border bg-primary-soft">
+          <Container className="flex flex-col gap-4 py-5 sm:flex-row sm:items-center">
+            <PlayCircle className="hidden h-10 w-10 shrink-0 text-primary sm:block" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold uppercase tracking-wider text-primary">Continue learning</div>
+              <div className="mt-0.5 truncate font-bold text-fg">
+                {next.lessonTitle} <span className="font-normal text-muted">· {next.courseTitle}</span>
+              </div>
+              <div className="mt-2 flex items-center gap-3">
+                <div className="h-1.5 w-48 overflow-hidden rounded-full bg-white">
+                  <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
+                </div>
+                <span className="text-xs text-muted">
+                  {flagship.lessonsDone} of {flagship.lessonsTotal} lessons · {pct}%
                 </span>
               </div>
-              <ol className="divide-y divide-border">
-                {d.pathCourses.map((c, i) => {
-                  const pct = c.totalLessons ? (c.completedLessons / c.totalLessons) * 100 : 0;
-                  return (
-                    <li key={c.id} className="flex items-center gap-4 py-3">
-                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-xs font-semibold text-muted">
-                        {pct === 100 ? <CircleCheck className="h-4 w-4 text-success" /> : i + 1}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <Link href={`/courses/${c.slug}`} className="font-medium text-fg hover:text-primary">
-                          {c.title}
-                        </Link>
-                        <div className="mt-1 flex items-center gap-3">
-                          <ProgressBar value={pct} label={`${c.title} progress`} />
-                          <span className="whitespace-nowrap text-xs text-muted">
-                            {c.completedLessons}/{c.totalLessons} lessons
-                          </span>
-                        </div>
-                      </div>
-                      <LevelBadge level={c.level} />
-                    </li>
-                  );
-                })}
-              </ol>
-            </>
-          )}
-        </Card>
-
-        <div className="space-y-6">
-          <Card>
-            <CardTitle>Skills</CardTitle>
-            <div className="mt-3 space-y-3">
+            </div>
+            <Link href={`/courses/${next.courseSlug}/${next.lessonSlug}`} className="inline-flex items-center justify-center gap-2 rounded-md bg-[#0b1b3f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#13285a]">
+              Resume <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+          </Container>
+        </section>
+      ) : (
+        !flagship && (
+          <section className="border-b border-border bg-primary-soft">
+            <Container className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="mb-1.5 text-xs font-medium uppercase text-muted">Gained</div>
-                <div className="flex flex-wrap gap-1.5">
-                  {d.skillsGained.length ? d.skillsGained.map((s) => <Badge key={s} tone="success">{s}</Badge>) : <span className="text-sm text-muted">Complete a course to earn skills.</span>}
-                </div>
+                <div className="font-bold text-fg">You&apos;re not enrolled in a course yet</div>
+                <div className="text-sm text-muted">Enrol in the {FLAGSHIP_PROGRAM.title} to unlock every module, lab and project.</div>
               </div>
-              {d.skillsInProgress.length > 0 && (
-                <div>
-                  <div className="mb-1.5 text-xs font-medium uppercase text-muted">In progress</div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {d.skillsInProgress.slice(0, 12).map((s) => (
-                      <Badge key={s}>{s}</Badge>
-                    ))}
+              <Link href={`/catalog/${FLAGSHIP_PROGRAM.slug}`} className="inline-flex items-center justify-center rounded-md bg-[#0b1b3f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#13285a]">
+                View course
+              </Link>
+            </Container>
+          </section>
+        )
+      )}
+
+      <Container className="space-y-12 py-10">
+        {sp.denied && <Callout tone="warning">You don&apos;t have access to that area with your current role.</Callout>}
+
+        {flagship && (
+          <section>
+            <SectionHeading title="My course" />
+            <Link
+              href={flagship.program.homePath}
+              className="group grid overflow-hidden rounded-lg border border-border bg-surface shadow-[0_1px_3px_rgb(15_23_42/0.08)] transition hover:shadow-[0_6px_20px_-6px_rgb(15_23_42/0.25)] md:grid-cols-[minmax(0,1fr)_1.2fr]"
+            >
+              <LibraryThumb type="program" title={flagship.program.title} category="Course" size="hero" fill />
+              <div className="flex flex-col justify-center p-6">
+                <span className="w-fit rounded bg-[#1a56db] px-1.5 py-0.5 text-[0.6875rem] font-bold text-white">Course</span>
+                <h3 className="mt-3 text-2xl font-extrabold tracking-[-0.02em] text-fg group-hover:text-primary">{flagship.program.title}</h3>
+                <p className="mt-1 text-sm text-muted">
+                  {flagship.subCourses} modules · {flagship.lessonsTotal} lessons
+                </p>
+                <div className="mt-5 max-w-sm">
+                  <div className="mb-1.5 flex justify-between text-xs">
+                    <span className="text-muted">
+                      {flagship.lessonsDone} of {flagship.lessonsTotal} lessons
+                    </span>
+                    <span className="font-bold text-fg">{pct}%</span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-surface-2">
+                    <div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
-              )}
-            </div>
-          </Card>
-          <Card>
-            <CardTitle>Trainer feedback</CardTitle>
-            {d.feedback.length ? (
-              <ul className="mt-3 space-y-3">
-                {d.feedback.map((f, i) => (
-                  <li key={i} className="text-sm">
-                    <p className="text-fg">{f.body}</p>
-                    <p className="mt-0.5 text-xs text-muted">
-                      {f.trainer} · {f.createdAt.toLocaleDateString()}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="mt-2 text-sm text-muted">No feedback yet. Submit an assignment to get a review.</p>
-            )}
-          </Card>
-        </div>
-      </div>
+                <span className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-primary">
+                  Go to course home <ArrowRight className="h-4 w-4" aria-hidden />
+                </span>
+              </div>
+            </Link>
+          </section>
+        )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card>
-          <div className="flex items-center gap-2">
-            <Award className="h-4 w-4 text-primary" />
-            <CardTitle>Assessment scores</CardTitle>
+        {inProgress.length > 0 && (
+          <section>
+            <SectionHeading title="In progress" href="/catalog" linkLabel="Open Library" />
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {inProgress.slice(0, 3).map((i) => (
+                <LibraryCard key={i.id} item={i} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section>
+          <SectionHeading title="Explore by role" href="/catalog" linkLabel="Browse the Library" />
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            {ROLES.map((r) => {
+              const Icon = ROLE_ICONS[r];
+              const n = items.filter((i) => i.roles.includes(r)).length;
+              return (
+                <Link
+                  key={r}
+                  href={`/catalog?role=${encodeURIComponent(r)}`}
+                  className="group flex flex-col gap-3 rounded-lg border border-border bg-surface p-4 transition hover:border-primary hover:shadow-[0_6px_20px_-8px_rgb(26_86_219/0.35)]"
+                >
+                  <span className="flex h-10 w-10 items-center justify-center rounded-md bg-primary-soft text-primary">
+                    <Icon className="h-5 w-5" aria-hidden />
+                  </span>
+                  <span>
+                    <span className="block text-sm font-bold text-fg group-hover:text-primary">{r}</span>
+                    <span className="text-xs text-muted">{n} items</span>
+                  </span>
+                </Link>
+              );
+            })}
           </div>
-          {d.scores.length ? (
-            <ul className="mt-3 divide-y divide-border">
-              {d.scores.slice(0, 6).map((s) => (
-                <li key={s.assessmentId} className="flex items-center justify-between gap-2 py-2 text-sm">
-                  <span className="truncate text-fg">{s.title}</span>
-                  <Badge tone={s.best >= s.passMark ? "success" : "danger"}>{s.best}%</Badge>
+        </section>
+
+        {recommended.length > 0 && (
+          <section>
+            <SectionHeading title={inProgress.length ? "Up next" : "Start here"} href="/catalog" linkLabel="See all modules" />
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {recommended.map((i) => (
+                <LibraryCard key={i.id} item={i} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {handsOn.length > 0 && (
+          <section>
+            <SectionHeading title="Hands-on practice" href="/catalog" linkLabel="All labs & projects" />
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+              {handsOn.map((i) => (
+                <LibraryCard key={i.id} item={i} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section>
+          <SectionHeading title="Certificates" />
+          {certs.length ? (
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {certs.map((c) => (
+                <li key={c.serial}>
+                  <Link href={`/certificates/${c.serial}`} className="flex items-center gap-4 rounded-lg border border-border bg-surface p-4 hover:border-primary">
+                    <Award className="h-8 w-8 shrink-0 text-gold" aria-hidden />
+                    <span>
+                      <span className="block font-bold text-fg">{c.title}</span>
+                      <span className="text-xs text-muted">Issued {c.issuedAt.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</span>
+                    </span>
+                  </Link>
                 </li>
               ))}
             </ul>
           ) : (
-            <EmptyState title="No assessments yet">Finish a course and take its final assessment.</EmptyState>
+            <div className="flex items-center gap-4 rounded-lg border border-dashed border-border p-5 text-sm text-muted">
+              <Award className="h-8 w-8 shrink-0 text-muted/60" aria-hidden />
+              Complete a course and pass its assessments to earn your first certificate.
+            </div>
           )}
-        </Card>
-        <Card>
-          <div className="flex items-center gap-2">
-            <Briefcase className="h-4 w-4 text-primary" />
-            <CardTitle>Project progress</CardTitle>
-          </div>
-          <ul className="mt-3 space-y-3">
-            {d.projects.map((p) => (
-              <li key={p.id}>
-                <Link href={`/projects/${p.slug}`} className="text-sm font-medium text-fg hover:text-primary">
-                  Project {p.code}: {p.title}
-                </Link>
-                <div className="mt-1 flex items-center gap-3">
-                  <ProgressBar value={p.totalTasks ? (p.doneTasks / p.totalTasks) * 100 : 0} label={`${p.title} progress`} />
-                  <span className="whitespace-nowrap text-xs text-muted">
-                    {p.doneTasks}/{p.totalTasks}
-                  </span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </Card>
-        <Card>
-          <div className="flex items-center gap-2">
-            <SlidersHorizontal className="h-4 w-4 text-primary" />
-            <CardTitle>Practice next</CardTitle>
-          </div>
-          <ul className="mt-3 space-y-2 text-sm">
-            <li>
-              <Link className="text-primary hover:underline" href="/config-lab/trading-company">
-                Configure a trading company (12 steps)
-              </Link>
-            </li>
-            <li>
-              <Link className="text-primary hover:underline" href="/import-lab">
-                Validate customer, vendor & product imports
-              </Link>
-            </li>
-            <li>
-              <Link className="text-primary hover:underline" href="/processes/order-to-cash">
-                Walk through Order-to-Cash
-              </Link>
-            </li>
-            <li>
-              <Link className="text-primary hover:underline" href="/assistant">
-                Ask the AI learning assistant
-              </Link>
-            </li>
-          </ul>
-          <p className="mt-4 flex items-center gap-1.5 text-xs text-muted">
-            <Clock className="h-3.5 w-3.5" /> Tip: 45–60 focused minutes a day beats weekend marathons.
-          </p>
-        </Card>
-      </div>
-    </div>
+        </section>
+      </Container>
+    </>
   );
 }

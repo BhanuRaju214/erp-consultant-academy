@@ -1,9 +1,9 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
+import { requireCourseUser } from "@/lib/auth/course-access";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { testCases } from "@/lib/db/schema";
 
@@ -21,7 +21,7 @@ const base = z.object({
 export type TestCaseState = { error?: string; ok?: boolean };
 
 export async function createTestCase(_: TestCaseState, formData: FormData): Promise<TestCaseState> {
-  const user = await requireUser();
+  const user = await requireCourseUser();
   const parsed = base.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
   const db = await getDb();
@@ -41,7 +41,7 @@ const resultSchema = z.object({
 });
 
 export async function recordTestResult(input: z.infer<typeof resultSchema>): Promise<{ ok: boolean; error?: string }> {
-  const user = await requireUser();
+  const user = await requireCourseUser();
   const parsed = resultSchema.safeParse(input);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message };
   const { id, ...rest } = parsed.data;
@@ -55,7 +55,7 @@ export async function recordTestResult(input: z.infer<typeof resultSchema>): Pro
 }
 
 export async function deleteTestCase(id: string) {
-  const user = await requireUser();
+  const user = await requireCourseUser();
   await (await getDb()).delete(testCases).where(and(eq(testCases.id, z.string().uuid().parse(id)), eq(testCases.userId, user.id)));
   revalidatePath("/testing");
 }

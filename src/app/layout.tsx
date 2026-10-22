@@ -1,11 +1,14 @@
 import type { Metadata, Viewport } from "next";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { BRAND } from "@/lib/brand";
 
+const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
+
 export const metadata: Metadata = {
-  title: { default: `${BRAND.productName} · ${BRAND.company}`, template: `%s · ${BRAND.company} ${BRAND.productName}` },
-  description: `Practical training portal for Odoo ERP techno-functional consultants by ${BRAND.company}.`,
-  applicationName: `${BRAND.company} ${BRAND.productName}`,
+  title: { default: BRAND.productName, template: `%s · ${BRAND.productName}` },
+  description: "Nexsademy: practical, job-ready courses with hands-on labs, real projects, assessments and certificates.",
+  applicationName: BRAND.productName,
   authors: [{ name: BRAND.legalName, url: BRAND.website }],
 };
 
@@ -17,7 +20,7 @@ const themeScript = `(function(){try{var t=localStorage.getItem('theme');var d=t
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={jakarta.variable}>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>

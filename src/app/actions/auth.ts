@@ -3,30 +3,16 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
-import { SESSION_COOKIE, SESSION_TTL_DAYS, createSession, deleteSession } from "@/lib/auth/session";
+import { SESSION_COOKIE, createSession, deleteSession } from "@/lib/auth/session";
+import { appUrl, safeNext, setSessionCookie } from "@/lib/auth/cookie";
 import { authenticate, registerUser } from "@/lib/services/users";
+import { requestPasswordReset, resetPassword } from "@/lib/services/password-reset";
 import { rateLimit } from "@/lib/rate-limit";
 import { headers } from "next/headers";
 
 export interface FormState {
   error?: string;
-}
-
-async function setSessionCookie(token: string) {
-  (await cookies()).set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    // Secure by default in production; set COOKIE_SECURE=false only for plain-HTTP intranet trials.
-    secure: process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === "true" : process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: SESSION_TTL_DAYS * 86_400,
-  });
-}
-
-function safeNext(next: FormDataEntryValue | null): string {
-  const n = typeof next === "string" ? next : "";
-  // Only allow same-site relative paths.
-  return n.startsWith("/") && !n.startsWith("//") ? n : "/dashboard";
+  success?: string;
 }
 
 async function clientKey(prefix: string) {
@@ -61,6 +47,26 @@ export async function registerAction(_: FormState, formData: FormData): Promise<
   const { token } = await createSession(db, res.value.id);
   await setSessionCookie(token);
   redirect("/dashboard?welcome=1");
+}
+
+const RESET_REQUESTED = "If an account exists for that email, we've sent a link to reset the password. Check your inbox.";
+
+export async function forgotPasswordAction(_: FormState, formData: FormData): Promise<FormState> {
+  if (!rateLimit(await clientKey("forgot"), 5, 15 * 60_000)) return { error: "Too many requests. Wait a few minutes and try again." };
+  const email = String(formData.get("email") ?? "").trim();
+  if (!email) return { error: "Enter your email address." };
+  await requestPasswordReset(await getDb(), email, await appUrl());
+  // Same answer whether or not the account exists, so emails can't be enumerated.
+  return { success: RESET_REQUESTED };
+}
+
+export async function resetPasswordAction(_: FormState, formData: FormData): Promise<FormState> {
+  if (!rateLimit(await clientKey("reset"), 10, 15 * 60_000)) return { error: "Too many attempts. Wait a few minutes and try again." };
+  const password = String(formData.get("password") ?? "");
+  if (password !== String(formData.get("confirm") ?? "")) return { error: "The two passwords don't match." };
+  const res = await resetPassword(await getDb(), String(formData.get("token") ?? ""), password);
+  if (!res.ok) return { error: res.error };
+  redirect("/login?reset=1");
 }
 
 export async function logoutAction() {
