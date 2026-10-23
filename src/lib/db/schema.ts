@@ -716,7 +716,11 @@ export const mediaAssets = pgTable(
     sizeBytes: bigint("size_bytes", { mode: "number" }),
     /** "r2" | "local" for files, "mux" for videos. */
     storage: text("storage").notNull(),
-    /** Object key in R2 / path under STORAGE_DIR. Null for Mux videos. */
+    /**
+     * Object key in R2 / path under STORAGE_DIR. For Mux videos: null for uploads from the
+     * media library, or the content path ("/videos/<name>.mp4") for lesson videos uploaded
+     * by scripts/upload-videos-to-mux.ts.
+     */
     storageKey: text("storage_key"),
     muxUploadId: text("mux_upload_id"),
     muxAssetId: text("mux_asset_id"),

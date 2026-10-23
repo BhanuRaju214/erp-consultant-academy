@@ -10,3 +10,6 @@ next-env.d.ts
 
 # Generated LMS exports
 /exports
+
+# Lesson videos are hosted on Mux (scripts/upload-videos-to-mux.ts); keep MP4s out of git
+public/videos/*.mp4

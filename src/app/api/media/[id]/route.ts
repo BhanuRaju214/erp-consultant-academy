@@ -4,46 +4,19 @@ import { getCurrentUser } from "@/lib/auth";
 import { can } from "@/lib/auth/rbac";
 import { getDb } from "@/lib/db";
 import { mediaAssets } from "@/lib/db/schema";
-import { MUX_STATUS_API, cancelDirectUpload, deleteMuxAsset, muxEnabled, signPlaybackToken } from "@/lib/mux";
+import { cancelDirectUpload, deleteMuxAsset } from "@/lib/mux";
+import { mediaPlaybackResponse } from "@/lib/media-playback";
 import { deleteObject, headObject } from "@/lib/storage";
-import { canViewMedia, getMediaAsset, syncPendingMuxAsset } from "@/lib/services/media";
-import { FLAGSHIP_PROGRAM, canAccessProgram } from "@/lib/services/programs";
+import { getMediaAsset } from "@/lib/services/media";
 
 export const dynamic = "force-dynamic";
 
 const notFound = () => NextResponse.json({ error: "Not found" }, { status: 404 });
 
-/**
- * Playback/status info for the lesson video player:
- * - Mux video → playback ID plus short-lived signed tokens
- * - file video (no Mux) → the /media URL
- * - still processing → { status: "pending" }
- */
+/** Playback/status info for the lesson video player (see mediaPlaybackResponse). */
 export async function GET(_: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = await getCurrentUser();
   const db = await getDb();
-  let asset = await getMediaAsset(db, (await params).id);
-  if (asset && muxEnabled()) asset = await syncPendingMuxAsset(db, asset, MUX_STATUS_API).catch(() => asset);
-  const courseAccess = asset?.visibility === "enrolled" && user ? await canAccessProgram(db, user, FLAGSHIP_PROGRAM.slug) : false;
-  if (!asset || !canViewMedia(user, asset, courseAccess)) return notFound();
-  const base = { id: asset.id, kind: asset.kind, status: asset.status, title: asset.title || asset.fileName, error: asset.error };
-  if (asset.status !== "ready") return NextResponse.json(base, { headers: { "Cache-Control": "no-store" } });
-  if (asset.storage === "mux" && asset.muxPlaybackId && muxEnabled()) {
-    return NextResponse.json(
-      {
-        ...base,
-        player: "mux",
-        playbackId: asset.muxPlaybackId,
-        tokens: {
-          playback: signPlaybackToken(asset.muxPlaybackId, "v"),
-          thumbnail: signPlaybackToken(asset.muxPlaybackId, "t"),
-          storyboard: signPlaybackToken(asset.muxPlaybackId, "s"),
-        },
-      },
-      { headers: { "Cache-Control": "private, no-store" } },
-    );
-  }
-  return NextResponse.json({ ...base, player: "file", src: `/media/${asset.id}` }, { headers: { "Cache-Control": "private, no-store" } });
+  return mediaPlaybackResponse(db, await getCurrentUser(), await getMediaAsset(db, (await params).id));
 }
 
 /** Step 2 of a file upload: confirms the object reached storage and marks the asset ready. */

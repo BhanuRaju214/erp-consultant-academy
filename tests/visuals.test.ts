@@ -27,7 +27,8 @@ describe("visual blocks in seeded content", () => {
     ]) {
       const l = lessons.find((x) => x.course === course && x.slug === slug)!;
       const types = extractVisualBlocks(l.body).map((b) => b.type);
-      expect(types[0], slug).toBe("hero");
+      // A narrated lesson video may come first; the hero still opens the written lesson.
+      expect(types.find((t) => t !== "video"), slug).toBe("hero");
       expect(types, slug).toContain("check");
       expect(new Set(types).size, slug).toBeGreaterThanOrEqual(5);
       expect(l.body, slug).toMatch(/^## Key takeaways/m);

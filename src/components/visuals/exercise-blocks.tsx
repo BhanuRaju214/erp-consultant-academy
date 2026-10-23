@@ -1,6 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import MuxPlayer from "@mux/mux-player-react";
+import type MuxPlayerElement from "@mux/mux-player";
 import { ArrowDown, ArrowRight, ArrowUp, CircleCheck, CircleX, MessageSquare, RotateCcw, Trophy, User } from "lucide-react";
 import type { VisualData } from "@/lib/visuals/schemas";
 import { cn } from "../ui";
@@ -567,11 +569,41 @@ export function RoleplayBlock({ data }: { data: VisualData<"roleplay"> }) {
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
+/** Where a lesson video plays from: Mux once uploaded (scripts/upload-videos-to-mux.ts), else the local file. */
+type VideoSource =
+  | { kind: "loading" }
+  | { kind: "mux"; playbackId: string; tokens: { playback: string; thumbnail: string; storyboard: string } }
+  | { kind: "pending" }
+  | { kind: "file" };
+
+function useVideoSource(src: string, enabled: boolean): VideoSource {
+  const [source, setSource] = useState<VideoSource>({ kind: "loading" });
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    fetch(`/api/media/by-source?src=${encodeURIComponent(src)}`, { cache: "no-store" })
+      .then(async (res) => {
+        const info = res.ok ? ((await res.json()) as { status?: string; player?: string; playbackId?: string; tokens?: { playback: string; thumbnail: string; storyboard: string } }) : null;
+        if (cancelled) return;
+        if (info?.player === "mux" && info.playbackId && info.tokens) setSource({ kind: "mux", playbackId: info.playbackId, tokens: info.tokens });
+        else if (info?.status === "pending") setSource({ kind: "pending" });
+        else setSource({ kind: "file" });
+      })
+      .catch(() => !cancelled && setSource({ kind: "file" }));
+    return () => {
+      cancelled = true;
+    };
+  }, [src, enabled]);
+  return source;
+}
+
 export function VideoBlock({ data }: { data: VisualData<"video"> }) {
   const isStatic = useStaticRender();
-  const ref = useRef<HTMLVideoElement>(null);
+  const ref = useRef<HTMLVideoElement | MuxPlayerElement>(null);
   const [now, setNow] = useState(0);
+  const source = useVideoSource(data.src, !isStatic);
   const current = data.chapters.reduce((acc, c, i) => (now >= c.t ? i : acc), 0);
+  const onTime = (e: { currentTarget: EventTarget | null }) => setNow((e.currentTarget as HTMLMediaElement | null)?.currentTime ?? 0);
   if (isStatic) {
     return (
       <VisualFrame kind="Video" title={data.title} caption={data.caption}>
@@ -584,9 +616,31 @@ export function VideoBlock({ data }: { data: VisualData<"video"> }) {
   return (
     <VisualFrame kind={`Video${data.duration ? ` · ${data.duration}` : ""}`} title={data.title} caption={data.caption} bodyClassName="p-0 sm:p-0">
       <div className={cn("grid", data.chapters.length > 0 && "lg:grid-cols-[minmax(0,1fr)_16rem]")}>
-        <video ref={ref} controls preload="metadata" playsInline poster={data.poster} onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)} onSeeked={(e) => setNow(e.currentTarget.currentTime)} className="block aspect-video w-full bg-black">
-          <source src={data.src} type="video/mp4" />
-        </video>
+        {source.kind === "mux" ? (
+          <MuxPlayer
+            ref={ref as React.Ref<MuxPlayerElement>}
+            playbackId={source.playbackId}
+            tokens={source.tokens}
+            poster={data.poster}
+            metadata={{ video_title: data.title }}
+            accentColor="var(--primary)"
+            onTimeUpdate={onTime}
+            onSeeked={onTime}
+            style={{ aspectRatio: "16 / 9", width: "100%", display: "block" }}
+          />
+        ) : source.kind === "file" ? (
+          <video ref={ref as React.Ref<HTMLVideoElement>} controls preload="metadata" playsInline poster={data.poster} onTimeUpdate={onTime} onSeeked={onTime} className="block aspect-video w-full bg-black">
+            <source src={data.src} type="video/mp4" />
+          </video>
+        ) : (
+          <div className="relative aspect-video w-full bg-black">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            {data.poster && <img src={data.poster} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />}
+            <p className="absolute inset-0 flex items-center justify-center text-sm font-medium text-white">
+              {source.kind === "pending" ? "This video is still processing. Check back in a few minutes." : "Loading video…"}
+            </p>
+          </div>
+        )}
         {data.chapters.length > 0 && (
           <ol className="max-h-[22rem] divide-y divide-border overflow-y-auto border-t border-border text-sm lg:max-h-none lg:border-l lg:border-t-0">
             {data.chapters.map((c, i) => (
