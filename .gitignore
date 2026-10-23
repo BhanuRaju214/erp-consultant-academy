@@ -13,3 +13,6 @@ next-env.d.ts
 
 # Lesson videos are hosted on Mux (scripts/upload-videos-to-mux.ts); keep MP4s out of git
 public/videos/*.mp4
+
+# Local env files for any environment
+.env*.local
