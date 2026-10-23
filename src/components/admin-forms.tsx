@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { createUserAction, updateLessonAction, type AdminState } from "@/app/actions/admin";
 import { Callout, buttonClass, inputClass } from "./ui";
 import { PasswordInput } from "./password-input";
+import { Markdown } from "./markdown";
+import { EditPreviewTabs, PreviewNote, type EditView } from "./edit-preview-tabs";
 
 export function CreateUserForm() {
   const [state, action, pending] = useActionState<AdminState, FormData>(createUserAction, {});
@@ -52,16 +54,31 @@ export function LessonEditor({
   odooFields?: boolean;
 }) {
   const [state, action, pending] = useActionState<AdminState, FormData>(updateLessonAction, {});
+  const [view, setView] = useState<EditView>("edit");
+  const [title, setTitle] = useState(lesson.title);
+  const [body, setBody] = useState(lesson.body);
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="lessonId" value={lesson.id} />
+      <EditPreviewTabs view={view} onChange={setView} label="Preview lesson" />
+      {view === "preview" && (
+        <div className="space-y-4">
+          <PreviewNote>Preview of your unsaved changes, as learners will see the lesson. Click Save lesson to publish them.</PreviewNote>
+          <article className="rounded-lg border border-border bg-bg p-5 sm:p-8">
+            <h1 className="text-3xl font-extrabold tracking-[-0.02em] text-fg">{title || "Untitled lesson"}</h1>
+            <div className="mt-6">{body.trim() ? <Markdown enhance>{body}</Markdown> : <Callout tone="info">This lesson hasn’t been written yet.</Callout>}</div>
+          </article>
+        </div>
+      )}
+      {/* The fields stay mounted while previewing so Save always sends the latest text. */}
+      <div hidden={view === "preview"} className="space-y-4">
       {(state.error || state.ok) && <Callout tone={state.error ? "danger" : "success"}>{state.error ?? state.ok}</Callout>}
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="sm:col-span-2">
           <label htmlFor="le-title" className="mb-1 block text-sm font-medium text-fg">
             Title
           </label>
-          <input id="le-title" name="title" defaultValue={lesson.title} className={inputClass} required />
+          <input id="le-title" name="title" value={title} onChange={(e) => setTitle(e.target.value)} className={inputClass} required />
         </div>
         <div>
           <label htmlFor="le-duration" className="mb-1 block text-sm font-medium text-fg">
@@ -97,7 +114,8 @@ export function LessonEditor({
         <label htmlFor="le-body" className="mb-1 block text-sm font-medium text-fg">
           Body (Markdown, GitHub-flavoured; raw HTML is not rendered)
         </label>
-        <textarea id="le-body" name="body" defaultValue={lesson.body} rows={28} className={`${inputClass} font-mono text-xs`} spellCheck={false} />
+        <textarea id="le-body" name="body" value={body} onChange={(e) => setBody(e.target.value)} rows={28} className={`${inputClass} font-mono text-xs`} spellCheck={false} />
+      </div>
       </div>
       <button disabled={pending} className={buttonClass("primary")}>
         {pending ? "Saving…" : "Save lesson"}

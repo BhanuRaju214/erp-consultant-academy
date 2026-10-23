@@ -1,7 +1,8 @@
 /**
- * GST helpers for invoices. Course prices are inclusive of GST, so tax is worked
- * out backwards from the amount paid. Intra-state supplies (buyer in the seller's
- * state) split into CGST + SGST; inter-state supplies are charged IGST.
+ * GST helpers for checkout and invoices. Course prices are exclusive of GST: the
+ * price (after any coupon) is the taxable value and 18% GST is added on top.
+ * Intra-state supplies (buyer in the seller's state) split into CGST + SGST;
+ * inter-state supplies are charged IGST.
  */
 
 export const GST_RATE_PERCENT = 18;
@@ -62,10 +63,14 @@ export interface GstSplit {
   igstPaise: number;
 }
 
-/** Splits a GST-inclusive amount (paise) into taxable value and tax components. */
-export function splitInclusiveGst(amountPaise: number, sellerStateCode: string, buyerStateCode: string): GstSplit {
-  const taxablePaise = Math.round((amountPaise * 100) / (100 + GST_RATE_PERCENT));
-  const tax = amountPaise - taxablePaise;
+/** GST on a taxable value (paise), rounded to the paisa. */
+export function gstOn(taxablePaise: number): number {
+  return Math.round((taxablePaise * GST_RATE_PERCENT) / 100);
+}
+
+/** Tax components for a taxable value; the buyer pays taxable + tax. */
+export function splitGst(taxablePaise: number, sellerStateCode: string, buyerStateCode: string): GstSplit {
+  const tax = gstOn(taxablePaise);
   if (sellerStateCode && sellerStateCode === buyerStateCode) {
     const cgstPaise = Math.floor(tax / 2);
     return { taxablePaise, cgstPaise, sgstPaise: tax - cgstPaise, igstPaise: 0 };

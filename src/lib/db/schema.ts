@@ -162,7 +162,7 @@ export const programs = pgTable(
     coverAssetId: uuid("cover_asset_id").references((): AnyPgColumn => mediaAssets.id, { onDelete: "set null" }),
     /** Where "Go to course" leads, e.g. /learn for the flagship program. */
     homePath: text("home_path").notNull(),
-    /** Price in paise, inclusive of GST. Used when enrollmentMode is "paid". */
+    /** Price in paise before GST (18% is added at checkout). Used when enrollmentMode is "paid". */
     pricePaise: integer("price_paise"),
     status: programStatusEnum("status").notNull().default("draft"),
     enrollmentMode: enrollmentModeEnum("enrollment_mode").notNull().default("invite"),
@@ -833,7 +833,7 @@ export const orders = pgTable(
     couponId: uuid("coupon_id").references(() => coupons.id, { onDelete: "set null" }),
     status: orderStatusEnum("status").notNull().default("created"),
     currency: text("currency").notNull().default("INR"),
-    /** All amounts in paise. amount = list − discount, inclusive of GST. */
+    /** All amounts in paise. taxable = list − discount; amount (paid) = taxable + GST. */
     listPricePaise: integer("list_price_paise").notNull(),
     discountPaise: integer("discount_paise").notNull().default(0),
     amountPaise: integer("amount_paise").notNull(),

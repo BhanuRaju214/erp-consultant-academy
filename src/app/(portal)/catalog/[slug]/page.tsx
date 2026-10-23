@@ -9,7 +9,7 @@ import { Markdown } from "@/components/markdown";
 import { LibraryThumb } from "@/components/library-thumb";
 import { EnrollButton } from "@/components/program-forms";
 import { BuyCourse } from "@/components/buy-course";
-import { GST_STATES, formatRupees } from "@/lib/gst";
+import { GST_RATE_PERCENT, GST_STATES, formatRupees } from "@/lib/gst";
 import { Callout, Container, cn } from "@/components/ui";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -161,7 +161,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
           {forSale && !hasAccess && (
             <section id="buy" className="scroll-mt-24 rounded-lg border border-border bg-surface p-5 shadow-[0_1px_3px_rgb(15_23_42/0.08)]">
               <div className="text-3xl font-extrabold tracking-[-0.02em] text-fg">{formatRupees(program.pricePaise!)}</div>
-              <p className="mt-0.5 text-xs text-muted">Inclusive of GST · one-time payment</p>
+              <p className="mt-0.5 text-xs text-muted">+ {GST_RATE_PERCENT}% GST · one-time payment</p>
               <div className="mt-4">
                 <BuyCourse slug={program.slug} title={program.title} pricePaise={program.pricePaise!} defaultName={user.name} states={GST_STATES} />
               </div>

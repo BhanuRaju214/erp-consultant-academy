@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { createDb, type DbHandle } from "@/lib/db/client";
 import { orders, programs } from "@/lib/db/schema";
 import { seedAll } from "@/lib/seed";
-import { financialYear, isValidGstin, splitInclusiveGst } from "@/lib/gst";
+import { financialYear, isValidGstin, splitGst } from "@/lib/gst";
 import { verifyPaymentSignature, verifyRazorpayWebhook } from "@/lib/razorpay";
 import { registerUser } from "@/lib/services/users";
 import { FLAGSHIP_PROGRAM, canAccessProgram, getProgramBySlug } from "@/lib/services/programs";
@@ -52,11 +52,11 @@ afterAll(async () => {
 });
 
 describe("GST", () => {
-  it("splits an inclusive price into CGST+SGST within the state and IGST across states", () => {
-    expect(splitInclusiveGst(499900, "36", "36")).toEqual({ taxablePaise: 423644, cgstPaise: 38128, sgstPaise: 38128, igstPaise: 0 });
-    expect(splitInclusiveGst(499900, "36", "27")).toEqual({ taxablePaise: 423644, cgstPaise: 0, sgstPaise: 0, igstPaise: 76256 });
-    const odd = splitInclusiveGst(101, "36", "36");
-    expect(odd.taxablePaise + odd.cgstPaise + odd.sgstPaise).toBe(101);
+  it("adds 18% GST on top of the price: CGST+SGST within the state, IGST across states", () => {
+    expect(splitGst(499900, "36", "36")).toEqual({ taxablePaise: 499900, cgstPaise: 44991, sgstPaise: 44991, igstPaise: 0 });
+    expect(splitGst(499900, "36", "27")).toEqual({ taxablePaise: 499900, cgstPaise: 0, sgstPaise: 0, igstPaise: 89982 });
+    // ₹1 course: 18 paise GST, ₹1.18 payable
+    expect(splitGst(100, "36", "36")).toEqual({ taxablePaise: 100, cgstPaise: 9, sgstPaise: 9, igstPaise: 0 });
   });
 
   it("knows Indian financial years and GSTIN format", () => {
@@ -91,8 +91,8 @@ describe("coupons", () => {
     const old = await createCoupon(h.db, { code: "OLD", kind: "percent", value: 50, validUntil: new Date("2020-01-01") });
     if (!old.ok) throw new Error(old.error);
 
-    expect(await quote(h.db, program, "launch20")).toMatchObject({ ok: true, value: { listPaise: 499900, discountPaise: 99980, amountPaise: 399920 } });
-    expect(await quote(h.db, program, "FLAT500")).toMatchObject({ ok: true, value: { discountPaise: 50000, amountPaise: 449900 } });
+    expect(await quote(h.db, program, "launch20")).toMatchObject({ ok: true, value: { listPaise: 499900, discountPaise: 99980, taxablePaise: 399920, gstPaise: 71986, amountPaise: 471906 } });
+    expect(await quote(h.db, program, "FLAT500")).toMatchObject({ ok: true, value: { discountPaise: 50000, taxablePaise: 449900, gstPaise: 80982, amountPaise: 530882 } });
     expect((await quote(h.db, program, "OLD")).ok).toBe(false);
     expect((await quote(h.db, program, "NOPE")).ok).toBe(false);
 
@@ -115,7 +115,7 @@ describe("checkout", () => {
 
     const res = await startCheckout(h.db, gateway, { user: learner, slug: FLAGSHIP_PROGRAM.slug, billing: { name: "Buyer One", stateCode: "36" }, couponCode: "LAUNCH20" });
     if (!res.ok || res.value.kind !== "razorpay") throw new Error("expected razorpay checkout");
-    expect(res.value.amountPaise).toBe(399920);
+    expect(res.value.amountPaise).toBe(471906); // ₹3,999.20 after coupon + 18% GST
 
     const [a, b] = await Promise.all([
       confirmRazorpayPayment(h.db, { razorpayOrderId: res.value.razorpayOrderId, razorpayPaymentId: "pay_1", paymentMethod: "upi" }),
@@ -123,7 +123,7 @@ describe("checkout", () => {
     ]);
     expect(a.ok && b.ok).toBe(true);
     const [order] = await h.db.select().from(orders).where(eq(orders.id, res.value.orderId));
-    expect(order).toMatchObject({ status: "paid", razorpayPaymentId: "pay_1", cgstPaise: 30502, sgstPaise: 30503, igstPaise: 0, taxablePaise: 338915 });
+    expect(order).toMatchObject({ status: "paid", razorpayPaymentId: "pay_1", amountPaise: 471906, cgstPaise: 35993, sgstPaise: 35993, igstPaise: 0, taxablePaise: 399920 });
     expect(order.invoiceNumber).toMatch(/^TST\/\d{4}-\d{2}\/00001$/);
     expect(await canAccessProgram(h.db, learner, FLAGSHIP_PROGRAM.slug)).toBe(true);
 
@@ -145,7 +145,7 @@ describe("checkout", () => {
     const paid = await startCheckout(h.db, gateway, { user: other, slug: FLAGSHIP_PROGRAM.slug, billing: { name: "Buyer Three", stateCode: "27" } });
     if (!paid.ok || paid.value.kind !== "razorpay") throw new Error("expected razorpay checkout");
     const [order] = await h.db.select().from(orders).where(eq(orders.id, paid.value.orderId));
-    expect(order).toMatchObject({ igstPaise: 76256, cgstPaise: 0, sgstPaise: 0 });
+    expect(order).toMatchObject({ taxablePaise: 499900, igstPaise: 89982, cgstPaise: 0, sgstPaise: 0, amountPaise: 589882 });
   });
 
   it("handles webhooks and refunds, removing access", async () => {

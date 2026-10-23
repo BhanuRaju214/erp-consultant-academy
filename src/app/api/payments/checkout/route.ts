@@ -31,7 +31,13 @@ export async function POST(req: Request) {
     if (!program) return NextResponse.json({ error: "Course not found." }, { status: 404 });
     const q = await quote(db, program, couponCode);
     if (!q.ok) return NextResponse.json({ error: q.error }, { status: 400 });
-    return NextResponse.json({ listPaise: q.value.listPaise, discountPaise: q.value.discountPaise, amountPaise: q.value.amountPaise, couponCode: q.value.coupon?.code ?? null });
+    return NextResponse.json({
+      listPaise: q.value.listPaise,
+      discountPaise: q.value.discountPaise,
+      gstPaise: q.value.gstPaise,
+      amountPaise: q.value.amountPaise,
+      couponCode: q.value.coupon?.code ?? null,
+    });
   }
 
   if (!billing) return NextResponse.json({ error: "Billing details are required." }, { status: 400 });

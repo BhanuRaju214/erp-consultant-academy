@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, ShieldCheck, Tag, X } from "lucide-react";
+import { GST_RATE_PERCENT, gstOn } from "@/lib/gst";
 import { Callout, Field, buttonClass, inputClass } from "./ui";
 
 interface RazorpayResponse {
@@ -59,10 +60,12 @@ export function BuyCourse({
   const [stateCode, setStateCode] = useState("");
   const [gstin, setGstin] = useState("");
   const [coupon, setCoupon] = useState("");
-  const [applied, setApplied] = useState<{ code: string; discountPaise: number; amountPaise: number } | null>(null);
+  const [applied, setApplied] = useState<{ code: string; discountPaise: number; gstPaise: number; amountPaise: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const amount = applied?.amountPaise ?? pricePaise;
+  // The course price excludes GST; 18% is added on top (after any coupon).
+  const gst = applied?.gstPaise ?? gstOn(pricePaise);
+  const amount = applied?.amountPaise ?? pricePaise + gst;
 
   async function post(body: Record<string, unknown>) {
     const res = await fetch("/api/payments/checkout", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ slug, ...body }) });
@@ -77,7 +80,7 @@ export function BuyCourse({
     setBusy(true);
     try {
       const q = await post({ mode: "quote", couponCode: coupon });
-      setApplied({ code: q.couponCode, discountPaise: q.discountPaise, amountPaise: q.amountPaise });
+      setApplied({ code: q.couponCode, discountPaise: q.discountPaise, gstPaise: q.gstPaise, amountPaise: q.amountPaise });
     } catch (e) {
       setApplied(null);
       setError((e as Error).message);
@@ -137,7 +140,7 @@ export function BuyCourse({
     return (
       <div className="space-y-2">
         <button type="button" onClick={() => setOpen(true)} className={buttonClass("primary", "w-full py-3 text-base")}>
-          Buy now · {rupees(pricePaise)}
+          Buy now · {rupees(pricePaise)} + GST
         </button>
         <p className="flex items-center justify-center gap-1.5 text-xs text-muted">
           <ShieldCheck className="h-3.5 w-3.5" aria-hidden /> Secure payment by Razorpay · UPI, cards, netbanking
@@ -202,8 +205,12 @@ export function BuyCourse({
             <dd>−{rupees(applied.discountPaise)}</dd>
           </div>
         )}
+        <div className="flex justify-between text-muted">
+          <dt>GST @ {GST_RATE_PERCENT}%</dt>
+          <dd>{rupees(gst)}</dd>
+        </div>
         <div className="flex justify-between text-base font-bold text-fg">
-          <dt>Total (incl. GST)</dt>
+          <dt>Total payable</dt>
           <dd>{rupees(amount)}</dd>
         </div>
       </dl>

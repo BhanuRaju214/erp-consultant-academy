@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db/client";
 import { coupons, invoiceSequences, orders, programs, users, type Coupon, type Order, type Program, type User } from "@/lib/db/schema";
-import { GST_STATES, financialYear, isValidGstin, sellerDetails, splitInclusiveGst } from "@/lib/gst";
+import { GST_STATES, financialYear, gstOn, isValidGstin, sellerDetails, splitGst } from "@/lib/gst";
 import { enroll, getProgramBySlug, isEnrolled, revokeEnrollment } from "./programs";
 import type { ServiceResult } from "./users";
 
@@ -26,18 +26,29 @@ async function couponRedemptions(db: Db, couponId: string): Promise<number> {
 }
 
 export interface Quote {
+  /** Course price before GST. */
   listPaise: number;
   discountPaise: number;
+  /** list − discount: the taxable value. */
+  taxablePaise: number;
+  gstPaise: number;
+  /** What the learner pays: taxable value + GST. */
   amountPaise: number;
   coupon: Coupon | null;
 }
 
-/** Price for a paid course, with an optional coupon applied. */
+function priced(listPaise: number, discountPaise: number, coupon: Coupon | null): Quote {
+  const taxablePaise = listPaise - discountPaise;
+  const gstPaise = gstOn(taxablePaise);
+  return { listPaise, discountPaise, taxablePaise, gstPaise, amountPaise: taxablePaise + gstPaise, coupon };
+}
+
+/** Price for a paid course, with an optional coupon applied and GST added on top. */
 export async function quote(db: Db, program: Program, couponCode?: string): Promise<ServiceResult<Quote>> {
   const listPaise = program.pricePaise ?? 0;
   if (program.enrollmentMode !== "paid" || listPaise <= 0) return { ok: false, error: "This course is not for sale." };
   const code = couponCode?.trim().toUpperCase();
-  if (!code) return { ok: true, value: { listPaise, discountPaise: 0, amountPaise: listPaise, coupon: null } };
+  if (!code) return { ok: true, value: priced(listPaise, 0, null) };
 
   const coupon = (await db.query.coupons.findFirst({ where: eq(coupons.code, code) })) ?? null;
   if (!coupon || !coupon.active) return { ok: false, error: "That coupon code isn't valid." };
@@ -48,7 +59,7 @@ export async function quote(db: Db, program: Program, couponCode?: string): Prom
   }
   const raw = coupon.kind === "percent" ? Math.round((listPaise * coupon.value) / 100) : coupon.value;
   const discountPaise = Math.min(listPaise, Math.max(0, raw));
-  return { ok: true, value: { listPaise, discountPaise, amountPaise: listPaise - discountPaise, coupon } };
+  return { ok: true, value: priced(listPaise, discountPaise, coupon) };
 }
 
 /* ------------------------------------------------------------------ */
@@ -85,7 +96,7 @@ export async function startCheckout(
   if (!q.ok) return q;
 
   const seller = sellerDetails();
-  const split = splitInclusiveGst(q.value.amountPaise, seller.stateCode, billing.data.stateCode);
+  const split = splitGst(q.value.taxablePaise, seller.stateCode, billing.data.stateCode);
   const [order] = await db
     .insert(orders)
     .values({

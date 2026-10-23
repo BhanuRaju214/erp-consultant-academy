@@ -16,9 +16,9 @@ export function ProgramCover({ slug, coverAssetId, className, size = "card" }: {
   return <CourseCover slug={slug} section="odoo-apps" size="banner" className={cn("h-full! min-h-0! rounded-none!", className)} />;
 }
 
-/** Price shown on cards: the GST-inclusive price for paid courses, otherwise Free / By invitation. */
+/** Price shown on cards: the price before GST ("+ GST") for paid courses, otherwise Free / By invitation. */
 export function priceLabel(program: { enrollmentMode: string; pricePaise: number | null }): string {
-  if (program.enrollmentMode === "paid" && program.pricePaise) return formatRupees(program.pricePaise);
+  if (program.enrollmentMode === "paid" && program.pricePaise) return `${formatRupees(program.pricePaise)} + GST`;
   return program.enrollmentMode === "open" ? "Free" : "By invitation";
 }
 

@@ -239,7 +239,7 @@ export const programInputSchema = z.object({
   coverAssetId: z.string().uuid().nullable().default(null),
   status: z.enum(["draft", "published", "archived"]),
   enrollmentMode: z.enum(["open", "invite", "paid"]),
-  /** Price in paise, inclusive of GST; required for paid courses. */
+  /** Price in paise before GST (18% is added at checkout); required for paid courses. */
   pricePaise: z.coerce.number().int().min(0).max(100_000_000).nullable().default(null),
   position: z.coerce.number().int().min(0).max(10_000).default(0),
 });
