@@ -57,6 +57,13 @@
       "when": 1792660029776,
       "tag": "0007_course_quizzes_certificates",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792747459173,
+      "tag": "0008_course_reminders",
+      "breakpoints": true
     }
   ]
 }

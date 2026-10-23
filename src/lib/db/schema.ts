@@ -65,6 +65,10 @@ export const users = pgTable(
     learningPathId: uuid("learning_path_id").references(() => learningPaths.id, { onDelete: "set null" }),
     active: boolean("active").notNull().default(true),
     lastLoginAt: timestamp("last_login_at", { withTimezone: true }),
+    /** Twice-weekly "continue your course" emails; turned off from the unsubscribe link. */
+    courseReminders: boolean("course_reminders").notNull().default(true),
+    /** Secret in email links (unsubscribe) so they work without signing in. */
+    emailToken: uuid("email_token").notNull().defaultRandom(),
     ...timestamps,
   },
   (t) => [uniqueIndex("users_email_lower_idx").on(sql`lower(${t.email})`), index("users_role_idx").on(t.role)],
@@ -182,6 +186,8 @@ export const enrollments = pgTable(
     enrolledById: uuid("enrolled_by_id").references(() => users.id, { onDelete: "set null" }),
     /** Set when access is removed; the row is kept for history and re-activated on re-enrolment. */
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
+    /** Last "continue your course" reminder sent for this enrolment. */
+    lastReminderAt: timestamp("last_reminder_at", { withTimezone: true }),
     ...timestamps,
   },
   (t) => [uniqueIndex("enrollments_program_user_idx").on(t.programId, t.userId), index("enrollments_user_idx").on(t.userId)],

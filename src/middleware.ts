@@ -1,8 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 // /media and /api/webhooks check access themselves (public assets; signed Mux webhooks).
-// /verify is public so employers can check certificates.
-const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password", "/api/auth", "/media", "/api/webhooks", "/verify"];
+// /verify is public so employers can check certificates; /unsubscribe is opened from emails.
+const PUBLIC_PATHS = ["/login", "/register", "/forgot-password", "/reset-password", "/api/auth", "/media", "/api/webhooks", "/verify", "/unsubscribe"];
 
 /**
  * Cheap edge check: requests without a session cookie are sent to /login.

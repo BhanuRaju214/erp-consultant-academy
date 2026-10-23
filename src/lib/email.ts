@@ -5,6 +5,8 @@ export interface EmailMessage {
   subject: string;
   text: string;
   html?: string;
+  /** Extra headers, e.g. List-Unsubscribe on reminder emails. */
+  headers?: Record<string, string>;
 }
 
 export type EmailResult = { ok: true; id?: string } | { ok: false; error: string };
@@ -33,6 +35,7 @@ export async function sendEmail(msg: EmailMessage): Promise<EmailResult> {
       subject: msg.subject,
       text: msg.text,
       html: msg.html,
+      headers: msg.headers,
     }),
     cache: "no-store",
   });
