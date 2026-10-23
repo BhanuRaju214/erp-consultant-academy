@@ -16,3 +16,6 @@ public/videos/*.mp4
 
 # Local env files for any environment
 .env*.local
+
+# Local production build output (deploy)
+/.next-deploy/
