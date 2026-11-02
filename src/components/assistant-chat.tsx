@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Send, Sparkles, Trash2 } from "lucide-react";
+import { Send, SlidersHorizontal, Sparkles, Trash2 } from "lucide-react";
 import { Markdown } from "./markdown";
 import { Badge, Callout, buttonClass, cn, inputClass } from "./ui";
 
-type Msg = { role: "user" | "assistant"; content: string; sources?: { title: string; href: string }[]; provider?: string };
+export type Msg = { role: "user" | "assistant"; content: string; sources?: { title: string; href: string }[]; provider?: string };
 type Ctx = { odooVersion: string; edition: string; apps: string[]; mode: string };
 
 const MODES = [
@@ -27,17 +27,41 @@ const STARTERS = [
   "What is the business purpose of the Invoicing Policy field on a product?",
 ];
 
-export function AssistantChat({ conversationId: initialId, initialMessages, aiConfigured }: { conversationId?: string; initialMessages: Msg[]; aiConfigured: boolean }) {
+/**
+ * The AI learning assistant conversation. `page` is the full /assistant view (keeps the
+ * conversation in the URL); `widget` is the compact chat in the floating bubble, which
+ * reports the conversation to its parent instead of navigating.
+ */
+export function AssistantChat({
+  conversationId: initialId,
+  initialMessages,
+  aiConfigured,
+  variant = "page",
+  onConversationChange,
+}: {
+  conversationId?: string;
+  initialMessages: Msg[];
+  aiConfigured: boolean;
+  variant?: "page" | "widget";
+  onConversationChange?: (id: string | undefined) => void;
+}) {
   const router = useRouter();
+  const uid = useId();
+  const widget = variant === "widget";
   const [conversationId, setConversationId] = useState(initialId);
   const [messages, setMessages] = useState<Msg[]>(initialMessages);
   const [input, setInput] = useState("");
   const [ctx, setCtx] = useState<Ctx>({ odooVersion: "17.0", edition: "Community", apps: ["Sales", "Inventory", "Invoicing"], mode: "explain" });
+  const [showSettings, setShowSettings] = useState(!widget);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const endRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth" }), [messages, busy]);
+  // Scroll only the message list (scrollIntoView would also scroll the page behind the widget).
+  useEffect(() => {
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, busy]);
 
   const send = async (text: string) => {
     const message = text.trim();
@@ -54,12 +78,15 @@ export function AssistantChat({ conversationId: initialId, initialMessages, aiCo
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? "The assistant is unavailable.");
+      setMessages((m) => [...m, { role: "assistant", content: json.content, sources: json.sources, provider: json.provider }]);
       if (!conversationId) {
         setConversationId(json.conversationId);
-        router.replace(`/assistant?c=${json.conversationId}`, { scroll: false });
-        router.refresh();
+        if (widget) onConversationChange?.(json.conversationId);
+        else {
+          router.replace(`/assistant?c=${json.conversationId}`, { scroll: false });
+          router.refresh();
+        }
       }
-      setMessages((m) => [...m, { role: "assistant", content: json.content, sources: json.sources, provider: json.provider }]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
@@ -70,65 +97,99 @@ export function AssistantChat({ conversationId: initialId, initialMessages, aiCo
   const remove = async () => {
     if (!conversationId) return;
     await fetch(`/api/assistant?conversationId=${conversationId}`, { method: "DELETE" });
-    router.push("/assistant");
-    router.refresh();
+    if (widget) {
+      setConversationId(undefined);
+      setMessages([]);
+      onConversationChange?.(undefined);
+    } else {
+      router.push("/assistant");
+      router.refresh();
+    }
   };
 
-  return (
-    <div className="flex min-h-[70vh] flex-col rounded-xl border border-border bg-surface">
-      <div className="grid gap-3 border-b border-border p-4 sm:grid-cols-3">
+  const settings = (
+    <div className={cn("grid gap-3 border-b border-border p-4", !widget && "sm:grid-cols-3")}>
+      <div>
+        <label htmlFor={`${uid}-mode`} className="mb-1 block text-xs font-medium text-muted">
+          Mode
+        </label>
+        <select id={`${uid}-mode`} value={ctx.mode} onChange={(e) => setCtx({ ...ctx, mode: e.target.value })} className={inputClass}>
+          {MODES.map(([v, l]) => (
+            <option key={v} value={v}>
+              {l}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className={cn(widget && "grid grid-cols-2 gap-3")}>
         <div>
-          <label htmlFor="ai-mode" className="mb-1 block text-xs font-medium text-muted">
-            Mode
-          </label>
-          <select id="ai-mode" value={ctx.mode} onChange={(e) => setCtx({ ...ctx, mode: e.target.value })} className={inputClass}>
-            {MODES.map(([v, l]) => (
-              <option key={v} value={v}>
-                {l}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor="ai-version" className="mb-1 block text-xs font-medium text-muted">
+          <label htmlFor={`${uid}-version`} className="mb-1 block text-xs font-medium text-muted">
             Odoo version
           </label>
-          <select id="ai-version" value={ctx.odooVersion} onChange={(e) => setCtx({ ...ctx, odooVersion: e.target.value })} className={inputClass}>
+          <select id={`${uid}-version`} value={ctx.odooVersion} onChange={(e) => setCtx({ ...ctx, odooVersion: e.target.value })} className={inputClass}>
             {["16.0", "17.0", "18.0", "19.0"].map((v) => (
               <option key={v}>{v}</option>
             ))}
           </select>
         </div>
-        <div>
-          <label htmlFor="ai-edition" className="mb-1 block text-xs font-medium text-muted">
-            Edition
-          </label>
-          <select id="ai-edition" value={ctx.edition} onChange={(e) => setCtx({ ...ctx, edition: e.target.value })} className={inputClass}>
-            {["Community", "Enterprise", "Odoo Online"].map((v) => (
-              <option key={v}>{v}</option>
-            ))}
-          </select>
-        </div>
-        <fieldset className="sm:col-span-3">
-          <legend className="mb-1 text-xs font-medium text-muted">Installed apps</legend>
-          <div className="flex flex-wrap gap-1.5">
-            {APPS.map((a) => {
-              const on = ctx.apps.includes(a);
-              return (
-                <button
-                  key={a}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => setCtx({ ...ctx, apps: on ? ctx.apps.filter((x) => x !== a) : [...ctx.apps, a] })}
-                  className={cn("rounded-full border px-2.5 py-0.5 text-xs", on ? "border-primary bg-primary-soft text-primary" : "border-border text-muted")}
-                >
-                  {a}
-                </button>
-              );
-            })}
-          </div>
-        </fieldset>
+        {widget && editionSelect()}
       </div>
+      {!widget && <div>{editionSelect()}</div>}
+      <fieldset className={cn(!widget && "sm:col-span-3")}>
+        <legend className="mb-1 text-xs font-medium text-muted">Installed apps</legend>
+        <div className="flex flex-wrap gap-1.5">
+          {APPS.map((a) => {
+            const on = ctx.apps.includes(a);
+            return (
+              <button
+                key={a}
+                type="button"
+                aria-pressed={on}
+                onClick={() => setCtx({ ...ctx, apps: on ? ctx.apps.filter((x) => x !== a) : [...ctx.apps, a] })}
+                className={cn("rounded-full border px-2.5 py-0.5 text-xs", on ? "border-primary bg-primary-soft text-primary" : "border-border text-muted")}
+              >
+                {a}
+              </button>
+            );
+          })}
+        </div>
+      </fieldset>
+    </div>
+  );
+
+  function editionSelect() {
+    return (
+      <div>
+        <label htmlFor={`${uid}-edition`} className="mb-1 block text-xs font-medium text-muted">
+          Edition
+        </label>
+        <select id={`${uid}-edition`} value={ctx.edition} onChange={(e) => setCtx({ ...ctx, edition: e.target.value })} className={inputClass}>
+          {["Community", "Enterprise", "Odoo Online"].map((v) => (
+            <option key={v}>{v}</option>
+          ))}
+        </select>
+      </div>
+    );
+  }
+
+  return (
+    <div className={cn("flex flex-col bg-surface", widget ? "h-full min-h-0" : "min-h-[70vh] rounded-xl border border-border")}>
+      {widget && (
+        <div className="flex items-center justify-between border-b border-border px-4 py-2 text-xs text-muted">
+          <span>
+            {MODES.find(([v]) => v === ctx.mode)?.[1]} · Odoo {ctx.odooVersion} {ctx.edition}
+          </span>
+          <button
+            type="button"
+            onClick={() => setShowSettings((s) => !s)}
+            aria-expanded={showSettings}
+            className="inline-flex items-center gap-1 rounded px-1.5 py-1 font-semibold text-primary hover:bg-surface-2"
+          >
+            <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden /> {showSettings ? "Done" : "Settings"}
+          </button>
+        </div>
+      )}
+      {showSettings && settings}
 
       {!aiConfigured && (
         <div className="px-4 pt-4">
@@ -139,12 +200,12 @@ export function AssistantChat({ conversationId: initialId, initialMessages, aiCo
         </div>
       )}
 
-      <div className="flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
+      <div ref={listRef} className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4" aria-live="polite">
         {messages.length === 0 && (
-          <div className="py-6 text-center">
+          <div className={cn("text-center", widget ? "py-2" : "py-6")}>
             <Sparkles className="mx-auto h-8 w-8 text-primary" aria-hidden />
             <p className="mt-2 text-sm text-muted">Ask about ERP concepts, Odoo fields, import errors, test scenarios, specs or code.</p>
-            <div className="mx-auto mt-4 grid max-w-2xl gap-2 sm:grid-cols-2">
+            <div className={cn("mx-auto mt-4 grid gap-2", widget ? "max-w-full" : "max-w-2xl sm:grid-cols-2")}>
               {STARTERS.map((s) => (
                 <button key={s} type="button" onClick={() => send(s)} className="rounded-lg border border-border p-3 text-left text-sm text-fg hover:border-primary">
                   {s}
@@ -155,7 +216,13 @@ export function AssistantChat({ conversationId: initialId, initialMessages, aiCo
         )}
         {messages.map((m, i) => (
           <div key={i} className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
-            <div className={cn("max-w-[92%] rounded-xl px-4 py-3 text-sm sm:max-w-[80%]", m.role === "user" ? "bg-primary text-primary-fg" : "bg-surface-2 text-fg")}>
+            <div
+              className={cn(
+                "rounded-xl px-4 py-3 text-sm",
+                widget ? "max-w-[92%]" : "max-w-[92%] sm:max-w-[80%]",
+                m.role === "user" ? "bg-primary text-primary-fg" : "bg-surface-2 text-fg",
+              )}
+            >
               {m.role === "user" ? (
                 <p className="whitespace-pre-line">{m.content}</p>
               ) : (
@@ -165,7 +232,7 @@ export function AssistantChat({ conversationId: initialId, initialMessages, aiCo
                     <div className="mt-3 border-t border-border pt-2 text-xs">
                       <span className="font-semibold text-muted">Portal sources: </span>
                       {m.sources.map((s, si) => (
-                        <a key={s.href} href={s.href} className="mr-2 text-primary hover:underline">
+                        <a key={`${si}-${s.href}`} href={s.href} className="mr-2 text-primary hover:underline">
                           [S{si + 1}] {s.title}
                         </a>
                       ))}
@@ -183,7 +250,6 @@ export function AssistantChat({ conversationId: initialId, initialMessages, aiCo
         ))}
         {busy && <div className="text-sm text-muted">Thinking…</div>}
         {error && <Callout tone="danger">{error}</Callout>}
-        <div ref={endRef} />
       </div>
 
       <form
@@ -193,11 +259,12 @@ export function AssistantChat({ conversationId: initialId, initialMessages, aiCo
           send(input);
         }}
       >
-        <label htmlFor="ai-input" className="sr-only">
+        <label htmlFor={`${uid}-input`} className="sr-only">
           Your question
         </label>
         <textarea
-          id="ai-input"
+          id={`${uid}-input`}
+          data-assistant-input
           rows={2}
           value={input}
           onChange={(e) => setInput(e.target.value)}
@@ -207,7 +274,7 @@ export function AssistantChat({ conversationId: initialId, initialMessages, aiCo
               send(input);
             }
           }}
-          placeholder="Ask a question… (Enter to send, Shift+Enter for a new line). Never paste credentials or real customer data."
+          placeholder={widget ? "Ask a question… (Enter to send)" : "Ask a question… (Enter to send, Shift+Enter for a new line). Never paste credentials or real customer data."}
           className={inputClass}
           maxLength={4000}
         />

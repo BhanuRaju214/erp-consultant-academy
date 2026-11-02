@@ -3,6 +3,7 @@ import { can } from "@/lib/auth/rbac";
 import { Sidebar } from "@/components/sidebar";
 import { TopNav } from "@/components/top-nav";
 import { ContentShell } from "@/components/content-shell";
+import { AssistantWidget } from "@/components/assistant-widget";
 import { SiteFooter } from "@/components/site-footer";
 import { getDb } from "@/lib/db";
 import { buildNavTree } from "@/lib/services/nav-tree";
@@ -29,6 +30,8 @@ export default async function PortalLayout({ children }: { children: React.React
       >
         {children}
       </ContentShell>
+      {/* The assistant answers from the Odoo course content, so it needs course access (as its API does). */}
+      {hasCourse && <AssistantWidget aiConfigured={Boolean(process.env.OPENAI_API_KEY)} />}
     </div>
   );
 }

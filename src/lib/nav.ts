@@ -62,7 +62,6 @@ export const NAV: NavItem[] = [
 ];
 
 export const SECONDARY_NAV: NavItem[] = [
-  { href: "/assistant", label: "AI Learning Assistant", icon: "Sparkles" },
   { href: "/discussions", label: "Discussions", icon: "MessagesSquare" },
 ];
 
