@@ -16,6 +16,7 @@ import {
 } from "@/lib/db/schema";
 import { gradeQuiz } from "@/lib/quiz";
 import { FLAGSHIP_PROGRAM } from "./programs";
+import { sectionRank } from "./library";
 
 /* ------------------------------------------------------------------ */
 /* Catalogue                                                           */
@@ -234,7 +235,49 @@ export async function maybeIssueCertificate(db: Db, userId: string, courseId: st
   }
   const serial = `ECA-${new Date().getFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`;
   const [cert] = await db.insert(certificates).values({ userId, courseId, score, serial }).onConflictDoNothing().returning();
+  // The last module certificate also earns the certificate for the whole Odoo course.
+  if (cert) await maybeIssueFlagshipCertificate(db, userId);
   return cert ?? null;
+}
+
+/**
+ * Where a learner stands on the certificate for the whole Odoo ERP Consultant Program:
+ * a module certificate for every published module. The score is their average.
+ */
+export async function getFlagshipCertificateStatus(db: Db, userId: string) {
+  const program = await db.query.programs.findFirst({ where: eq(programs.slug, FLAGSHIP_PROGRAM.slug), columns: { id: true } });
+  if (!program) return null;
+  const mods = await db
+    .select({ id: courses.id, title: courses.title, slug: courses.slug, score: certificates.score })
+    .from(courses)
+    .leftJoin(certificates, and(eq(certificates.courseId, courses.id), eq(certificates.userId, userId)))
+    .where(and(eq(courses.programId, program.id), eq(courses.published, true)))
+    .orderBy(sectionRank(), asc(courses.position));
+  const certified = mods.filter((m) => m.score !== null);
+  const certificate =
+    (await db.query.programCertificates.findFirst({ where: and(eq(programCertificates.userId, userId), eq(programCertificates.programId, program.id)) })) ?? null;
+  return {
+    programId: program.id,
+    modulesTotal: mods.length,
+    modulesCertified: certified.length,
+    remaining: mods.filter((m) => m.score === null).map((m) => ({ title: m.title, slug: m.slug })),
+    eligible: mods.length > 0 && certified.length === mods.length,
+    score: certified.length ? Math.round(certified.reduce((n, m) => n + (m.score ?? 0), 0) / certified.length) : 0,
+    certificate,
+  };
+}
+
+/** Issues the Odoo course certificate once every module is certified (idempotent). */
+export async function maybeIssueFlagshipCertificate(db: Db, userId: string) {
+  const status = await getFlagshipCertificateStatus(db, userId);
+  if (!status) return null;
+  if (status.certificate) return status.certificate;
+  if (!status.eligible) return null;
+  const serial = `NXS-${new Date().getFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`;
+  await db.insert(programCertificates).values({ userId, programId: status.programId, score: status.score, serial }).onConflictDoNothing();
+  return (
+    (await db.query.programCertificates.findFirst({ where: and(eq(programCertificates.userId, userId), eq(programCertificates.programId, status.programId)) })) ?? null
+  );
 }
 
 /**

@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
-import { certificates, courses, programCertificates, programs, users } from "@/lib/db/schema";
+import { certificates, courseModules, courses, lessons, programCertificates, programs, users } from "@/lib/db/schema";
 import { BRAND } from "@/lib/brand";
 
 /**
@@ -29,28 +29,65 @@ export interface CertificateView {
   level: string;
   score: number;
   issuedAt: Date;
+  /** Module certificates: a few of the skills the module teaches (short ones first fit the artwork). */
+  skills: string[];
+  /** Course certificates: how much the course covers. */
+  modules: number;
+  lessons: number;
+}
+
+/** Up to three short skills that fit on one or two lines of the certificate. */
+export function certificateSkills(all: string[]): string[] {
+  const picked: string[] = [];
+  let length = 0;
+  for (const s of all.map((x) => x.trim()).filter((x) => x && x.length <= 60)) {
+    if (picked.length === 3 || length + s.length > 150) break;
+    picked.push(s);
+    length += s.length;
+  }
+  return picked;
 }
 
 export async function getCertificate(db: Db, rawSerial: string): Promise<CertificateView | null> {
   const serial = normalizeSerial(rawSerial);
   if (!serial) return null;
   const [mod] = await db
-    .select({ serial: certificates.serial, userId: users.id, name: users.name, title: courses.title, level: courses.level, score: certificates.score, issuedAt: certificates.issuedAt, partOf: programs.title })
+    .select({
+      serial: certificates.serial,
+      userId: users.id,
+      name: users.name,
+      title: courses.title,
+      level: courses.level,
+      score: certificates.score,
+      issuedAt: certificates.issuedAt,
+      partOf: programs.title,
+      skills: courses.skills,
+    })
     .from(certificates)
     .innerJoin(users, eq(users.id, certificates.userId))
     .innerJoin(courses, eq(courses.id, certificates.courseId))
     .leftJoin(programs, eq(programs.id, courses.programId))
     .where(eq(certificates.serial, serial))
     .limit(1);
-  if (mod) return { ...mod, kind: "module" };
+  if (mod) return { ...mod, skills: certificateSkills(mod.skills), modules: 0, lessons: 0, kind: "module" };
   const [course] = await db
-    .select({ serial: programCertificates.serial, userId: users.id, name: users.name, title: programs.title, level: programs.level, score: programCertificates.score, issuedAt: programCertificates.issuedAt })
+    .select({
+      serial: programCertificates.serial,
+      userId: users.id,
+      name: users.name,
+      title: programs.title,
+      level: programs.level,
+      score: programCertificates.score,
+      issuedAt: programCertificates.issuedAt,
+      modules: sql<number>`(select count(*) from ${courses} c where c.program_id = ${programs.id} and c.published)::int`,
+      lessons: sql<number>`(select count(*) from ${lessons} l join ${courseModules} cm on cm.id = l.module_id join ${courses} c on c.id = cm.course_id where c.program_id = ${programs.id} and c.published)::int`,
+    })
     .from(programCertificates)
     .innerJoin(users, eq(users.id, programCertificates.userId))
     .innerJoin(programs, eq(programs.id, programCertificates.programId))
     .where(eq(programCertificates.serial, serial))
     .limit(1);
-  return course ? { ...course, partOf: null, kind: "course" } : null;
+  return course ? { ...course, partOf: null, skills: [], kind: "course" } : null;
 }
 
 export function verifyPath(serial: string) {

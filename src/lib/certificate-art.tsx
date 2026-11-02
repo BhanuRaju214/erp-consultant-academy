@@ -133,10 +133,18 @@ function CertificateBody({ cert, verifyUrl, W }: { cert: CertificateView; verify
             <div style={{ display: "flex", width: u(560), height: u(3), background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)`, marginTop: u(22) }} />
             <div style={{ fontSize: u(30), color: MUTED, marginTop: u(30) }}>{cert.kind === "module" ? "has successfully completed the module" : "has successfully completed the course"}</div>
             <div style={{ fontSize: titleSize, fontWeight: 800, color: INK, marginTop: u(14), lineHeight: 1.2, maxWidth: u(1450), letterSpacing: -u(0.8) }}>{cert.title}</div>
-            {cert.partOf && <div style={{ fontSize: u(28), color: MUTED, marginTop: u(12) }}>{`part of the ${cert.partOf}`}</div>}
-            <div style={{ fontSize: u(25), color: MUTED, marginTop: u(22) }}>
-              {cert.kind === "module" ? "including every lesson and the graded final assessment" : "including every lesson and all graded module assessments"}
-            </div>
+            {/* What was learned: the module's key skills, or how much the whole course covers. */}
+            {cert.kind === "module" && cert.skills.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: u(26) }}>
+                <div style={{ fontSize: u(18), fontWeight: 700, letterSpacing: u(4), color: GOLD }}>SKILLS DEMONSTRATED</div>
+                <div style={{ fontSize: u(26), color: MUTED, marginTop: u(10), lineHeight: 1.4, maxWidth: u(1400) }}>{cert.skills.join("  ·  ")}</div>
+              </div>
+            )}
+            {cert.kind === "course" && cert.modules > 0 && (
+              <div style={{ fontSize: u(26), color: MUTED, marginTop: u(22) }}>
+                {`${cert.modules} ${cert.modules === 1 ? "module" : "modules"} · ${cert.lessons} ${cert.lessons === 1 ? "lesson" : "lessons"}`}
+              </div>
+            )}
           </div>
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>

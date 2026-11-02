@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { asc, eq, sql } from "drizzle-orm";
-import { Award } from "lucide-react";
+import { Award, GraduationCap } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { assessmentAttempts, assessments, businessProcesses, certificates, courses, questions } from "@/lib/db/schema";
-import { Badge, Card, CardTitle, EmptyState, PageHeader } from "@/components/ui";
+import { Badge, ButtonLink, Card, CardTitle, EmptyState, PageHeader, ProgressBar } from "@/components/ui";
+import { getFlagshipCertificateStatus, maybeIssueFlagshipCertificate } from "@/lib/services/learning";
+import { FLAGSHIP_PROGRAM } from "@/lib/services/programs";
 import { requireCourseUser } from "@/lib/auth/course-access";
 
 export const metadata = { title: "Assessments & Certifications" };
@@ -33,6 +35,13 @@ export default async function AssessmentsPage() {
     .from(certificates)
     .innerJoin(courses, eq(courses.id, certificates.courseId))
     .where(eq(certificates.userId, user.id));
+  // Learners who finished every module before the course certificate existed get it here.
+  let program = await getFlagshipCertificateStatus(db, user.id);
+  if (program?.eligible && !program.certificate) {
+    await maybeIssueFlagshipCertificate(db, user.id);
+    program = await getFlagshipCertificateStatus(db, user.id);
+  }
+  const pct = program?.modulesTotal ? Math.round((program.modulesCertified / program.modulesTotal) * 100) : 0;
 
   const courseAssessments = rows.filter((r) => r.courseTitle);
   const processQuizzes = rows.filter((r) => r.processTitle);
@@ -77,12 +86,44 @@ export default async function AssessmentsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Assessments & Certifications"
-        description="Course certificates are issued automatically when you complete every lesson in a course and reach the course's minimum score on its final assessment."
+        description="A module certificate is issued automatically when you complete every lesson in a module and pass its final assessment. Earn all of them to receive the course certificate."
       />
+      {program && (
+        <Card className={program.certificate ? "border-success/40" : undefined}>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <GraduationCap className="mt-0.5 h-6 w-6 shrink-0 text-primary" aria-hidden />
+              <div>
+                <CardTitle>Course certificate: {FLAGSHIP_PROGRAM.title}</CardTitle>
+                <p className="mt-1 text-sm text-muted">
+                  {program.certificate
+                    ? `Awarded ${program.certificate.issuedAt.toLocaleDateString()} · overall score ${program.certificate.score}% · ${program.certificate.serial}`
+                    : `${program.modulesCertified} of ${program.modulesTotal} module certificates earned. Earn every module certificate to receive it.`}
+                </p>
+              </div>
+            </div>
+            {program.certificate && (
+              <ButtonLink href={`/certificates/${program.certificate.serial}`} className="shrink-0">
+                View course certificate
+              </ButtonLink>
+            )}
+          </div>
+          {!program.certificate && (
+            <div className="mt-4 space-y-3">
+              <ProgressBar value={pct} label="Course certificate progress" />
+              {program.remaining.length > 0 && (
+                <p className="text-xs text-muted">
+                  <span className="font-semibold text-fg">Still to certify:</span> {program.remaining.map((m) => m.title.split(":")[0]).join(" · ")}
+                </p>
+              )}
+            </div>
+          )}
+        </Card>
+      )}
       <Card>
         <div className="flex items-center gap-2">
           <Award className="h-4 w-4 text-primary" />
-          <CardTitle>My certificates</CardTitle>
+          <CardTitle>My module certificates</CardTitle>
         </div>
         {certs.length ? (
           <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
