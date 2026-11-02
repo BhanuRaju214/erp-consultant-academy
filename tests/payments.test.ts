@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { createDb, type DbHandle } from "@/lib/db/client";
 import { orders, programs } from "@/lib/db/schema";
 import { seedAll } from "@/lib/seed";
-import { financialYear, isValidGstin, splitGst } from "@/lib/gst";
+import { financialYear, formatInvoiceNumber, isValidGstin, splitGst } from "@/lib/gst";
 import { verifyPaymentSignature, verifyRazorpayWebhook } from "@/lib/razorpay";
 import { registerUser } from "@/lib/services/users";
 import { FLAGSHIP_PROGRAM, canAccessProgram, getProgramBySlug } from "@/lib/services/programs";
@@ -63,6 +63,11 @@ describe("GST", () => {
     expect(financialYear(new Date("2026-10-21T10:00:00Z"))).toBe("2026-27");
     expect(financialYear(new Date("2027-03-31T12:00:00Z"))).toBe("2026-27");
     expect(financialYear(new Date("2027-03-31T19:00:00Z"))).toBe("2027-28"); // 1 April in India
+    // GST invoice numbers: at most 16 characters
+    expect(formatInvoiceNumber("NXS", "2026-27", 1)).toBe("NXS/26-27/00001");
+    expect(formatInvoiceNumber("NXS", "2026-27", 123456)).toBe("NXS/26-27/123456");
+    expect(formatInvoiceNumber("nexsademy", "2026-27", 7)).toBe("NEXS/26-27/00007");
+    expect(formatInvoiceNumber("NXS", "2026-27", 99999).length).toBeLessThanOrEqual(16);
     expect(isValidGstin("36ABCDE1234F1Z5")).toBe(true);
     expect(isValidGstin("36ABCDE1234F1X5")).toBe(false);
   });
@@ -124,7 +129,8 @@ describe("checkout", () => {
     expect(a.ok && b.ok).toBe(true);
     const [order] = await h.db.select().from(orders).where(eq(orders.id, res.value.orderId));
     expect(order).toMatchObject({ status: "paid", razorpayPaymentId: "pay_1", amountPaise: 471906, cgstPaise: 35993, sgstPaise: 35993, igstPaise: 0, taxablePaise: 399920 });
-    expect(order.invoiceNumber).toMatch(/^TST\/\d{4}-\d{2}\/00001$/);
+    expect(order.invoiceNumber).toMatch(/^TST\/\d{2}-\d{2}\/00001$/);
+    expect(order.invoiceNumber!.length).toBeLessThanOrEqual(16);
     expect(await canAccessProgram(h.db, learner, FLAGSHIP_PROGRAM.slug)).toBe(true);
 
     // Already enrolled learners can't buy again.

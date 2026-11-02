@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db/client";
 import { coupons, invoiceSequences, orders, programs, users, type Coupon, type Order, type Program, type User } from "@/lib/db/schema";
-import { GST_STATES, financialYear, gstOn, isValidGstin, sellerDetails, splitGst } from "@/lib/gst";
+import { GST_STATES, financialYear, formatInvoiceNumber, gstOn, isValidGstin, sellerDetails, splitGst } from "@/lib/gst";
 import { enroll, getProgramBySlug, isEnrolled, revokeEnrollment } from "./programs";
 import type { ServiceResult } from "./users";
 
@@ -149,7 +149,7 @@ async function allocateInvoiceNumber(tx: Db, date: Date): Promise<string> {
     .values({ financialYear: fy, lastNumber: 1 })
     .onConflictDoUpdate({ target: invoiceSequences.financialYear, set: { lastNumber: sql`${invoiceSequences.lastNumber} + 1` } })
     .returning();
-  return `${sellerDetails().invoicePrefix}/${fy}/${String(row.lastNumber).padStart(5, "0")}`;
+  return formatInvoiceNumber(sellerDetails().invoicePrefix, fy, row.lastNumber);
 }
 
 /**

@@ -87,6 +87,21 @@ export function financialYear(date: Date): string {
   return `${start}-${String((start + 1) % 100).padStart(2, "0")}`;
 }
 
+/** GST invoice numbers may be at most 16 characters (Rule 46: letters, digits, "-" and "/"). */
+export const INVOICE_NUMBER_MAX_LENGTH = 16;
+
+/**
+ * Invoice number for the nth invoice of a financial year, e.g. "NXS/26-27/00001"
+ * (15 characters). The prefix is limited to 4 letters/digits so the number stays
+ * within 16 characters up to 99,999 invoices a year.
+ */
+export function formatInvoiceNumber(prefix: string, fy: string, n: number): string {
+  const p = (prefix.toUpperCase().replace(/[^A-Z0-9]/g, "") || "INV").slice(0, 4);
+  const number = `${p}/${fy.slice(2)}/${String(n).padStart(5, "0")}`;
+  if (number.length > INVOICE_NUMBER_MAX_LENGTH) throw new Error(`Invoice number ${number} is longer than ${INVOICE_NUMBER_MAX_LENGTH} characters.`);
+  return number;
+}
+
 export function formatRupees(paise: number): string {
   return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: paise % 100 ? 2 : 0 }).format(paise / 100);
 }
