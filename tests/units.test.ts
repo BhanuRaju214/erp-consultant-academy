@@ -3,7 +3,7 @@ import { gradeQuiz } from "@/lib/quiz";
 import { can } from "@/lib/auth/rbac";
 import { passwordPolicyError } from "@/lib/auth/password";
 import { summariseTests } from "@/lib/services/practice";
-import { buildSystemPrompt, offlineReply } from "@/lib/ai/assistant";
+import { OUT_OF_SCOPE_MARKER, buildSystemPrompt, finalizeReply, offlineReply } from "@/lib/ai/assistant";
 import { allCourses, businessProcesses, configScenarios } from "@/content";
 
 describe("quiz grading", () => {
@@ -72,6 +72,35 @@ describe("AI assistant guardrails", () => {
     const r = offlineReply("q", [{ title: "T", href: "/docs/t", text: "Body text" }]);
     expect(r.provider).toBe("offline");
     expect(r.content).toContain("[S1]");
+  });
+  it("tells the model to stay within the course topics", () => {
+    const p = buildSystemPrompt({ odooVersion: "17.0", edition: "Community", apps: [], mode: "explain" }, []);
+    expect(p).toContain("NOT a general-purpose assistant");
+    expect(p).toContain(OUT_OF_SCOPE_MARKER);
+    expect(p).toMatch(/weather/);
+  });
+
+  const SOURCES = [
+    { title: "Python essentials for Odoo", href: "/docs/python" },
+    { title: "GST E-Invoicing", href: "/docs/gst" },
+    { title: "ORM fields", href: "/docs/orm" },
+  ];
+  it("declines out-of-course questions without sources or a verification line", () => {
+    const weather = finalizeReply(OUT_OF_SCOPE_MARKER, SOURCES);
+    expect(weather).toMatchObject({ provider: "scope", sources: [] });
+    expect(weather.content).toContain("outside your Nexsademy course");
+    expect(weather.content).not.toContain("Verification");
+    expect(weather.content).not.toContain("You could ask");
+
+    const python = finalizeReply(`${OUT_OF_SCOPE_MARKER} How do I add an Integer field to an Odoo model?`, SOURCES);
+    expect(python.content).toContain("You could ask, for example: *How do I add an Integer field to an Odoo model?*");
+  });
+  it("lists only the sources an answer cites, renumbered in order", () => {
+    const r = finalizeReply("Use fields.Integer [S3]. See also [S1] and again [S3].\n\nVerification: Grounded in portal sources [S3], [S1].", SOURCES);
+    expect(r.provider).toBe("openai");
+    expect(r.sources.map((s) => s.title)).toEqual(["ORM fields", "Python essentials for Odoo"]);
+    expect(r.content).toBe("Use fields.Integer [S1]. See also [S2] and again [S1].\n\nVerification: Grounded in portal sources [S1], [S2].");
+    expect(finalizeReply("Hello! Ask me anything about the course.", SOURCES).sources).toEqual([]);
   });
 });
 

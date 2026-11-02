@@ -238,7 +238,7 @@ export function AssistantChat({
                       ))}
                     </div>
                   )}
-                  {m.provider && (
+                  {m.provider && m.provider !== "scope" && (
                     <div className="mt-2">
                       <Badge tone={m.provider === "openai" ? "info" : "warning"}>{m.provider === "openai" ? "AI-generated — validate in your training instance" : "Offline: portal passages"}</Badge>
                     </div>
