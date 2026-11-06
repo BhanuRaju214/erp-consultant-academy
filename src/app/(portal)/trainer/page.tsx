@@ -51,7 +51,12 @@ export default async function TrainerPage() {
         eyebrow="Admin & Trainer Management"
         title="Trainer dashboard"
         description="Monitor trainee progress, review submissions, answer questions and give feedback."
-        actions={can(user.role, "admin:content") && <ButtonLink href="/admin" variant="secondary">Admin console</ButtonLink>}
+        actions={
+          <>
+            <ButtonLink href="/trainer/evaluations" variant="secondary">Final evaluations</ButtonLink>
+            {can(user.role, "admin:content") && <ButtonLink href="/admin" variant="secondary">Admin console</ButtonLink>}
+          </>
+        }
       />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Trainees" value={o.students.length} />

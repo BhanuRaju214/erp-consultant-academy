@@ -23,5 +23,7 @@ export function middleware(req: NextRequest) {
 
 export const config = {
   // Public assets (brand logo, app icons) must load on the login page too.
-  matcher: ["/((?!_next/static|_next/image|brand/|icon\\.png|apple-icon\\.png|favicon.ico|robots.txt).*)"],
+  // api/evaluation/upload streams large recordings: it is excluded so middleware never buffers the body,
+  // and the route checks the session itself.
+  matcher: ["/((?!_next/static|_next/image|brand/|icon\\.png|apple-icon\\.png|favicon.ico|robots.txt|api/evaluation/upload).*)"],
 };

@@ -1,6 +1,7 @@
 import type { CourseContent } from "./types";
 import { erpFundamentals } from "./courses/erp-fundamentals";
 import { implementationMethodology } from "./courses/implementation-methodology";
+import { odooSetupDatabases } from "./courses/odoo-setup-databases";
 import { odooCrm } from "./courses/odoo-crm";
 import { odooSales } from "./courses/odoo-sales";
 import { odooPurchase } from "./courses/odoo-purchase";
@@ -27,6 +28,7 @@ export { tradingProject };
 export const allCourses: CourseContent[] = [
   erpFundamentals,
   implementationMethodology,
+  odooSetupDatabases,
   odooCrm,
   odooSales,
   odooPurchase,
@@ -56,7 +58,7 @@ export const learningPathSeeds = [
     title: "Consultant Foundations",
     level: "beginner" as const,
     description: "From zero ERP knowledge to understanding business processes and the core Odoo sales and purchasing apps.",
-    courses: ["erp-fundamentals", "odoo-crm", "odoo-sales", "odoo-purchase", "implementation-methodology"],
+    courses: ["erp-fundamentals", "odoo-setup-databases", "odoo-crm", "odoo-sales", "odoo-purchase", "implementation-methodology"],
   },
   {
     slug: "functional-consultant",

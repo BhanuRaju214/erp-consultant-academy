@@ -14,6 +14,7 @@ import {
   type Role,
 } from "@/lib/db/schema";
 import { IMPORT_TEMPLATES } from "@/lib/import/templates";
+import { program } from "@/content/program";
 import { can } from "@/lib/auth/rbac";
 
 /** A node in the sidebar navigation tree. Nodes without `href` are expandable group headings. */
@@ -148,7 +149,20 @@ export async function buildNavTree(db: Db, user: { id: string; role: Role }): Pr
   const tree: NavTree = {};
   for (const [href, section] of Object.entries(COURSE_SECTIONS)) tree[href] = sectionNodes(section);
 
-  tree["/testing"] = [...tree["/testing"], { id: "testing:register", label: "My test register", href: "/testing#register" }];
+  let programDay = 0;
+  tree["/program"] = [
+    { id: "program:overview", label: "Schedule overview", href: "/program" },
+    ...program.map((week, wi) => ({
+      id: `program:week-${wi + 1}`,
+      label: `Week ${wi + 1}: ${week.title}`,
+      children: week.days.map((day) => {
+        const n = ++programDay;
+        return { id: `program:day-${n}`, label: `Day ${n}. ${day.title}`, href: `/program#day-${n}` };
+      }),
+    })),
+  ];
+
+  tree["/testing"] = [...tree["/testing"],{ id: "testing:register", label: "My test register", href: "/testing#register" }];
 
   tree["/processes"] = [
     { id: "processes:all", label: "All processes", href: "/processes" },
@@ -224,6 +238,7 @@ export async function buildNavTree(db: Db, user: { id: string; role: Role }): Pr
     tree["/trainer"] = [
       { id: "trainer:dashboard", label: "Trainer dashboard", href: "/trainer" },
       { id: "trainer:review", label: "Submissions to review", href: "/trainer#review" },
+      { id: "trainer:evaluations", label: "Final evaluations", href: "/trainer/evaluations" },
       { id: "trainer:questions", label: "Open questions", href: "/discussions" },
       ...(can(user.role, "admin:content") ? [{ id: "admin:console", label: "Admin console", href: "/admin" }] : []),
     ];

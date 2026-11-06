@@ -199,6 +199,14 @@ where the number sits so it never covers the data. Only real screenshots — nev
 Generated from a real Odoo run (see `scratchpad` recorder scripts); not hand-authored. Each step: `src`, `alt`, `task`,
 optional `target` box (+ `label`), optional `input` (`label`, `answer`), `traps` (box + `feedback`), `explain`.
 
+### visual-video (narrated video) and visual-audio (podcast)
+```json
+{ "src": "/videos/odoo-setup-databases.mp4", "poster": "/videos/odoo-setup-databases.webp", "title": "…", "duration": "10:55",
+  "caption": "…", "chapters": [ { "t": 0, "label": "Introduction" }, { "t": 26, "label": "Four decisions" } ] }
+```
+`visual-audio` takes the same fields without `poster`; `src` must be an MP3 under `/podcasts/`. Chapters (`t` in seconds)
+are clickable. Keep the script or transcript in `docs/videos/` or `docs/podcasts/`.
+
 ## Exercise blocks (interactive practice, not graded)
 
 Rules for all exercise blocks:

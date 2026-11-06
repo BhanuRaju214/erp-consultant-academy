@@ -567,6 +567,46 @@ export function RoleplayBlock({ data }: { data: VisualData<"roleplay"> }) {
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
+/** Narrated podcast (MP3) with the same clickable chapter list as the video block. */
+export function AudioBlock({ data }: { data: VisualData<"audio"> }) {
+  const isStatic = useStaticRender();
+  const ref = useRef<HTMLAudioElement>(null);
+  const [now, setNow] = useState(0);
+  const current = data.chapters.reduce((acc, c, i) => (now >= c.t ? i : acc), 0);
+  if (isStatic) {
+    return (
+      <VisualFrame kind="Audio" title={data.title} caption={data.caption}>
+        <p className="text-sm text-muted">Listen to the podcast ({data.duration ?? "MP3"}) in the training portal.</p>
+      </VisualFrame>
+    );
+  }
+  return (
+    <VisualFrame kind={`Audio${data.duration ? ` · ${data.duration}` : ""}`} title={data.title} caption={data.caption} bodyClassName="p-0 sm:p-0">
+      <div className="p-3 sm:p-4">
+        <audio ref={ref} controls preload="metadata" onTimeUpdate={(e) => setNow(e.currentTarget.currentTime)} onSeeked={(e) => setNow(e.currentTarget.currentTime)} className="block w-full">
+          <source src={data.src} type="audio/mpeg" />
+        </audio>
+      </div>
+      {data.chapters.length > 0 && (
+        <ol className="grid divide-y divide-border border-t border-border text-sm sm:grid-cols-2 sm:divide-y-0">
+          {data.chapters.map((c, i) => (
+            <li key={i}>
+              <button
+                type="button"
+                onClick={() => { const a = ref.current; if (a) { a.currentTime = c.t; void a.play(); } }}
+                className={cn("flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-surface-2", i === current && "bg-primary-soft font-semibold text-primary")}
+              >
+                <span className="w-10 shrink-0 font-mono text-xs text-muted">{fmt(c.t)}</span>
+                <InlineMd className="min-w-0">{c.label}</InlineMd>
+              </button>
+            </li>
+          ))}
+        </ol>
+      )}
+    </VisualFrame>
+  );
+}
+
 export function VideoBlock({ data }: { data: VisualData<"video"> }) {
   const isStatic = useStaticRender();
   const ref = useRef<HTMLVideoElement>(null);
