@@ -271,6 +271,14 @@ export const visualSchemas = {
     duration: z.string().optional(),
     chapters: z.array(z.object({ t: z.number().min(0), label: text })).max(30).default([]),
   }),
+  /** Narrated audio (MP3 podcast under /podcasts/) with clickable chapters (seconds). */
+  audio: z.object({
+    src: z.string().regex(/^\/podcasts\/[a-z0-9_.-]+\.mp3$/, "src must be an MP3 under /podcasts/"),
+    title: text,
+    caption: z.string().optional(),
+    duration: z.string().optional(),
+    chapters: z.array(z.object({ t: z.number().min(0), label: text })).max(30).default([]),
+  }),
   /** Exercise: put the items in the right order (items are authored in the correct order and shuffled on screen). */
   order: z.object({ title: z.string().optional(), prompt: text, items: z.array(text).min(3).max(10), explanation: z.string().optional() }),
   /** Exercise: match each left item to its right item (pairs authored correctly; the right side is shuffled). */

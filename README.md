@@ -136,7 +136,7 @@ All tables have UUID primary keys, foreign keys with explicit `ON DELETE` behavi
 
 ## Configuration
 
-Copy `.env.example` to `.env.local`. Key variables: `DATABASE_URL`, `SEED_*_PASSWORD`, `ALLOW_SELF_REGISTRATION`, `STORAGE_DIR`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `AI_RETENTION_DAYS`, `COOKIE_SECURE`.
+Copy `.env.example` to `.env.local`. Key variables: `DATABASE_URL`, `SEED_*_PASSWORD`, `ALLOW_SELF_REGISTRATION`, `STORAGE_DIR`, `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_TRANSCRIBE_MODEL`, `AI_RETENTION_DAYS`, `COOKIE_SECURE`.
 
 ## Deployment
 

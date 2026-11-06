@@ -26,6 +26,7 @@ export const questionKindEnum = pgEnum("question_kind", ["single", "multiple", "
 export const submissionStatusEnum = pgEnum("submission_status", ["submitted", "needs_revision", "accepted"]);
 export const taskStatusEnum = pgEnum("task_status", ["todo", "in_progress", "done"]);
 export const testStatusEnum = pgEnum("test_status", ["not_run", "pass", "fail", "blocked"]);
+export const evaluationStatusEnum = pgEnum("evaluation_status", ["recording", "questions", "awaiting_trainer", "approved", "needs_revision"]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -584,6 +585,79 @@ export const programCertificates = pgTable(
   },
   (t) => [uniqueIndex("program_certificates_user_program_idx").on(t.userId, t.programId)],
 );
+
+/* ------------------------------------------------------------------ */
+/* Final video evaluation and program certificate                      */
+/* ------------------------------------------------------------------ */
+
+/** A follow-up question asked by the AI after the presentation, with the trainee's spoken answer. */
+export interface EvaluationQuestion {
+  question: string;
+  answerPath?: string;
+  answerTranscript?: string;
+}
+
+/** The AI's rubric scoring of presentation + answers. Scores per criterion are 0–20; total 0–100. */
+export interface EvaluationReport {
+  criteria: { key: string; label: string; score: number; comment: string }[];
+  total: number;
+  strengths: string[];
+  improvements: string[];
+  recommendation: "pass" | "revise";
+  summary: string;
+  provider: "openai" | "offline";
+}
+
+/**
+ * One attempt at the final evaluation: a recorded presentation (≥ 10 minutes) of the
+ * real-time projects with slides, AI follow-up questions answered by voice, an AI
+ * rubric report, and the trainer's decision. Files are paths into private storage.
+ */
+export const projectEvaluations = pgTable(
+  "project_evaluations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    status: evaluationStatusEnum("status").notNull().default("recording"),
+    slidesPath: text("slides_path"),
+    slidesName: text("slides_name"),
+    videoPath: text("video_path"),
+    cameraPath: text("camera_path"),
+    audioPath: text("audio_path"),
+    /** Presentation length in seconds (from the transcription service when available). */
+    durationSec: integer("duration_sec"),
+    transcript: text("transcript"),
+    questions: jsonb("questions").$type<EvaluationQuestion[]>().notNull().default([]),
+    report: jsonb("report").$type<EvaluationReport>(),
+    aiScore: integer("ai_score"),
+    trainerId: uuid("trainer_id").references(() => users.id, { onDelete: "set null" }),
+    trainerNote: text("trainer_note"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    ...timestamps,
+  },
+  (t) => [index("evaluations_user_idx").on(t.userId), index("evaluations_status_idx").on(t.status)],
+);
+
+/**
+ * The final program certificate, issued only when a trainer approves the video evaluation.
+ * (Separate from `program_certificates`, the per-course certificates earned by completing modules.)
+ */
+export const evaluationCertificates = pgTable("evaluation_certificates", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  serial: text("serial").notNull().unique(),
+  userId: uuid("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  evaluationId: uuid("evaluation_id")
+    .notNull()
+    .references(() => projectEvaluations.id, { onDelete: "cascade" }),
+  score: integer("score").notNull(),
+  issuedAt: timestamp("issued_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const trainerFeedback = pgTable(
   "trainer_feedback",

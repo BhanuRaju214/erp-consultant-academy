@@ -46,6 +46,7 @@ export function isCoursePath(pathname: string): boolean {
 /** Navigation inside the Odoo ERP Consultant Program. */
 export const NAV: NavItem[] = [
   { href: "/learn", label: "Course home", icon: "LayoutDashboard", exact: true },
+  { href: "/program", label: "4-Week Program", icon: "CalendarDays" },
   { href: "/learn/erp-fundamentals", label: "ERP Fundamentals", icon: "GraduationCap", section: "erp-fundamentals" },
   { href: "/processes", label: "Business Process Academy", icon: "Workflow" },
   { href: "/learn/odoo-apps", label: "Odoo Application Training", icon: "Boxes", section: "odoo-apps" },
@@ -57,6 +58,7 @@ export const NAV: NavItem[] = [
   { href: "/testing", label: "Testing & Quality Assurance", icon: "ClipboardCheck", section: "testing" },
   { href: "/projects", label: "Real-Time Business Projects", icon: "Briefcase" },
   { href: "/assessments", label: "Assessments & Certifications", icon: "Award" },
+  { href: "/evaluation", label: "Final Evaluation", icon: "Video" },
   { href: "/docs", label: "Documentation Library", icon: "Library" },
   { href: "/progress", label: "Progress & Reports", icon: "ChartNoAxesCombined" },
 ];

@@ -8,6 +8,7 @@ import {
   Award,
   Boxes,
   Briefcase,
+  CalendarDays,
   ChartNoAxesCombined,
   ChevronDown,
   ChevronLeft,
@@ -28,6 +29,7 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Sparkles,
+  Video,
   Workflow,
   X,
   type LucideIcon,
@@ -41,6 +43,7 @@ import { cn } from "./ui";
 
 const ICONS: Record<string, LucideIcon> = {
   LayoutDashboard,
+  CalendarDays,
   GraduationCap,
   Workflow,
   Boxes,
@@ -52,6 +55,7 @@ const ICONS: Record<string, LucideIcon> = {
   ClipboardCheck,
   Briefcase,
   Award,
+  Video,
   Library,
   LibraryBig,
   ChartNoAxesCombined,

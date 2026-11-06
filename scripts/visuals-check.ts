@@ -37,6 +37,7 @@ for (const c of allCourses) {
         if ((b.type === "figure" || b.type === "screen") && d.src) figureSrcs.add(d.src);
         if (b.type === "simulate") for (const st of d.steps ?? []) figureSrcs.add(st.src);
         if (b.type === "video") for (const f of [d.src, (d as { poster?: string }).poster]) if (f && !fs.existsSync(path.join("public", f))) errors.push(`${c.slug}/${l.slug}: video file missing: ${f}`);
+        if (b.type === "audio" && d.src && !fs.existsSync(path.join("public", d.src))) errors.push(`${c.slug}/${l.slug}: audio file missing: ${d.src}`);
         blocks.push({ type: b.type, title: d.title ?? d.question ?? d.company ?? (d.src ? path.basename(d.src) : "") });
       }
       rows.push({ course: c.slug, lesson: l.slug, title: l.title, blocks });

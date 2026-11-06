@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { asc, eq, isNull, or, sql } from "drizzle-orm";
-import { Award, GraduationCap } from "lucide-react";
+import { Award, GraduationCap, Video } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
+import { getProgramCertificate } from "@/lib/services/evaluation";
 import { assessmentAttempts, assessments, businessProcesses, certificates, courses, questions } from "@/lib/db/schema";
 import { Badge, ButtonLink, Card, CardTitle, EmptyState, PageHeader, ProgressBar } from "@/components/ui";
 import { getFlagshipCertificateStatus, maybeIssueFlagshipCertificate } from "@/lib/services/learning";
@@ -45,6 +46,8 @@ export default async function AssessmentsPage() {
     program = await getFlagshipCertificateStatus(db, user.id);
   }
   const pct = program?.modulesTotal ? Math.round((program.modulesCertified / program.modulesTotal) * 100) : 0;
+
+  const finalCert = await getProgramCertificate(db, user.id);
 
   const courseAssessments = rows.filter((r) => r.courseTitle);
   const processQuizzes = rows.filter((r) => r.processTitle);
@@ -123,6 +126,28 @@ export default async function AssessmentsPage() {
           )}
         </Card>
       )}
+      <Card>
+        <div className="flex items-center gap-2">
+          <Video className="h-4 w-4 text-primary" />
+          <CardTitle>Final certification</CardTitle>
+        </div>
+        {finalCert ? (
+          <p className="mt-2 text-sm">
+            You are a certified ERP consultant.{" "}
+            <Link href={`/certificates/final/${finalCert.serial}`} className="font-medium text-primary hover:underline">
+              View your final certificate ({finalCert.serial})
+            </Link>
+          </p>
+        ) : (
+          <p className="mt-2 text-sm text-muted">
+            The final program certificate is issued after you complete every course and real-time project, present your projects in a recorded talk of at least 10
+            minutes with slides, answer the AI examiner&apos;s questions, and a trainer approves the result.{" "}
+            <Link href="/evaluation" className="font-medium text-primary hover:underline">
+              Go to the final evaluation
+            </Link>
+          </p>
+        )}
+      </Card>
       <Card>
         <div className="flex items-center gap-2">
           <Award className="h-4 w-4 text-primary" />

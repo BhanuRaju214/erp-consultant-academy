@@ -7,7 +7,7 @@ import { assignments, discussions, submissions, users } from "@/lib/db/schema";
 import { getTrainerOverview } from "@/lib/services/dashboard";
 import { ReviewForm } from "@/components/assignment-forms";
 import { SimpleBarChart } from "@/components/charts";
-import { Badge, Card, CardTitle, EmptyState, PageHeader, ProgressBar, Stat } from "@/components/ui";
+import { Badge, ButtonLink, Card, CardTitle, EmptyState, PageHeader, ProgressBar, Stat } from "@/components/ui";
 
 export const metadata = { title: "Trainer Dashboard" };
 
@@ -46,7 +46,16 @@ export default async function TrainerPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader compact title="Overview" description="Learner progress, submissions to review, open questions and feedback." />
+      <PageHeader
+        compact
+        title="Overview"
+        description="Learner progress, submissions to review, open questions and feedback."
+        actions={
+          <ButtonLink href="/trainer/evaluations" variant="secondary">
+            Final evaluations
+          </ButtonLink>
+        }
+      />
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Learners" value={o.students.length} />
         <Stat label="Active last 7 days" value={active7d} />

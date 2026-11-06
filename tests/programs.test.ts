@@ -54,7 +54,7 @@ describe("flagship program setup", () => {
   it("builds the syllabus from the linked sub-courses", async () => {
     const [program] = await h.db.select().from(programs).where(eq(programs.slug, FLAGSHIP_PROGRAM.slug));
     const syllabus = await getProgramSyllabus(h.db, program.id);
-    expect(syllabus.length).toBe(12);
+    expect(syllabus.length).toBe(13);
     expect(syllabus.reduce((n, c) => n + c.lessons, 0)).toBeGreaterThan(100);
   });
 });

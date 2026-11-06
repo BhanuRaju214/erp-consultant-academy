@@ -64,6 +64,13 @@
       "when": 1792747459173,
       "tag": "0008_course_reminders",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793954022674,
+      "tag": "0009_final_evaluation",
+      "breakpoints": true
     }
   ]
 }
