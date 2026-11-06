@@ -96,7 +96,7 @@ export default async function ReviewEvaluationPage({ params }: { params: Promise
                 <div className="space-y-2 text-sm">
                   <Badge tone="success">Approved</Badge>
                   <p className="text-muted">{ev.trainerNote}</p>
-                  {cert && <Link href={`/certificates/final/${cert.serial}`} className="font-medium text-primary hover:underline">Certificate {cert.serial} ({cert.score}%)</Link>}
+                  {cert && <Link href={`/certificates/${cert.serial}`} className="font-medium text-primary hover:underline">Certificate {cert.serial} ({cert.score}%)</Link>}
                 </div>
               ) : ev.status === "needs_revision" ? (
                 <div className="space-y-2 text-sm">

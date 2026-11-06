@@ -6,6 +6,7 @@ import { MIN_PRESENTATION_SECONDS, QUESTION_COUNT, formatDuration } from "@/lib/
 import { getEligibility, getLatestEvaluation, getProgramCertificate } from "@/lib/services/evaluation";
 import { EvaluationStudio, StartEvaluationButton, type StudioEvaluation } from "@/components/evaluation-studio";
 import { EvaluationReportView } from "@/components/evaluation-report";
+import { CONSULTANT_TITLE } from "@/lib/services/certificates";
 import { ButtonLink, Callout, Card, CardTitle, PageHeader } from "@/components/ui";
 
 export const metadata = { title: "Final Evaluation" };
@@ -29,14 +30,14 @@ export default async function EvaluationPage() {
       <PageHeader
         eyebrow="Assessments & Certifications"
         title="Final evaluation"
-        description={`Present your real-time projects in a recorded talk of at least ${MIN_PRESENTATION_SECONDS / 60} minutes with your slides, answer ${QUESTION_COUNT} questions from the AI examiner, and a trainer confirms the result. The final program certificate is issued only after this evaluation is approved.`}
+        description={`Present your real-time projects in a recorded talk of at least ${MIN_PRESENTATION_SECONDS / 60} minutes with your slides, answer ${QUESTION_COUNT} questions from the AI examiner, and a trainer confirms the result. Approval awards the ${CONSULTANT_TITLE} certificate.`}
       />
 
       {certificate && (
         <Callout tone="success" title="Congratulations — you are certified">
-          Your final program certificate has been issued.{" "}
-          <Link href={`/certificates/final/${certificate.serial}`} className="font-medium underline">
-            View and print your certificate
+          You are a {CONSULTANT_TITLE}.{" "}
+          <Link href={`/certificates/${certificate.serial}`} className="font-medium underline">
+            View, download or share your certificate
           </Link>
         </Callout>
       )}
@@ -48,7 +49,7 @@ export default async function EvaluationPage() {
             ["Prepare", "Build a PowerPoint about your projects: client, requirements, Odoo solution, data migration, testing, go-live and lessons learnt."],
             ["Present", "Share your slides and talk for at least 10 minutes. The portal records your screen, voice and webcam."],
             ["Answer", "The AI examiner listens and asks follow-up questions, starting with what you have learnt in the course. Answer each one aloud."],
-            ["Certify", "The AI scores you against the rubric; a trainer reviews the recording and confirms. Approval issues your certificate."],
+            ["Certify", `The AI scores you against the rubric; a trainer reviews the recording and confirms. Approval makes you a ${CONSULTANT_TITLE}.`],
           ].map(([t, d], i) => (
             <li key={t} className="rounded-lg bg-surface-2 p-3">
               <div className="font-semibold text-fg">{i + 1}. {t}</div>
@@ -75,15 +76,19 @@ export default async function EvaluationPage() {
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-fg">Course certificates</h3>
-              <ul className="mt-2 space-y-1 text-sm">
-                {eligibility.courses.map((c) => (
-                  <li key={c.title} className="flex items-center gap-2">
-                    {c.certified ? <CheckCircle2 className="h-4 w-4 shrink-0 text-success" /> : <Circle className="h-4 w-4 shrink-0 text-muted" />}
-                    {c.title}
-                  </li>
-                ))}
-              </ul>
+              <h3 className="text-sm font-semibold text-fg">Course certificate</h3>
+              <p className="mt-2 flex items-center gap-2 text-sm">
+                {eligibility.courseCertificate ? <CheckCircle2 className="h-4 w-4 shrink-0 text-success" /> : <Circle className="h-4 w-4 shrink-0 text-muted" />}
+                {eligibility.courseCertificate ? (
+                  <Link href={`/certificates/${eligibility.courseCertificate.serial}`} className="hover:underline">
+                    Course certificate earned ({eligibility.courseCertificate.serial})
+                  </Link>
+                ) : (
+                  <Link href="/assessments" className="hover:underline">
+                    {eligibility.modulesCertified} of {eligibility.modulesTotal} module certificates earned
+                  </Link>
+                )}
+              </p>
             </div>
           </div>
           {ev?.status === "needs_revision" && (
@@ -97,7 +102,7 @@ export default async function EvaluationPage() {
             {eligibility.eligible ? (
               <StartEvaluationButton label={ev ? "Start a new attempt" : "Start the final evaluation"} />
             ) : (
-              <p className="text-sm text-muted">Complete every project task and earn every course certificate to unlock the final evaluation.</p>
+              <p className="text-sm text-muted">Earn the course certificate and complete every project task to unlock the final evaluation.</p>
             )}
           </div>
         </Card>
@@ -129,7 +134,7 @@ export default async function EvaluationPage() {
           )}
           {certificate && (
             <div className="mt-4">
-              <ButtonLink href={`/certificates/final/${certificate.serial}`}>View certificate</ButtonLink>
+              <ButtonLink href={`/certificates/${certificate.serial}`}>View certificate</ButtonLink>
             </div>
           )}
         </Card>

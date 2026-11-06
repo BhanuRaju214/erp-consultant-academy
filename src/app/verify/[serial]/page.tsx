@@ -74,10 +74,11 @@ export default async function VerifyCertificatePage({ params }: { params: Promis
                 <dl className="divide-y divide-border rounded-lg border border-border bg-surface text-sm">
                   {[
                     ["Awarded to", cert.name],
-                    [cert.kind === "module" ? "Module" : "Course", cert.title],
+                    [cert.kind === "module" ? "Module" : cert.kind === "consultant" ? "Certification" : "Course", cert.title],
                     ...(cert.partOf ? [["Course", cert.partOf]] : []),
                     ...(cert.kind === "module" && cert.skills.length ? [["Skills", cert.skills.join(" · ")]] : []),
                     ...(cert.kind === "course" && cert.modules ? [["Covers", `${cert.modules} modules · ${cert.lessons} lessons`]] : []),
+                    ...(cert.kind === "consultant" ? [["Assessed on", "Course certificate, real-time implementation projects, a recorded presentation with examiner Q&A, approved by a trainer"]] : []),
                     ["Level", cert.level.charAt(0).toUpperCase() + cert.level.slice(1)],
                     ["Issued on", formatIssued(cert.issuedAt)],
                     ["Certificate ID", cert.serial],

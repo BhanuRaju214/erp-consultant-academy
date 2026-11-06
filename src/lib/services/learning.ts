@@ -10,6 +10,7 @@ import {
   lessonProgress,
   lessons,
   programCertificates,
+  evaluationCertificates,
   programs,
   questions,
   studentAnswers,
@@ -338,7 +339,7 @@ export async function maybeIssueProgramCertificate(db: Db, userId: string, progr
 
 /** All of a learner's certificates (Odoo modules and whole courses), newest first. */
 export async function listCertificates(db: Db, userId: string, limit?: number) {
-  const [moduleCerts, courseCerts] = await Promise.all([
+  const [moduleCerts, courseCerts, consultantCerts] = await Promise.all([
     db
       .select({ serial: certificates.serial, title: courses.title, issuedAt: certificates.issuedAt, score: certificates.score })
       .from(certificates)
@@ -349,7 +350,11 @@ export async function listCertificates(db: Db, userId: string, limit?: number) {
       .from(programCertificates)
       .innerJoin(programs, eq(programs.id, programCertificates.programId))
       .where(eq(programCertificates.userId, userId)),
+    db
+      .select({ serial: evaluationCertificates.serial, title: sql<string>`'Certified Odoo ERP Consultant'`, issuedAt: evaluationCertificates.issuedAt, score: evaluationCertificates.score })
+      .from(evaluationCertificates)
+      .where(eq(evaluationCertificates.userId, userId)),
   ]);
-  const all = [...courseCerts, ...moduleCerts].sort((a, b) => b.issuedAt.getTime() - a.issuedAt.getTime());
+  const all = [...consultantCerts, ...courseCerts, ...moduleCerts].sort((a, b) => b.issuedAt.getTime() - a.issuedAt.getTime());
   return limit ? all.slice(0, limit) : all;
 }

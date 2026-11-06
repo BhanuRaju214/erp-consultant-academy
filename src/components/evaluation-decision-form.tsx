@@ -11,7 +11,7 @@ export function EvaluationDecisionForm({ evaluationId, aiScore }: { evaluationId
   if (state.ok) {
     return state.serial ? (
       <Callout tone="success" title="Approved — final certificate issued">
-        <Link href={`/certificates/final/${state.serial}`} className="font-medium underline">Certificate {state.serial}</Link>
+        <Link href={`/certificates/${state.serial}`} className="font-medium underline">Certificate {state.serial}</Link>
       </Callout>
     ) : (
       <Callout tone="info">Sent back to the trainee. They can start a new attempt.</Callout>

@@ -26,7 +26,7 @@ export default async function CertificatePage({ params }: { params: Promise<{ se
         compact
         eyebrow="Certificate"
         title={cert.title}
-        description={`${own ? "Congratulations! " : `Issued to ${cert.name}. `}Issued ${formatIssued(cert.issuedAt)} · ${cert.kind === "module" ? "Final assessment" : "Overall assessment"} score ${cert.score}% · ID ${cert.serial}`}
+        description={`${own ? "Congratulations! " : `Issued to ${cert.name}. `}Issued ${formatIssued(cert.issuedAt)} · ${cert.kind === "module" ? "Final assessment" : cert.kind === "consultant" ? "Final evaluation" : "Overall assessment"} score ${cert.score}% · ID ${cert.serial}`}
       />
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
         <div className="min-w-0 space-y-3">

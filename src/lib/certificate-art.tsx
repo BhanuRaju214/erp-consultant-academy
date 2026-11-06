@@ -127,17 +127,29 @@ function CertificateBody({ cert, verifyUrl, W }: { cert: CertificateView; verify
           </div>
 
           <div style={{ display: "flex", flex: 1, flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center" }}>
-            <div style={{ fontSize: u(30), fontWeight: 800, letterSpacing: u(12), color: GOLD }}>CERTIFICATE OF COMPLETION</div>
+            <div style={{ fontSize: u(30), fontWeight: 800, letterSpacing: u(12), color: GOLD }}>{cert.kind === "consultant" ? "PROFESSIONAL CERTIFICATION" : "CERTIFICATE OF COMPLETION"}</div>
             <div style={{ fontSize: u(30), color: MUTED, marginTop: u(46) }}>This is to certify that</div>
             <div style={{ fontFamily: "Playfair", fontStyle: "italic", fontWeight: 700, fontSize: nameSize, color: NAVY, marginTop: u(14), lineHeight: 1.15, maxWidth: u(1500) }}>{cert.name}</div>
             <div style={{ display: "flex", width: u(560), height: u(3), background: `linear-gradient(90deg, transparent, ${GOLD}, transparent)`, marginTop: u(22) }} />
-            <div style={{ fontSize: u(30), color: MUTED, marginTop: u(30) }}>{cert.kind === "module" ? "has successfully completed the module" : "has successfully completed the course"}</div>
+            <div style={{ fontSize: u(30), color: MUTED, marginTop: u(30) }}>{cert.kind === "module"
+                ? "has successfully completed the module"
+                : cert.kind === "consultant"
+                  ? "has passed the trainer-assessed final evaluation and is a"
+                  : "has successfully completed the course"}</div>
             <div style={{ fontSize: titleSize, fontWeight: 800, color: INK, marginTop: u(14), lineHeight: 1.2, maxWidth: u(1450), letterSpacing: -u(0.8) }}>{cert.title}</div>
             {/* What was learned: the module's key skills, or how much the whole course covers. */}
             {cert.kind === "module" && cert.skills.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: u(26) }}>
                 <div style={{ fontSize: u(18), fontWeight: 700, letterSpacing: u(4), color: GOLD }}>SKILLS DEMONSTRATED</div>
                 <div style={{ fontSize: u(26), color: MUTED, marginTop: u(10), lineHeight: 1.4, maxWidth: u(1400) }}>{cert.skills.join("  ·  ")}</div>
+              </div>
+            )}
+            {cert.kind === "consultant" && (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: u(26) }}>
+                <div style={{ fontSize: u(18), fontWeight: 700, letterSpacing: u(4), color: GOLD }}>ASSESSED ON</div>
+                <div style={{ fontSize: u(26), color: MUTED, marginTop: u(10), lineHeight: 1.4, maxWidth: u(1400) }}>
+                  {`${cert.partOf}  ·  Real-time implementation projects  ·  Recorded presentation and examiner Q&A`}
+                </div>
               </div>
             )}
             {cert.kind === "course" && cert.modules > 0 && (

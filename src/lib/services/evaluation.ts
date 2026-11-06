@@ -1,14 +1,9 @@
 import { randomBytes } from "node:crypto";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
-import { FLAGSHIP_PROGRAM } from "./programs";
+import { getFlagshipCertificateStatus, maybeIssueFlagshipCertificate } from "./learning";
 import {
-  certificates,
-  courseModules,
-  courses,
-  lessons,
   evaluationCertificates,
-  programs,
   projectEvaluations,
   users,
   type EvaluationQuestion,
@@ -43,19 +38,18 @@ export interface EvaluationAi {
   chatJson(system: string, user: string): Promise<string | null>;
 }
 
+/**
+ * The final evaluation is the step after the course certificate: it unlocks once the
+ * learner holds the Odoo course certificate (every module certified) and has finished
+ * every real-time project.
+ */
 export async function getEligibility(db: Db, userId: string) {
-  const courseRows = await db
-    .selectDistinct({ id: courses.id, title: courses.title, section: courses.section, position: courses.position })
-    .from(courses)
-    .innerJoin(courseModules, eq(courseModules.courseId, courses.id))
-    .innerJoin(lessons, eq(lessons.moduleId, courseModules.id))
-    // Only the published modules of the Odoo course count, not other courses or drafts.
-    .innerJoin(programs, eq(programs.id, courses.programId))
-    .where(and(eq(programs.slug, FLAGSHIP_PROGRAM.slug), eq(courses.published, true)))
-    .orderBy(asc(courses.section), asc(courses.position));
-  const certified = new Set(
-    (await db.select({ courseId: certificates.courseId }).from(certificates).where(eq(certificates.userId, userId))).map((c) => c.courseId),
-  );
+  let status = await getFlagshipCertificateStatus(db, userId);
+  // Learners who finished every module before the course certificate existed get it now.
+  if (status?.eligible && !status.certificate) {
+    await maybeIssueFlagshipCertificate(db, userId);
+    status = await getFlagshipCertificateStatus(db, userId);
+  }
   const projects = (await listProjectsWithProgress(db, userId)).map((p) => ({
     code: p.code,
     slug: p.slug,
@@ -64,11 +58,13 @@ export async function getEligibility(db: Db, userId: string) {
     total: p.totalTasks,
     complete: p.totalTasks > 0 && p.doneTasks >= p.totalTasks,
   }));
-  const coursesOut = courseRows.map((c) => ({ title: c.title, certified: certified.has(c.id) }));
+  const courseCertificate = status?.certificate ?? null;
   return {
-    courses: coursesOut,
+    courseCertificate,
+    modulesCertified: status?.modulesCertified ?? 0,
+    modulesTotal: status?.modulesTotal ?? 0,
     projects,
-    eligible: coursesOut.every((c) => c.certified) && projects.length > 0 && projects.every((p) => p.complete),
+    eligible: Boolean(courseCertificate) && projects.length > 0 && projects.every((p) => p.complete),
   };
 }
 
@@ -190,7 +186,8 @@ export async function decideEvaluation(
       .returning();
     if (!ev) return { ok: false as const, error: "This evaluation is not awaiting a decision." };
     if (input.decision !== "approved") return { ok: true as const, certificate: null };
-    const serial = `ECA-FINAL-${new Date().getFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`;
+    // Same ID format as the other certificates, so it is verifiable at /verify/<serial>.
+    const serial = `NXC-${new Date().getFullYear()}-${randomBytes(4).toString("hex").toUpperCase()}`;
     const [certificate] = await tx
       .insert(evaluationCertificates)
       .values({ userId: ev.userId, evaluationId: ev.id, score: input.score, serial })

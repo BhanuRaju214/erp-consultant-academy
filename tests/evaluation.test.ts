@@ -9,6 +9,7 @@ import { createDb, type DbHandle } from "@/lib/db/client";
 import { seedAll } from "@/lib/seed";
 import { certificates, courses, projectTasks, studentProjectTasks } from "@/lib/db/schema";
 import { registerUser } from "@/lib/services/users";
+import { CONSULTANT_TITLE, getCertificate } from "@/lib/services/certificates";
 import { LEARNING_QUESTION, QUESTION_COUNT, parseQuestions, parseReport } from "@/lib/evaluation/rubric";
 import {
   attachMedia,
@@ -70,7 +71,7 @@ describe("final evaluation workflow", () => {
     await h?.close();
   });
 
-  it("is locked until every project and course certificate is complete", async () => {
+  it("is locked until the course certificate is earned and every project is complete", async () => {
     expect((await getEligibility(h.db, userId)).eligible).toBe(false);
     expect((await startEvaluation(h.db, userId)).ok).toBe(false);
 
@@ -79,6 +80,8 @@ describe("final evaluation workflow", () => {
     const tasks = await h.db.select({ id: projectTasks.id }).from(projectTasks);
     await h.db.insert(studentProjectTasks).values(tasks.map((t) => ({ userId, taskId: t.id, status: "done" as const })));
     const el = await getEligibility(h.db, userId);
+    // The course certificate (step 2) is issued on the way, and unlocks the evaluation (step 3).
+    expect(el.courseCertificate?.serial).toMatch(/^NXS-\d{4}-[0-9A-F]{8}$/);
     expect(el.eligible).toBe(true);
   });
 
@@ -142,7 +145,10 @@ describe("final evaluation workflow", () => {
     expect(approved.ok).toBe(true);
     const cert = await getProgramCertificate(h.db, userId);
     expect(cert?.score).toBe(82);
-    expect(cert?.serial).toMatch(/^ECA-FINAL-\d{4}-[0-9A-F]{8}$/);
+    expect(cert?.serial).toMatch(/^NXC-\d{4}-[0-9A-F]{8}$/);
+    // Publicly verifiable like the other certificates.
+    const view = await getCertificate(h.db, cert!.serial);
+    expect(view).toMatchObject({ kind: "consultant", title: CONSULTANT_TITLE, score: 82, userId });
 
     expect((await decideEvaluation(h.db, { evaluationId: cur.evaluation.id, trainerId, decision: "approved", score: 90, note: "again" })).ok).toBe(false);
     const latest = await getLatestEvaluation(h.db, userId);

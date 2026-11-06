@@ -1,15 +1,21 @@
 import { eq, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
-import { certificates, courseModules, courses, lessons, programCertificates, programs, users } from "@/lib/db/schema";
+import { certificates, courseModules, courses, evaluationCertificates, lessons, programCertificates, programs, users } from "@/lib/db/schema";
 import { BRAND } from "@/lib/brand";
+import { FLAGSHIP_PROGRAM } from "./programs";
 
 /**
- * One view over both kinds of certificate: per-module certificates of the Odoo
- * course (`certificates`) and whole-course certificates of builder courses
- * (`program_certificates`). Certificates are public by ID so employers can verify them.
+ * One view over the three levels of certificate: module certificates (`certificates`),
+ * course certificates for completing every module (`program_certificates`) and the
+ * Certified Odoo ERP Consultant credential for passing the trainer-approved final
+ * evaluation (`evaluation_certificates`). Certificates are public by ID so employers
+ * can verify them.
  */
 
-/** ECA-2026-1A2B3C4D (Odoo modules) or NXS-2026-1A2B3C4D (courses). */
+/** Title of the credential awarded for passing the final evaluation. */
+export const CONSULTANT_TITLE = "Certified Odoo ERP Consultant";
+
+/** ECA-2026-1A2B3C4D (modules), NXS-2026-1A2B3C4D (courses) or NXC-2026-1A2B3C4D (consultant). */
 const SERIAL = /^[A-Z]{3}-\d{4}-[0-9A-F]{8}$/;
 
 export function normalizeSerial(raw: string): string | null {
@@ -19,12 +25,12 @@ export function normalizeSerial(raw: string): string | null {
 
 export interface CertificateView {
   serial: string;
-  kind: "module" | "course";
+  kind: "module" | "course" | "consultant";
   userId: string;
   name: string;
   /** What the certificate is for: the course, or the module of the Odoo course. */
   title: string;
-  /** For module certificates: the course the module belongs to. */
+  /** For module and consultant certificates: the course it belongs to. */
   partOf: string | null;
   level: string;
   score: number;
@@ -87,7 +93,22 @@ export async function getCertificate(db: Db, rawSerial: string): Promise<Certifi
     .innerJoin(programs, eq(programs.id, programCertificates.programId))
     .where(eq(programCertificates.serial, serial))
     .limit(1);
-  return course ? { ...course, partOf: null, skills: [], kind: "course" } : null;
+  if (course) return { ...course, partOf: null, skills: [], kind: "course" };
+  const [consultant] = await db
+    .select({
+      serial: evaluationCertificates.serial,
+      userId: users.id,
+      name: users.name,
+      score: evaluationCertificates.score,
+      issuedAt: evaluationCertificates.issuedAt,
+    })
+    .from(evaluationCertificates)
+    .innerJoin(users, eq(users.id, evaluationCertificates.userId))
+    .where(eq(evaluationCertificates.serial, serial))
+    .limit(1);
+  return consultant
+    ? { ...consultant, title: CONSULTANT_TITLE, partOf: FLAGSHIP_PROGRAM.title, level: "advanced", skills: [], modules: 0, lessons: 0, kind: "consultant" }
+    : null;
 }
 
 export function verifyPath(serial: string) {
@@ -103,7 +124,7 @@ export function linkedInAddToProfileUrl(cert: CertificateView, verifyUrl: string
   const issued = new Date(cert.issuedAt.toLocaleString("en-US", { timeZone: "Asia/Kolkata" }));
   const params = new URLSearchParams({
     startTask: "CERTIFICATION_NAME",
-    name: cert.partOf ? `${cert.title} (${cert.partOf})` : cert.title,
+    name: cert.kind === "module" && cert.partOf ? `${cert.title} (${cert.partOf})` : cert.title,
     organizationId: BRAND.linkedinOrgId,
     issueYear: String(issued.getFullYear()),
     issueMonth: String(issued.getMonth() + 1),

@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { asc, eq, isNull, or, sql } from "drizzle-orm";
-import { Award, GraduationCap, Video } from "lucide-react";
+import { Award, CircleCheck, GraduationCap, Video, type LucideIcon } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { getProgramCertificate } from "@/lib/services/evaluation";
+import { getEligibility, getProgramCertificate } from "@/lib/services/evaluation";
+import { CONSULTANT_TITLE } from "@/lib/services/certificates";
 import { assessmentAttempts, assessments, businessProcesses, certificates, courses, questions } from "@/lib/db/schema";
 import { Badge, ButtonLink, Card, CardTitle, EmptyState, PageHeader, ProgressBar } from "@/components/ui";
 import { getFlagshipCertificateStatus, maybeIssueFlagshipCertificate } from "@/lib/services/learning";
@@ -47,7 +48,9 @@ export default async function AssessmentsPage() {
   }
   const pct = program?.modulesTotal ? Math.round((program.modulesCertified / program.modulesTotal) * 100) : 0;
 
-  const finalCert = await getProgramCertificate(db, user.id);
+  // Step 3 of the path: the trainer-approved final evaluation (also backfills the course certificate).
+  const [evaluation, consultant] = await Promise.all([getEligibility(db, user.id), getProgramCertificate(db, user.id)]);
+  const projectsDone = evaluation.projects.filter((p) => p.complete).length;
 
   const courseAssessments = rows.filter((r) => r.courseTitle);
   const processQuizzes = rows.filter((r) => r.processTitle);
@@ -92,62 +95,70 @@ export default async function AssessmentsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Assessments & Certifications"
-        description="A module certificate is issued automatically when you complete every lesson in a module and pass its final assessment. Earn all of them to receive the course certificate."
+        description="Earn a certificate for every module, then the course certificate, then become a certified consultant by passing the final evaluation."
       />
       {program && (
-        <Card className={program.certificate ? "border-success/40" : undefined}>
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <GraduationCap className="mt-0.5 h-6 w-6 shrink-0 text-primary" aria-hidden />
-              <div>
-                <CardTitle>Course certificate: {FLAGSHIP_PROGRAM.title}</CardTitle>
-                <p className="mt-1 text-sm text-muted">
-                  {program.certificate
-                    ? `Awarded ${program.certificate.issuedAt.toLocaleDateString()} · overall score ${program.certificate.score}% · ${program.certificate.serial}`
-                    : `${program.modulesCertified} of ${program.modulesTotal} module certificates earned. Earn every module certificate to receive it.`}
-                </p>
-              </div>
-            </div>
-            {program.certificate && (
-              <ButtonLink href={`/certificates/${program.certificate.serial}`} className="shrink-0">
-                View course certificate
-              </ButtonLink>
-            )}
-          </div>
-          {!program.certificate && (
-            <div className="mt-4 space-y-3">
-              <ProgressBar value={pct} label="Course certificate progress" />
-              {program.remaining.length > 0 && (
+        <Card>
+          <CardTitle>Your certification path</CardTitle>
+          <p className="mt-1 text-sm text-muted">Three levels, each building on the one before.</p>
+          <ol className="mt-4 grid gap-4 lg:grid-cols-3">
+            <Step
+              n={1}
+              icon={Award}
+              title="Module certificates"
+              done={program.modulesTotal > 0 && program.modulesCertified === program.modulesTotal}
+              status={`${program.modulesCertified} of ${program.modulesTotal} earned`}
+              detail="Complete every lesson in a module and pass its final assessment."
+            >
+              {!program.certificate && program.remaining.length > 0 && (
                 <p className="text-xs text-muted">
                   <span className="font-semibold text-fg">Still to certify:</span> {program.remaining.map((m) => m.title.split(":")[0]).join(" · ")}
                 </p>
               )}
-            </div>
-          )}
+            </Step>
+            <Step
+              n={2}
+              icon={GraduationCap}
+              title="Course certificate"
+              done={Boolean(program.certificate)}
+              status={program.certificate ? `Awarded ${program.certificate.issuedAt.toLocaleDateString()} · ${program.certificate.score}%` : `${pct}% of the way there`}
+              detail={`Issued automatically when you hold every module certificate of the ${FLAGSHIP_PROGRAM.title}.`}
+            >
+              {program.certificate ? (
+                <ButtonLink href={`/certificates/${program.certificate.serial}`} variant="secondary" className="w-full">
+                  View course certificate
+                </ButtonLink>
+              ) : (
+                <ProgressBar value={pct} label="Course certificate progress" />
+              )}
+            </Step>
+            <Step
+              n={3}
+              icon={Video}
+              title={CONSULTANT_TITLE}
+              done={Boolean(consultant)}
+              status={
+                consultant
+                  ? `Awarded ${consultant.issuedAt.toLocaleDateString()} · ${consultant.score}%`
+                  : evaluation.eligible
+                    ? "Unlocked: ready for your final evaluation"
+                    : `Locked · projects ${projectsDone} of ${evaluation.projects.length} complete`
+              }
+              detail="After the course certificate and every real-time project: present your projects in a recorded talk with slides, answer the AI examiner, and a trainer approves."
+            >
+              {consultant ? (
+                <ButtonLink href={`/certificates/${consultant.serial}`} variant="secondary" className="w-full">
+                  View consultant certificate
+                </ButtonLink>
+              ) : (
+                <ButtonLink href="/evaluation" variant={evaluation.eligible ? "primary" : "secondary"} className="w-full">
+                  {evaluation.eligible ? "Start the final evaluation" : "See what's required"}
+                </ButtonLink>
+              )}
+            </Step>
+          </ol>
         </Card>
       )}
-      <Card>
-        <div className="flex items-center gap-2">
-          <Video className="h-4 w-4 text-primary" />
-          <CardTitle>Final certification</CardTitle>
-        </div>
-        {finalCert ? (
-          <p className="mt-2 text-sm">
-            You are a certified ERP consultant.{" "}
-            <Link href={`/certificates/final/${finalCert.serial}`} className="font-medium text-primary hover:underline">
-              View your final certificate ({finalCert.serial})
-            </Link>
-          </p>
-        ) : (
-          <p className="mt-2 text-sm text-muted">
-            The final program certificate is issued after you complete every course and real-time project, present your projects in a recorded talk of at least 10
-            minutes with slides, answer the AI examiner&apos;s questions, and a trainer approves the result.{" "}
-            <Link href="/evaluation" className="font-medium text-primary hover:underline">
-              Go to the final evaluation
-            </Link>
-          </p>
-        )}
-      </Card>
       <Card>
         <div className="flex items-center gap-2">
           <Award className="h-4 w-4 text-primary" />
@@ -181,5 +192,41 @@ export default async function AssessmentsPage() {
         <div className="mt-3">{table(processQuizzes)}</div>
       </Card>
     </div>
+  );
+}
+
+/** One level of the certification path. */
+function Step({
+  n,
+  icon: Icon,
+  title,
+  done,
+  status,
+  detail,
+  children,
+}: {
+  n: number;
+  icon: LucideIcon;
+  title: string;
+  done: boolean;
+  status: string;
+  detail: string;
+  children?: React.ReactNode;
+}) {
+  return (
+    <li className={`flex flex-col gap-3 rounded-lg border p-4 ${done ? "border-success/40 bg-success-soft/40" : "border-border"}`}>
+      <div className="flex items-start gap-3">
+        <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${done ? "bg-success text-white" : "bg-surface-2 text-primary"}`}>
+          {done ? <CircleCheck className="h-5 w-5" aria-hidden /> : <Icon className="h-5 w-5" aria-hidden />}
+        </span>
+        <div className="min-w-0">
+          <div className="text-xs font-semibold uppercase tracking-wider text-muted">Step {n}</div>
+          <div className="font-semibold text-fg">{title}</div>
+          <div className={`text-sm ${done ? "font-medium text-success" : "text-muted"}`}>{status}</div>
+        </div>
+      </div>
+      <p className="text-xs text-muted">{detail}</p>
+      <div className="mt-auto">{children}</div>
+    </li>
   );
 }
