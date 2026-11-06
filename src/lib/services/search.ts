@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
+import { LEARNER_VISIBLE_C } from "./library";
 
 export interface SearchHit {
   kind: "lesson" | "doc" | "process";
@@ -33,7 +34,7 @@ export async function searchContent(db: Db, query: string, limit = 25): Promise<
       from lessons l
       join course_modules m on m.id = l.module_id
       join courses c on c.id = m.course_id, q
-      where c.published and (setweight(to_tsvector('english', l.title), 'A') || to_tsvector('english', l.body)) @@ q.tsq
+      where ${LEARNER_VISIBLE_C} and (setweight(to_tsvector('english', l.title), 'A') || to_tsvector('english', l.body)) @@ q.tsq
       union all
       select 'doc', d.title, '/docs/' || d.slug, d.category,
              ts_headline('english', d.body, q.tsq, 'MaxFragments=1,MaxWords=30,MinWords=12,StartSel=«,StopSel=»'),
@@ -66,7 +67,7 @@ export async function retrievePassages(db: Db, query: string, limit = 4): Promis
       select l.title, '/courses/' || c.slug || '/' || l.slug as href, l.body,
              ts_rank(setweight(to_tsvector('english', l.title), 'A') || to_tsvector('english', l.body), q.tsq) as rank
       from lessons l join course_modules m on m.id = l.module_id join courses c on c.id = m.course_id, q
-      where to_tsvector('english', l.title || ' ' || l.body) @@ q.tsq
+      where ${LEARNER_VISIBLE_C} and to_tsvector('english', l.title || ' ' || l.body) @@ q.tsq
       union all
       select d.title, '/docs/' || d.slug, d.body,
              ts_rank(setweight(to_tsvector('english', d.title), 'A') || to_tsvector('english', d.body), q.tsq)

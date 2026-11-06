@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { ChevronLeft, ChevronRight, ClipboardCheck, Clock, Sparkles } from "lucide-react";
-import { requireProgramUser } from "@/lib/auth/course-access";
+import { ChevronLeft, ChevronRight, ClipboardCheck, Clock, Lock, Sparkles } from "lucide-react";
+import { requireModuleUser } from "@/lib/auth/course-access";
 import { can } from "@/lib/auth/rbac";
 import { getDb } from "@/lib/db";
 import { bookmarks, lessonProgress, notes } from "@/lib/db/schema";
 import { getLesson, markLessonStarted } from "@/lib/services/learning";
 import { getProgramPlayer, lessonHref, quizHref } from "@/lib/services/player";
-import { getProgramBySlug } from "@/lib/services/programs";
+import { canAccessProgram, getProgramBySlug } from "@/lib/services/programs";
 import { extractToc } from "@/lib/visuals/enhance";
 import { Markdown } from "@/components/markdown";
 import { CoursePlaylist } from "@/components/course-playlist";
@@ -25,11 +25,13 @@ export async function generateMetadata({ params }: { params: Promise<{ module: s
 /** Lesson player for courses built in the course builder. */
 export default async function ProgramLessonPage({ params }: { params: Promise<{ slug: string; module: string; lesson: string }> }) {
   const { slug, module, lesson: lessonSlug } = await params;
-  const user = await requireProgramUser(slug);
+  const user = await requireModuleUser(module);
   const db = await getDb();
   const program = await getProgramBySlug(db, slug);
   const data = await getLesson(db, module, lessonSlug);
-  if (!program || !data) notFound();
+  if (!program || !data || data.course.programId !== program.id) notFound();
+  // Learners on the free beginner modules are sent to the course page instead of into a locked module.
+  const full = await canAccessProgram(db, user, slug);
   // The lesson must belong to this course, and hidden modules are for staff only.
   const player = await getProgramPlayer(db, program, user.id);
   const mod = player.modules.find((m) => m.slug === module);
@@ -45,7 +47,9 @@ export default async function ProgramLessonPage({ params }: { params: Promise<{ 
   const path = lessonHref(slug, module, lesson.slug);
   const i = player.order.findIndex((l) => l.id === lesson.id);
   const prev = i > 0 ? player.order[i - 1] : null;
-  const next = i >= 0 && i < player.order.length - 1 ? player.order[i + 1] : null;
+  const following = i >= 0 && i < player.order.length - 1 ? player.order[i + 1] : null;
+  const nextLocked = Boolean(following && !full && !player.modules.find((m) => m.slug === following.moduleSlug)?.free);
+  const next = nextLocked ? null : following;
   const toc = extractToc(lesson.body);
   const unwritten = !lesson.body.trim();
   // After the module's last lesson, the module quiz comes next.
@@ -106,6 +110,10 @@ export default async function ProgramLessonPage({ params }: { params: Promise<{ 
             {quizNext ? (
               <Link href={quizHref(slug, module)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary/90">
                 <ClipboardCheck className="h-4 w-4" aria-hidden /> Take the module quiz <ChevronRight className="h-4 w-4" />
+              </Link>
+            ) : nextLocked ? (
+              <Link href={`/catalog/${slug}`} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary/90">
+                <Lock className="h-4 w-4" aria-hidden /> Unlock the next module <ChevronRight className="h-4 w-4" />
               </Link>
             ) : next ? (
               <Link href={lessonHref(slug, next.moduleSlug, next.slug)} className="inline-flex items-center gap-1 rounded-lg bg-surface-2 px-3 py-2 text-sm font-medium text-fg hover:text-primary">

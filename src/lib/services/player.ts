@@ -2,6 +2,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 import type { Db } from "@/lib/db/client";
 import { courses, questions, type Program } from "@/lib/db/schema";
 import { getCourseOutline, getProgramCertificateStatus } from "./learning";
+import { isFreeModule } from "./programs";
 
 /**
  * Learner view of a course built in the course builder: its visible modules (in
@@ -29,6 +30,8 @@ export async function getProgramPlayer(db: Db, program: Program, userId: string)
       slug: outline.course.slug,
       title: outline.course.title,
       summary: outline.course.summary,
+      /** Beginner modules are free for learners who haven't bought the course. */
+      free: isFreeModule(outline.course),
       chapters: outline.course.modules.map((c) => ({ id: c.id, title: c.title, lessons: c.lessons })),
       quiz:
         a && questionCount > 0

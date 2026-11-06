@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowRight, BarChart3, BookOpen, CircleCheck, Clock, Layers,
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { formatMinutes, getLibraryItems } from "@/lib/services/library";
-import { canAccessProgram, getProgramBySlug, getProgramSyllabus, isStaff } from "@/lib/services/programs";
+import { FLAGSHIP_PROGRAM, canAccessProgram, getProgramBySlug, getProgramSyllabus, isFreeModule, isStaff } from "@/lib/services/programs";
 import { Markdown } from "@/components/markdown";
 import { LibraryThumb } from "@/components/library-thumb";
 import { EnrollButton } from "@/components/program-forms";
@@ -31,6 +31,16 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
   const done = syllabus.reduce((n, c) => n + (byCourse.get(c.id)?.progress?.done ?? 0), 0);
   const pct = totalLessons ? Math.round((done / totalLessons) * 100) : 0;
   const roles = [...new Set(syllabus.flatMap((c) => byCourse.get(c.id)?.roles ?? []))];
+
+  // Beginner modules are free to every signed-in learner; the rest needs the course.
+  const moduleHref = (courseSlug: string) => (program.slug === FLAGSHIP_PROGRAM.slug ? `/courses/${courseSlug}` : `/programs/${program.slug}/${courseSlug}`);
+  const freeModules = program.status === "published" ? syllabus.filter((c) => isFreeModule(c) && c.lessons > 0) : [];
+  const firstFree = !hasAccess ? freeModules.find((c) => (byCourse.get(c.id)?.progress?.done ?? 0) < c.lessons) ?? freeModules[0] : undefined;
+  const startFree = firstFree && (
+    <Link href={moduleHref(firstFree.slug)} className="inline-flex items-center justify-center gap-2 rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-bold text-fg hover:border-primary hover:text-primary">
+      {freeModules.some((c) => byCourse.get(c.id)?.progress?.done) ? "Continue free modules" : "Start free modules"} <ArrowRight className="h-4 w-4" aria-hidden />
+    </Link>
+  );
 
   const forSale = program.status === "published" && program.enrollmentMode === "paid" && (program.pricePaise ?? 0) > 0;
 
@@ -90,7 +100,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
             <div className="mt-5">
               <Callout tone="warning" title="Enrol to open this course">
                 <span className="flex items-center gap-2">
-                  <Lock className="h-4 w-4" aria-hidden /> That page is part of this course. Enrol below to get access.
+                  <Lock className="h-4 w-4" aria-hidden /> That page is part of the full course. {freeModules.length ? "The free beginner modules are open to everyone; enrol to unlock the rest." : "Enrol below to get access."}
                 </span>
               </Callout>
             </div>
@@ -113,8 +123,18 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
               {!hasAccess && program.enrollmentMode === "open" && <span className="rounded bg-success-soft px-1.5 py-0.5 text-[0.6875rem] font-bold text-success">Free</span>}
               {!hasAccess && forSale && <span className="rounded bg-gold-soft px-1.5 py-0.5 text-[0.6875rem] font-bold text-gold">{formatRupees(program.pricePaise!)}</span>}
             </div>
-            <div className="shrink-0">{cta}</div>
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {startFree}
+              {cta}
+            </div>
           </div>
+
+          {!hasAccess && freeModules.length > 0 && (
+            <p className="mt-4 text-sm text-muted">
+              <span className="font-semibold text-success">Try it free:</span> {freeModules.map((c) => c.title).join(", ")}{" "}
+              {freeModules.length === 1 ? "is" : "are"} free, including the module {freeModules.length === 1 ? "certificate" : "certificates"}. Continue with the next levels once you enrol.
+            </p>
+          )}
 
           <div className="mt-6 grid gap-6 rounded-lg border border-border bg-surface-2/60 p-6 md:grid-cols-[minmax(0,1fr)_220px]">
             <div className="min-w-0">
@@ -176,15 +196,19 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                 const item = byCourse.get(c.id);
                 const cDone = item?.progress?.done ?? 0;
                 const complete = c.lessons > 0 && cDone === c.lessons;
+                const open = hasAccess || freeModules.includes(c);
                 const row = (
-                  <div className={cn("flex items-start gap-3 px-4 py-3", hasAccess && "hover:bg-surface-2")}>
+                  <div className={cn("flex items-start gap-3 px-4 py-3", open && "hover:bg-surface-2")}>
                     {complete ? (
                       <CircleCheck className="mt-0.5 h-5 w-5 shrink-0 text-success" aria-label="Completed" />
                     ) : (
                       <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 border-border text-[0.625rem] font-bold text-muted">{i + 1}</span>
                     )}
                     <div className="min-w-0 flex-1">
-                      <div className="text-[0.8125rem] font-bold leading-snug text-fg">{c.title}</div>
+                      <div className="text-[0.8125rem] font-bold leading-snug text-fg">
+                        {c.title}
+                        {!hasAccess && open && <span className="ml-1.5 rounded bg-success-soft px-1.5 py-0.5 text-[0.625rem] font-bold text-success">Free</span>}
+                      </div>
                       <div className="mt-0.5 text-[0.6875rem] text-muted">
                         {c.lessons} lessons{item?.minutes ? ` · ${formatMinutes(item.minutes)}` : ""}
                         {cDone > 0 && !complete ? ` · ${cDone} done` : ""}
@@ -194,7 +218,7 @@ export default async function ProgramPage({ params, searchParams }: { params: Pr
                 );
                 return (
                   <li key={c.id} className="border-b border-border last:border-0">
-                    {hasAccess ? <Link href={`/courses/${c.slug}`}>{row}</Link> : row}
+                    {open ? <Link href={moduleHref(c.slug)}>{row}</Link> : row}
                   </li>
                 );
               })}

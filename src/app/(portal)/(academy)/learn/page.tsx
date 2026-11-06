@@ -1,21 +1,22 @@
 import Link from "next/link";
 import { asc } from "drizzle-orm";
-import { ArrowRight, Award, Briefcase, CircleCheck, Clock, SlidersHorizontal } from "lucide-react";
+import { ArrowRight, Award, Briefcase, CircleCheck, Clock, Lock, SlidersHorizontal } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { learningPaths } from "@/lib/db/schema";
+import { learningPaths, type User } from "@/lib/db/schema";
 import { getStudentDashboard } from "@/lib/services/dashboard";
-import { FLAGSHIP_PROGRAM } from "@/lib/services/programs";
+import { FLAGSHIP_PROGRAM, canAccessProgram, getProgramBySlug, getProgramSyllabus, isFreeModule } from "@/lib/services/programs";
+import { listCoursesWithProgress } from "@/lib/services/learning";
+import { CourseCard } from "@/components/course-card";
 import { changeLearningPath } from "@/app/actions/learning";
 import { Badge, ButtonLink, Callout, Card, CardTitle, EmptyState, LevelBadge, ProgressBar, Stat, buttonClass, inputClass } from "@/components/ui";
-import { requireCourseUser } from "@/lib/auth/course-access";
 
 export const metadata = { title: "Course home" };
 
 export default async function CourseHomePage({ searchParams }: { searchParams: Promise<{ welcome?: string; denied?: string }> }) {
-  await requireCourseUser();
   const user = await requireUser();
   const db = await getDb();
+  if (!(await canAccessProgram(db, user, FLAGSHIP_PROGRAM.slug))) return <FreeCourseHome user={user} />;
   const d = await getStudentDashboard(db, user.id);
   const paths = await db.select().from(learningPaths).orderBy(asc(learningPaths.position));
   const sp = await searchParams;
@@ -251,6 +252,81 @@ export default async function CourseHomePage({ searchParams }: { searchParams: P
           </p>
         </Card>
       </div>
+    </div>
+  );
+}
+
+/** Course home for learners without the course: the free beginner modules, and what the full course adds. */
+async function FreeCourseHome({ user }: { user: User }) {
+  const db = await getDb();
+  const program = await getProgramBySlug(db, FLAGSHIP_PROGRAM.slug);
+  const order = program ? await getProgramSyllabus(db, program.id) : [];
+  const rows = new Map((await listCoursesWithProgress(db, user.id)).map((c) => [c.id, c]));
+  const modules = order.map((c) => rows.get(c.id)).filter((c) => c !== undefined);
+  const free = modules.filter((c) => isFreeModule(c));
+  const locked = modules.filter((c) => !isFreeModule(c));
+  const unlock = `/catalog/${FLAGSHIP_PROGRAM.slug}`;
+  const done = free.reduce((n, c) => n + c.completedLessons, 0);
+  const total = free.reduce((n, c) => n + c.totalLessons, 0);
+  const next = free.find((c) => c.completedLessons < c.totalLessons);
+
+  return (
+    <div className="space-y-8">
+      <section className="bg-hero relative overflow-hidden rounded-3xl p-7 text-white shadow-lift sm:p-10">
+        <div className="bg-grid absolute inset-0 [mask-image:radial-gradient(ellipse_at_top_right,black,transparent_70%)]" aria-hidden />
+        <div className="relative">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#f2c35b]">{FLAGSHIP_PROGRAM.title}</p>
+          <h1 className="mt-3 font-display text-4xl font-semibold leading-tight">{`Welcome, ${user.name.split(" ")[0]}`}</h1>
+          <p className="mt-3 max-w-xl text-sm leading-relaxed text-white/70">
+            The beginner modules are free: complete their lessons and assessments and earn a certificate for each. Enrol in the full course to continue with the
+            intermediate and advanced modules.
+          </p>
+          <div className="mt-6 max-w-md">
+            <div className="mb-2 flex justify-between text-xs text-white/70">
+              <span>
+                {done} of {total} free lessons completed
+              </span>
+              <span className="font-semibold text-white">{total ? Math.round((done / total) * 100) : 0}%</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-white/15">
+              <div className="h-full rounded-full bg-gradient-to-r from-[#c7c8ff] to-[#f2c35b]" style={{ width: `${total ? (done / total) * 100 : 0}%` }} />
+            </div>
+          </div>
+          <div className="mt-6 flex flex-wrap gap-3">
+            {next && (
+              <ButtonLink href={`/courses/${next.slug}`} variant="inverse">
+                {done ? "Continue" : "Start"}: {next.title} <ArrowRight className="h-4 w-4" />
+              </ButtonLink>
+            )}
+            <Link href={unlock} className="inline-flex items-center gap-2 rounded-md border border-white/30 px-4 py-2 text-sm font-semibold text-white hover:bg-white/10">
+              <Lock className="h-4 w-4" aria-hidden /> Get the full course
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-fg">Free beginner modules</h2>
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {free.map((c) => (
+            <CourseCard key={c.id} course={c} access="free" />
+          ))}
+        </div>
+      </section>
+
+      {locked.length > 0 && (
+        <section>
+          <h2 className="text-lg font-semibold text-fg">Included in the full course</h2>
+          <p className="mb-4 mt-1 text-sm text-muted">
+            {locked.length} more modules, plus the configuration and data-migration labs, real-time projects, the AI learning assistant and the course certificate.
+          </p>
+          <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            {locked.map((c) => (
+              <CourseCard key={c.id} course={c} access="locked" unlockHref={unlock} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

@@ -47,8 +47,14 @@ export default async function CourseContentPage({ params, searchParams }: { para
     <div className="space-y-6">
       {created && <Callout tone="success">Course created as a draft. Add modules and lessons below, then publish it in Details &amp; pricing.</Callout>}
       <p className="text-sm text-muted">
-        {tree.length} modules · {lessonCount} lessons. Learners see visible modules once the course is published.
+        {tree.length} modules · {lessonCount} lessons. Learners see visible modules once the course is published. Beginner-level modules are free for every
+        signed-in learner; set each module&apos;s level next to its title.
       </p>
+      {program.enrollmentMode === "paid" && tree.some((m) => m.published) && tree.filter((m) => m.published).every((m) => m.level === "beginner") && (
+        <Callout tone="warning" title="Every module is free">
+          All visible modules are at beginner level, so learners can take the whole course without paying. Set the later modules to intermediate or advanced.
+        </Callout>
+      )}
       {aiPending > 0 && (
         <Callout tone="info" title="AI is writing lessons">
           <span className="flex items-center gap-2">
@@ -77,7 +83,10 @@ export default async function CourseContentPage({ params, searchParams }: { para
             <li key={m.id}>
               <Card className="p-0!">
                 <div className="flex flex-col gap-3 border-b border-border bg-surface-2/60 p-4 sm:flex-row sm:items-start">
-                  <span className="pt-1.5 text-xs font-bold uppercase tracking-wider text-primary">Module {mi + 1}</span>
+                  <span className="flex flex-col gap-1 pt-1.5">
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary">Module {mi + 1}</span>
+                    {m.level === "beginner" && <Badge tone="success">Free</Badge>}
+                  </span>
                   <ModuleForm module={m} />
                   <ItemControls kind="module" id={m.id} label={m.title} first={mi === 0} last={mi === tree.length - 1} />
                 </div>
@@ -150,7 +159,10 @@ async function FlagshipContent({ programId }: { programId: string }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm text-muted">{modules.length} modules. Publish or hide modules, set certificate pass marks and edit lesson content.</p>
+        <p className="text-sm text-muted">
+          {modules.length} modules. Publish or hide modules, set certificate pass marks and edit lesson content. Beginner modules (level set in the content files)
+          are free for every signed-in learner.
+        </p>
         <form action={syncNewContent}>
           <button
             className={buttonClass("secondary")}
@@ -183,7 +195,12 @@ async function FlagshipContent({ programId }: { programId: string }) {
                     </Link>
                     <div className="text-xs text-muted">{m.section}</div>
                   </td>
-                  <td className="px-3 py-3">{m.published ? <Badge tone="success">Published</Badge> : <Badge>Hidden</Badge>}</td>
+                  <td className="px-3 py-3">
+                    <span className="flex flex-wrap gap-1">
+                      {m.published ? <Badge tone="success">Published</Badge> : <Badge>Hidden</Badge>}
+                      {m.level === "beginner" && <Badge tone="primary">Free · beginner</Badge>}
+                    </span>
+                  </td>
                   <td className="px-3 py-3">
                     <form action={updateCourseAction} className="flex items-center gap-2">
                       <input type="hidden" name="courseId" value={m.id} />

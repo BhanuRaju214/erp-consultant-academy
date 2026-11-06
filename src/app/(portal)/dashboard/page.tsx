@@ -90,12 +90,19 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <section className="border-b border-border bg-primary-soft">
             <Container className="flex flex-col gap-3 py-5 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <div className="font-bold text-fg">You&apos;re not enrolled in a course yet</div>
-                <div className="text-sm text-muted">Enrol in the {FLAGSHIP_PROGRAM.title} to unlock every module, lab and project.</div>
+                <div className="font-bold text-fg">Start learning for free</div>
+                <div className="text-sm text-muted">
+                  The beginner modules of the {FLAGSHIP_PROGRAM.title} are free. Enrol in the full course to unlock every module, lab and project.
+                </div>
               </div>
-              <Link href={`/catalog/${FLAGSHIP_PROGRAM.slug}`} className="inline-flex items-center justify-center rounded-md bg-[#0b1b3f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#13285a]">
-                View course
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Link href={FLAGSHIP_PROGRAM.homePath} className="inline-flex items-center justify-center rounded-md bg-[#0b1b3f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#13285a]">
+                  Start free modules
+                </Link>
+                <Link href={`/catalog/${FLAGSHIP_PROGRAM.slug}`} className="inline-flex items-center justify-center rounded-md border border-border bg-surface px-5 py-2.5 text-sm font-bold text-fg hover:border-primary">
+                  View course
+                </Link>
+              </div>
             </Container>
           </section>
         )

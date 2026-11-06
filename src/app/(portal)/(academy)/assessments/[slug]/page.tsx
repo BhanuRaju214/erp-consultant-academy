@@ -1,12 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
-import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { assessments, businessProcesses, courses, questions } from "@/lib/db/schema";
 import { bestAttempt } from "@/lib/services/learning";
 import { QuizRunner } from "@/components/quiz-runner";
 import { Badge, PageHeader } from "@/components/ui";
-import { requireCourseUser } from "@/lib/auth/course-access";
+import { requireCourseUser, requireModuleUser } from "@/lib/auth/course-access";
 import { quizHref } from "@/lib/services/player";
 import { FLAGSHIP_PROGRAM } from "@/lib/services/programs";
 import { programForAssessment } from "@/lib/services/quizzes";
@@ -22,8 +21,9 @@ export default async function AssessmentPage({ params }: { params: Promise<{ slu
     const mod = await db.query.courses.findFirst({ where: eq(courses.id, a.courseId), columns: { slug: true } });
     if (mod) redirect(quizHref(program.slug, mod.slug));
   }
-  await requireCourseUser();
-  const user = await requireUser();
+  // A module's final assessment is open to whoever can open the module (free beginner modules).
+  const course = a.courseId ? await db.query.courses.findFirst({ where: eq(courses.id, a.courseId) }) : null;
+  const user = course ? await requireModuleUser(course.slug) : await requireCourseUser();
   // Never send the answer key to the browser.
   const qs = await db
     .select({ id: questions.id, prompt: questions.prompt, kind: questions.kind, options: questions.options })
@@ -31,7 +31,6 @@ export default async function AssessmentPage({ params }: { params: Promise<{ slu
     .where(eq(questions.assessmentId, a.id))
     .orderBy(asc(questions.position));
   const best = await bestAttempt(db, user.id, a.id);
-  const course = a.courseId ? await db.query.courses.findFirst({ where: eq(courses.id, a.courseId) }) : null;
   const process = a.processId ? await db.query.businessProcesses.findFirst({ where: eq(businessProcesses.id, a.processId) }) : null;
   const backHref = course ? `/courses/${course.slug}` : process ? `/processes/${process.slug}` : "/assessments";
 

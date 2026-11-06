@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { ChevronLeft, ChevronRight, Clock, Download, ExternalLink, Info } from "lucide-react";
-import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { bookmarks, discussions, lessonProgress, notes, users } from "@/lib/db/schema";
 import { getCourseOutline, getLesson, markLessonStarted } from "@/lib/services/learning";
@@ -15,7 +14,8 @@ import { PrintButton } from "@/components/print-button";
 import { extractToc } from "@/lib/visuals/enhance";
 import { AskQuestionForm, Flashcards, LessonActions, LessonNotes } from "@/components/lesson-client";
 import { Badge, Card, CardTitle, ProgressBar } from "@/components/ui";
-import { requireCourseUser } from "@/lib/auth/course-access";
+import { requireModuleUser } from "@/lib/auth/course-access";
+import { hasFullAccessForModule } from "@/lib/services/programs";
 
 export async function generateMetadata({ params }: { params: Promise<{ course: string; lesson: string }> }) {
   const { course, lesson } = await params;
@@ -24,9 +24,8 @@ export async function generateMetadata({ params }: { params: Promise<{ course: s
 }
 
 export default async function LessonPage({ params }: { params: Promise<{ course: string; lesson: string }> }) {
-  await requireCourseUser();
   const { course: courseSlug, lesson: lessonSlug } = await params;
-  const user = await requireUser();
+  const user = await requireModuleUser(courseSlug);
   const db = await getDb();
   const data = await getLesson(db, courseSlug, lessonSlug);
   if (!data || (!data.course.published && user.role === "student")) notFound();
@@ -34,7 +33,7 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
   const path = `/courses/${course.slug}/${lesson.slug}`;
 
   await markLessonStarted(db, user.id, lesson.id);
-  const [outline, progress, bookmark, note, threads] = await Promise.all([
+  const [outline, progress, bookmark, note, threads, full] = await Promise.all([
     getCourseOutline(db, course.slug, user.id),
     db.query.lessonProgress.findFirst({ where: and(eq(lessonProgress.userId, user.id), eq(lessonProgress.lessonId, lesson.id)) }),
     db.query.bookmarks.findFirst({ where: and(eq(bookmarks.userId, user.id), eq(bookmarks.lessonId, lesson.id)) }),
@@ -46,6 +45,8 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
       .where(and(eq(discussions.lessonId, lesson.id), isNull(discussions.parentId)))
       .orderBy(desc(discussions.createdAt))
       .limit(5),
+    // Discussions are part of the full course, not of the free beginner modules.
+    hasFullAccessForModule(db, user, { slug: course.slug }),
   ]);
   const completed = progress?.status === "completed";
   const versionSensitive = lesson.odooVersions && !/independent/i.test(lesson.odooVersions);
@@ -158,25 +159,27 @@ export default async function LessonPage({ params }: { params: Promise<{ course:
             <LessonNotes lessonId={lesson.id} initial={note?.body ?? ""} />
           </div>
         </Card>
-        <Card>
-          <CardTitle>Questions on this lesson</CardTitle>
-          {threads.length > 0 && (
-            <ul className="mt-3 space-y-2 text-sm">
-              {threads.map((t) => (
-                <li key={t.id}>
-                  <Link href={`/discussions#${t.id}`} className="text-fg hover:text-primary">
-                    {t.title}
-                  </Link>{" "}
-                  {t.resolved && <Badge tone="success">Resolved</Badge>}
-                  <div className="text-xs text-muted">{t.author}</div>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="mt-3">
-            <AskQuestionForm lessonId={lesson.id} />
-          </div>
-        </Card>
+        {full && (
+          <Card>
+            <CardTitle>Questions on this lesson</CardTitle>
+            {threads.length > 0 && (
+              <ul className="mt-3 space-y-2 text-sm">
+                {threads.map((t) => (
+                  <li key={t.id}>
+                    <Link href={`/discussions#${t.id}`} className="text-fg hover:text-primary">
+                      {t.title}
+                    </Link>{" "}
+                    {t.resolved && <Badge tone="success">Resolved</Badge>}
+                    <div className="text-xs text-muted">{t.author}</div>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-3">
+              <AskQuestionForm lessonId={lesson.id} />
+            </div>
+          </Card>
+        )}
         {/* Last in the column so it pins only after the cards above have scrolled past (nothing slides over it). */}
         {toc.length > 1 && (
           <div className="sticky top-24 hidden max-h-[calc(100vh-7rem)] overflow-y-auto rounded-xl border border-border bg-surface p-4 shadow-sm xl:block">

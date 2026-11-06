@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { asc, eq, sql } from "drizzle-orm";
+import { asc, eq, isNull, or, sql } from "drizzle-orm";
 import { Award, GraduationCap } from "lucide-react";
 import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
@@ -7,6 +7,7 @@ import { assessmentAttempts, assessments, businessProcesses, certificates, cours
 import { Badge, ButtonLink, Card, CardTitle, EmptyState, PageHeader, ProgressBar } from "@/components/ui";
 import { getFlagshipCertificateStatus, maybeIssueFlagshipCertificate } from "@/lib/services/learning";
 import { FLAGSHIP_PROGRAM } from "@/lib/services/programs";
+import { learnerVisibleModule } from "@/lib/services/library";
 import { requireCourseUser } from "@/lib/auth/course-access";
 
 export const metadata = { title: "Assessments & Certifications" };
@@ -29,6 +30,8 @@ export default async function AssessmentsPage() {
     .from(assessments)
     .leftJoin(courses, eq(courses.id, assessments.courseId))
     .leftJoin(businessProcesses, eq(businessProcesses.id, assessments.processId))
+    // Process quizzes have no module; module assessments only for published modules of non-draft courses.
+    .where(or(isNull(assessments.courseId), learnerVisibleModule()))
     .orderBy(asc(courses.section), asc(courses.position), asc(businessProcesses.position));
   const certs = await db
     .select({ serial: certificates.serial, title: courses.title, issuedAt: certificates.issuedAt, score: certificates.score })

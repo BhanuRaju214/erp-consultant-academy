@@ -7,7 +7,7 @@ import { asc, eq } from "drizzle-orm";
 import { createDb, type DbHandle } from "@/lib/db/client";
 import { aiGenerations, certificates, courses, lessons, programs, questions } from "@/lib/db/schema";
 import type { LlmClient } from "@/lib/ai/llm";
-import { addChapter, addLesson, addModule, deleteLesson, getProgramContent, moveItem, programLessonIds, programSlugForLesson } from "@/lib/services/builder";
+import { addChapter, addLesson, addModule, deleteLesson, getProgramContent, courseIdForLesson, moveItem, programLessonIds } from "@/lib/services/builder";
 import { createCourseFromOutline, generateOutline, requeueFailedLessons, runGeneration, sanitizeLessonBody, type Outline } from "@/lib/services/ai-course";
 import { canAccessProgram, enroll, saveProgram } from "@/lib/services/programs";
 import { getProgramCertificateStatus, listCertificates, setLessonCompleted, submitAssessment } from "@/lib/services/learning";
@@ -95,7 +95,7 @@ describe("course builder", () => {
     // Lesson slugs are unique across the whole module (URLs are /<module>/<lesson>).
     expect(a.value.slug).toBe("welcome");
     expect(b.value.slug).toBe("welcome-2");
-    expect(await programSlugForLesson(h.db, a.value.id)).toBe("manual-course");
+    expect(await courseIdForLesson(h.db, a.value.id)).toBe(m1.value.id);
 
     await moveItem(h.db, "lesson", c.value.id, "up");
     let tree = await getProgramContent(h.db, p.value.id);

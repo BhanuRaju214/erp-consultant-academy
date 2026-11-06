@@ -4,7 +4,7 @@ import type { Db } from "@/lib/db/client";
 import type { MediaAsset, User } from "@/lib/db/schema";
 import { MUX_STATUS_API, muxEnabled, signPlaybackToken } from "@/lib/mux";
 import { canViewMedia, syncPendingMuxAsset } from "@/lib/services/media";
-import { FLAGSHIP_PROGRAM, canAccessProgram } from "@/lib/services/programs";
+import { FLAGSHIP_PROGRAM, canAccessProgram, isMediaInFreeLesson } from "@/lib/services/programs";
 
 /**
  * Playback/status info for a video player:
@@ -16,7 +16,9 @@ import { FLAGSHIP_PROGRAM, canAccessProgram } from "@/lib/services/programs";
 export async function mediaPlaybackResponse(db: Db, user: User | null, found: MediaAsset | null): Promise<NextResponse> {
   let asset = found;
   if (asset && muxEnabled()) asset = await syncPendingMuxAsset(db, asset, MUX_STATUS_API).catch(() => asset);
-  const courseAccess = asset?.visibility === "enrolled" && user ? await canAccessProgram(db, user, FLAGSHIP_PROGRAM.slug) : false;
+  // Free beginner lessons are open to every signed-in learner, so is the media they use.
+  const courseAccess =
+    asset?.visibility === "enrolled" && user ? (await canAccessProgram(db, user, FLAGSHIP_PROGRAM.slug)) || (await isMediaInFreeLesson(db, asset)) : false;
   if (!asset || !canViewMedia(user, asset, courseAccess)) return NextResponse.json({ error: "Not found" }, { status: 404 });
   const base = { id: asset.id, kind: asset.kind, status: asset.status, title: asset.title || asset.fileName, error: asset.error };
   if (asset.status !== "ready") return NextResponse.json(base, { headers: { "Cache-Control": "no-store" } });

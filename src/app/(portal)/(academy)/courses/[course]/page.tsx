@@ -2,18 +2,17 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { Award, CircleCheck, Circle, Clock, FileText } from "lucide-react";
-import { requireUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { assignments } from "@/lib/db/schema";
 import { getCourseOutline } from "@/lib/services/learning";
 import { NAV, SCOPE_LABELS } from "@/lib/nav";
 import { Badge, ButtonLink, Callout, Card, CardTitle, LevelBadge, PageHeader, ProgressBar } from "@/components/ui";
-import { requireCourseUser } from "@/lib/auth/course-access";
+import { requireModuleUser } from "@/lib/auth/course-access";
+import { hasFullAccessForModule, programForModule } from "@/lib/services/programs";
 
 export default async function CoursePage({ params }: { params: Promise<{ course: string }> }) {
-  await requireCourseUser();
   const { course: slug } = await params;
-  const user = await requireUser();
+  const user = await requireModuleUser(slug);
   const db = await getDb();
   const data = await getCourseOutline(db, slug, user.id);
   if (!data || (!data.course.published && user.role === "student")) notFound();
@@ -21,7 +20,10 @@ export default async function CoursePage({ params }: { params: Promise<{ course:
   const all = course.modules.flatMap((m) => m.lessons);
   const done = all.filter((l) => statusByLesson.get(l.id) === "completed").length;
   const firstOpen = all.find((l) => statusByLesson.get(l.id) !== "completed") ?? all[0];
-  const courseAssignments = await db.select().from(assignments).where(eq(assignments.courseId, course.id));
+  // Free beginner modules can be opened without the course; assignments and the rest stay with the course.
+  const full = await hasFullAccessForModule(db, user, { slug });
+  const program = full ? null : await programForModule(db, { slug });
+  const courseAssignments = full ? await db.select().from(assignments).where(eq(assignments.courseId, course.id)) : [];
   const section = NAV.find((n) => n.section === course.section);
 
   return (
@@ -32,6 +34,15 @@ export default async function CoursePage({ params }: { params: Promise<{ course:
         description={course.summary}
         actions={firstOpen && <ButtonLink href={`/courses/${course.slug}/${firstOpen.slug}`}>{done === 0 ? "Start course" : done === all.length ? "Review" : "Continue"}</ButtonLink>}
       />
+      {program && (
+        <Callout tone="success" title="Free module">
+          This beginner module is free: complete every lesson and pass the assessment to earn its certificate.{" "}
+          <Link href={`/catalog/${program.slug}`} className="font-semibold underline">
+            Get the full {program.title}
+          </Link>{" "}
+          to continue with the intermediate and advanced modules.
+        </Callout>
+      )}
       <div className="flex flex-wrap items-center gap-2">
         <LevelBadge level={course.level} />
         {course.odooVersion && <Badge tone="info">{course.odooVersion}</Badge>}

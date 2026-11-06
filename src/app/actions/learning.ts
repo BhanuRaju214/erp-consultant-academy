@@ -1,12 +1,12 @@
 "use server";
 
 import { and, eq } from "drizzle-orm";
-import { requireCourseUser, requireLessonUser, requireProgramUser } from "@/lib/auth/course-access";
+import { requireCourseUser, requireLessonUser, requireModuleUser } from "@/lib/auth/course-access";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requirePermission } from "@/lib/auth";
 import { getDb } from "@/lib/db";
-import { assessments, bookmarks, certificates,discussions, learningPaths, notes, questions, users } from "@/lib/db/schema";
+import { assessments, bookmarks, certificates, courses, discussions, learningPaths, notes, questions, users } from "@/lib/db/schema";
 import { getProgramCertificateStatus, setLessonCompleted, submitAssessment } from "@/lib/services/learning";
 import { FLAGSHIP_PROGRAM } from "@/lib/services/programs";
 import { programForAssessment } from "@/lib/services/quizzes";
@@ -47,10 +47,11 @@ export async function saveNote(lessonId: string, body: string): Promise<{ ok: bo
 export async function submitQuiz(assessmentId: string, answers: Record<string, number[]>) {
   const db = await getDb();
   const id = z.string().uuid().parse(assessmentId);
-  // Quizzes of builder courses need access to that course; everything else is the Odoo course.
+  // A module quiz needs access to its module (free beginner modules are open); process quizzes need the Odoo course.
   const program = await programForAssessment(db, id);
   const builderCourse = program && program.slug !== FLAGSHIP_PROGRAM.slug ? program : null;
-  const user = builderCourse ? await requireProgramUser(builderCourse.slug) : await requireCourseUser();
+  const [quizModule] = await db.select({ slug: courses.slug }).from(assessments).innerJoin(courses, eq(courses.id, assessments.courseId)).where(eq(assessments.id, id)).limit(1);
+  const user = quizModule ? await requireModuleUser(quizModule.slug) : await requireCourseUser();
   const schema = z.record(z.string().uuid(), z.array(z.number().int().min(0).max(20)).max(20));
   const parsed = schema.safeParse(answers);
   if (!parsed.success) return { ok: false as const, error: "Invalid answers." };

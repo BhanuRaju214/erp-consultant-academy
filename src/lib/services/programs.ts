@@ -1,7 +1,7 @@
 import { and, asc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import type { Db } from "@/lib/db/client";
-import { courseModules, courses, enrollments, lessonProgress, lessons, mediaAssets, programs, users, type Program, type User } from "@/lib/db/schema";
+import { courseModules, courses, enrollments, lessonProgress, lessons, mediaAssets, programs, users, type MediaAsset, type Program, type User } from "@/lib/db/schema";
 import { can } from "@/lib/auth/rbac";
 import { findUserByEmail, type ServiceResult } from "./users";
 import { sectionRank } from "./library";
@@ -51,6 +51,84 @@ export async function canAccessProgram(db: Db, user: Pick<User, "id" | "role">, 
   const program = await getProgramBySlug(db, slug);
   if (!program || program.status === "draft") return false;
   return isEnrolled(db, user.id, program.id);
+}
+
+/**
+ * Beginner-level modules are free: any signed-in learner can open and complete them
+ * (lessons, quiz, module certificate) without buying the course. Every later level
+ * needs an enrolment. A module is a `courses` row; its level is set per module.
+ */
+export function isFreeModule(module: { level: string }): boolean {
+  return module.level === "beginner";
+}
+
+/** Whether the user may open one module (by `courses` slug or id): free, enrolled or staff. */
+export async function canAccessModule(db: Db, user: Pick<User, "id" | "role">, ref: { slug: string } | { id: string }): Promise<boolean> {
+  if (isStaff(user)) return true;
+  const [row] = await db
+    .select({ level: courses.level, published: courses.published, program: programs })
+    .from(courses)
+    .innerJoin(programs, eq(programs.id, courses.programId))
+    .where("slug" in ref ? eq(courses.slug, ref.slug) : eq(courses.id, ref.id))
+    .limit(1);
+  // Hidden modules and draft courses are for staff only.
+  if (!row || !row.published || row.program.status === "draft") return false;
+  if (row.program.status === "published" && isFreeModule(row)) return true;
+  return isEnrolled(db, user.id, row.program.id);
+}
+
+/** The course (program) a module belongs to, for "unlock" links. */
+export async function programForModule(db: Db, ref: { slug: string } | { id: string }): Promise<Program | null> {
+  const [row] = await db
+    .select({ program: programs })
+    .from(courses)
+    .innerJoin(programs, eq(programs.id, courses.programId))
+    .where("slug" in ref ? eq(courses.slug, ref.slug) : eq(courses.id, ref.id))
+    .limit(1);
+  return row?.program ?? null;
+}
+
+/** Whether the user has the whole course a module belongs to (not only its free modules). */
+export async function hasFullAccessForModule(db: Db, user: Pick<User, "id" | "role">, ref: { slug: string } | { id: string }): Promise<boolean> {
+  const program = await programForModule(db, ref);
+  return program ? canAccessProgram(db, user, program.slug) : false;
+}
+
+/** Whether a course has free modules, so learners who haven't bought it can start. */
+export async function hasFreeModules(db: Db, programId: string): Promise<boolean> {
+  const rows = await db
+    .select({ id: courses.id })
+    .from(courses)
+    .where(and(eq(courses.programId, programId), eq(courses.published, true), eq(courses.level, "beginner")))
+    .limit(1);
+  return rows.length > 0;
+}
+
+/**
+ * Course media ("enrolled" visibility) may also be played by learners without an
+ * enrolment when it is used in a lesson of a free module of a published course.
+ */
+export async function isMediaInFreeLesson(db: Db, asset: Pick<MediaAsset, "id" | "storageKey">): Promise<boolean> {
+  const needles = [asset.id, asset.storageKey].filter((s): s is string => Boolean(s));
+  const rows = await db
+    .select({ id: lessons.id })
+    .from(lessons)
+    .innerJoin(courseModules, eq(courseModules.id, lessons.moduleId))
+    .innerJoin(courses, eq(courses.id, courseModules.courseId))
+    .innerJoin(programs, eq(programs.id, courses.programId))
+    .where(
+      and(
+        eq(courses.level, "beginner"),
+        eq(courses.published, true),
+        eq(programs.status, "published"),
+        sql`(${sql.join(
+          needles.map((n) => sql`strpos(${lessons.body}, ${n}) > 0`),
+          sql` or `,
+        )})`,
+      ),
+    )
+    .limit(1);
+  return rows.length > 0;
 }
 
 /** Creates or re-activates an enrolment. */

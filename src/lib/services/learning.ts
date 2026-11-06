@@ -16,7 +16,7 @@ import {
 } from "@/lib/db/schema";
 import { gradeQuiz } from "@/lib/quiz";
 import { FLAGSHIP_PROGRAM } from "./programs";
-import { sectionRank } from "./library";
+import { learnerVisibleModule, sectionRank } from "./library";
 
 /* ------------------------------------------------------------------ */
 /* Catalogue                                                           */
@@ -58,7 +58,7 @@ export async function listCoursesWithProgress(db: Db, userId: string, section?: 
     .leftJoin(courseModules, eq(courseModules.courseId, courses.id))
     .leftJoin(lessons, eq(lessons.moduleId, courseModules.id))
     .leftJoin(lessonProgress, and(eq(lessonProgress.lessonId, lessons.id), eq(lessonProgress.userId, userId)))
-    .where(section ? and(eq(courses.published, true), eq(courses.section, section)) : eq(courses.published, true))
+    .where(section ? and(learnerVisibleModule(), eq(courses.section, section)) : learnerVisibleModule())
     .groupBy(courses.id)
     .orderBy(asc(courses.section), asc(courses.position));
   return rows;
@@ -113,7 +113,7 @@ export async function getLesson(db: Db, courseSlug: string, lessonSlug: string) 
   const lesson = await db.query.lessons.findFirst({ where: eq(lessons.id, flat[idx].id), with: { resources: true } });
   if (!lesson) return null;
   return {
-    course: { id: outline.id, slug: outline.slug, title: outline.title, section: outline.section, published: outline.published },
+    course: { id: outline.id, slug: outline.slug, title: outline.title, section: outline.section, published: outline.published, programId: outline.programId },
     lesson,
     moduleTitle: flat[idx].moduleTitle,
     index: idx,

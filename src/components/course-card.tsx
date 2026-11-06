@@ -1,10 +1,14 @@
 import Link from "next/link";
-import { CircleCheck, Clock } from "lucide-react";
+import { CircleCheck, Clock, Lock } from "lucide-react";
 import type { CourseProgressRow } from "@/lib/services/learning";
 import { CourseCover } from "./course-cover";
 import { Badge, LevelBadge, ProgressBar } from "./ui";
 
-export function CourseCard({ course }: { course: CourseProgressRow }) {
+/**
+ * `access`: "free" marks a free beginner module for learners without the course;
+ * "locked" links to the course page (`unlockHref`) instead of the module.
+ */
+export function CourseCard({ course, access, unlockHref }: { course: CourseProgressRow; access?: "free" | "locked"; unlockHref?: string }) {
   const pct = course.totalLessons ? (course.completedLessons / course.totalLessons) * 100 : 0;
   const done = course.totalLessons > 0 && course.completedLessons === course.totalLessons;
   return (
@@ -14,6 +18,12 @@ export function CourseCard({ course }: { course: CourseProgressRow }) {
         <div className="flex flex-wrap items-center gap-2">
           <LevelBadge level={course.level} />
           {course.odooVersion && <Badge>{course.odooVersion}</Badge>}
+          {access === "free" && <Badge tone="success">Free</Badge>}
+          {access === "locked" && (
+            <Badge>
+              <Lock className="h-3 w-3" aria-hidden /> Full course
+            </Badge>
+          )}
           {done && (
             <Badge tone="success">
               <CircleCheck className="h-3 w-3" aria-hidden /> Completed
@@ -22,7 +32,7 @@ export function CourseCard({ course }: { course: CourseProgressRow }) {
         </div>
         <h3 className="mt-3 text-lg font-semibold leading-snug text-fg">
           {/* The stretched link makes the whole card clickable while keeping one accessible link. */}
-          <Link href={`/courses/${course.slug}`} className="after:absolute after:inset-0 focus-visible:outline-none group-hover:text-primary">
+          <Link href={access === "locked" && unlockHref ? unlockHref : `/courses/${course.slug}`} className="after:absolute after:inset-0 focus-visible:outline-none group-hover:text-primary">
             {course.title}
           </Link>
         </h3>

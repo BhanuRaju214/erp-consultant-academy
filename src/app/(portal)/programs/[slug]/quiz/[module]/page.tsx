@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { asc, eq } from "drizzle-orm";
-import { requireProgramUser } from "@/lib/auth/course-access";
+import { requireModuleUser } from "@/lib/auth/course-access";
 import { getDb } from "@/lib/db";
 import { questions } from "@/lib/db/schema";
 import { getProgramPlayer } from "@/lib/services/player";
@@ -14,7 +14,7 @@ export const metadata = { title: "Module quiz" };
 /** Graded end-of-module quiz for courses built in the course builder. */
 export default async function ProgramQuizPage({ params }: { params: Promise<{ slug: string; module: string }> }) {
   const { slug, module } = await params;
-  const user = await requireProgramUser(slug);
+  const user = await requireModuleUser(module);
   const db = await getDb();
   const program = await getProgramBySlug(db, slug);
   if (!program) notFound();

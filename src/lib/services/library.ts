@@ -82,6 +82,17 @@ export function sectionRank() {
   return sql`array_position(${sql.raw("ARRAY[" + SECTION_ORDER.map((s) => `'${s}'`).join(",") + "]::text[]")}, ${courses.section})`;
 }
 
+/**
+ * Modules learners may see in lists, search and the assistant: the module is published
+ * and its course is not a draft. Draft courses are previewed by staff only.
+ */
+export function learnerVisibleModule() {
+  return sql`(${courses.published} and exists (select 1 from ${programs} p where p.id = ${courses.programId} and p.status <> 'draft'))`;
+}
+
+/** The same rule for raw SQL with the courses table aliased as `c`. */
+export const LEARNER_VISIBLE_C = sql.raw(`(c.published and exists (select 1 from programs p where p.id = c.program_id and p.status <> 'draft'))`);
+
 export function formatMinutes(min: number): string {
   if (min < 60) return `${min}m`;
   const h = Math.floor(min / 60);

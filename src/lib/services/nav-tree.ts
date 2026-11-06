@@ -15,6 +15,7 @@ import {
 } from "@/lib/db/schema";
 import { IMPORT_TEMPLATES } from "@/lib/import/templates";
 import { can } from "@/lib/auth/rbac";
+import { learnerVisibleModule } from "./library";
 
 /** A node in the sidebar navigation tree. Nodes without `href` are expandable group headings. */
 export interface NavNode {
@@ -68,7 +69,7 @@ export async function buildNavTree(db: Db, user: { id: string; role: Role }): Pr
       .from(lessons)
       .innerJoin(courseModules, eq(courseModules.id, lessons.moduleId))
       .innerJoin(courses, eq(courses.id, courseModules.courseId))
-      .where(eq(courses.published, true))
+      .where(learnerVisibleModule())
       .orderBy(asc(courses.position), asc(courseModules.position), asc(lessons.position)),
     db.select({ slug: businessProcesses.slug, title: businessProcesses.title }).from(businessProcesses).orderBy(asc(businessProcesses.position)),
     db
@@ -85,7 +86,7 @@ export async function buildNavTree(db: Db, user: { id: string; role: Role }): Pr
       .select({ slug: assessments.slug, title: courses.title, section: courses.section, position: courses.position })
       .from(assessments)
       .innerJoin(courses, eq(courses.id, assessments.courseId))
-      .where(eq(courses.published, true))
+      .where(learnerVisibleModule())
       .orderBy(asc(courses.position)),
     db.select({ slug: docResources.slug, title: docResources.title, category: docResources.category }).from(docResources).orderBy(asc(docResources.title)),
   ]);

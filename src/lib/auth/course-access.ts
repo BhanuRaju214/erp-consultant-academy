@@ -3,9 +3,9 @@ import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { getDb } from "@/lib/db";
 import type { User } from "@/lib/db/schema";
-import { FLAGSHIP_PROGRAM, canAccessProgram } from "@/lib/services/programs";
+import { FLAGSHIP_PROGRAM, canAccessModule, canAccessProgram, programForModule } from "@/lib/services/programs";
 import { z } from "zod";
-import { programSlugForLesson } from "@/lib/services/builder";
+import { courseIdForLesson } from "@/lib/services/builder";
 import { getCurrentUser, requireUser } from ".";
 
 /**
@@ -41,12 +41,29 @@ export async function requireProgramUser(programSlug: string): Promise<User> {
   return user;
 }
 
-/** For lesson actions (complete, bookmark, notes): access to the course the lesson belongs to. */
+/**
+ * For pages of one module (a `courses` row): free beginner modules are open to every
+ * signed-in learner; other modules need the course. Locked → that course's page.
+ */
+export async function requireModuleUser(courseSlug: string): Promise<User> {
+  const user = await requireUser();
+  const db = await getDb();
+  if (!(await canAccessModule(db, user, { slug: courseSlug }))) {
+    const program = await programForModule(db, { slug: courseSlug });
+    redirect(`/catalog/${program?.slug ?? FLAGSHIP_PROGRAM.slug}?locked=1`);
+  }
+  return user;
+}
+
+/** For lesson actions (complete, bookmark, notes): access to the module the lesson belongs to. */
 export async function requireLessonUser(lessonId: string): Promise<User> {
   const user = await requireUser();
   const db = await getDb();
-  const slug = z.string().uuid().safeParse(lessonId).success ? await programSlugForLesson(db, lessonId) : null;
-  if (!slug) redirect("/dashboard");
-  if (!(await canAccessProgram(db, user, slug))) redirect(`/catalog/${slug}?locked=1`);
+  const courseId = z.string().uuid().safeParse(lessonId).success ? await courseIdForLesson(db, lessonId) : null;
+  if (!courseId) redirect("/dashboard");
+  if (!(await canAccessModule(db, user, { id: courseId }))) {
+    const program = await programForModule(db, { id: courseId });
+    redirect(`/catalog/${program?.slug ?? FLAGSHIP_PROGRAM.slug}?locked=1`);
+  }
   return user;
 }

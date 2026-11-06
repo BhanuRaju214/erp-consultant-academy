@@ -3,7 +3,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { getDb } from "@/lib/db";
 import { localFileResponse, publicObjectUrl, signedGetUrl } from "@/lib/storage";
 import { canViewMedia, getMediaAsset } from "@/lib/services/media";
-import { FLAGSHIP_PROGRAM, canAccessProgram } from "@/lib/services/programs";
+import { FLAGSHIP_PROGRAM, canAccessProgram, isMediaInFreeLesson } from "@/lib/services/programs";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +18,9 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const db = await getDb();
   const asset = await getMediaAsset(db, (await params).id);
   // Course content ("enrolled") needs an enrolment, not just a sign-in.
-  const courseAccess = asset?.visibility === "enrolled" && user ? await canAccessProgram(db, user, FLAGSHIP_PROGRAM.slug) : false;
+  // Free beginner lessons are open to every signed-in learner, so is the media they use.
+  const courseAccess =
+    asset?.visibility === "enrolled" && user ? (await canAccessProgram(db, user, FLAGSHIP_PROGRAM.slug)) || (await isMediaInFreeLesson(db, asset)) : false;
   if (!asset || asset.status !== "ready" || !asset.storageKey || !canViewMedia(user, asset, courseAccess)) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }

@@ -105,7 +105,7 @@ export function AddLessonForm({ chapterId }: { chapterId: string }) {
   return <AddForm action={addLessonAction} hidden={{ chapterId }} placeholder="New lesson title" label="Add lesson" small />;
 }
 
-export function ModuleForm({ module }: { module: { id: string; title: string; summary: string; published: boolean } }) {
+export function ModuleForm({ module }: { module: { id: string; title: string; summary: string; published: boolean; level: string } }) {
   const [state, action, pending] = useActionState<BuilderState, FormData>(updateModuleAction, {});
   return (
     <form action={action} className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-start">
@@ -116,6 +116,17 @@ export function ModuleForm({ module }: { module: { id: string; title: string; su
         {state.error && <p className="text-xs text-danger">{state.error}</p>}
       </div>
       <div className="flex items-center gap-2">
+        <select
+          name="level"
+          defaultValue={module.level}
+          aria-label="Module level"
+          title="Beginner modules are free: anyone signed in can take them without buying the course."
+          className={inputSmClass}
+        >
+          <option value="beginner">Beginner (free)</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
         <select name="published" defaultValue={String(module.published)} aria-label="Module visibility" className={inputSmClass}>
           <option value="true">Visible</option>
           <option value="false">Hidden</option>

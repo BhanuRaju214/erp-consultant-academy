@@ -55,6 +55,7 @@ export async function getProgramContent(db: Db, programId: string) {
     title: m.title,
     summary: m.summary,
     published: m.published,
+    level: m.level,
     chapters: m.modules.map((c) => ({
       id: c.id,
       title: c.title,
@@ -90,10 +91,20 @@ export async function addModule(db: Db, programId: string, input: { title: strin
   return { ok: true, value: row };
 }
 
-export async function updateModule(db: Db, moduleId: string, input: { title: string; summary: string; published: boolean }): Promise<ServiceResult<null>> {
+/** `level`: beginner modules are free for learners who haven't bought the course. */
+export async function updateModule(
+  db: Db,
+  moduleId: string,
+  input: { title: string; summary: string; published: boolean; level?: "beginner" | "intermediate" | "advanced" },
+): Promise<ServiceResult<null>> {
   const title = titleSchema.safeParse(input.title);
   if (!title.success) return { ok: false, error: title.error.issues[0].message };
-  await db.update(courses).set({ title: title.data, summary: input.summary.trim().slice(0, 2000), published: input.published }).where(eq(courses.id, moduleId));
+  const level = input.level ? z.enum(["beginner", "intermediate", "advanced"]).safeParse(input.level) : null;
+  if (level && !level.success) return { ok: false, error: "Choose a level." };
+  await db
+    .update(courses)
+    .set({ title: title.data, summary: input.summary.trim().slice(0, 2000), published: input.published, ...(level?.success ? { level: level.data } : {}) })
+    .where(eq(courses.id, moduleId));
   return { ok: true, value: null };
 }
 
@@ -233,17 +244,15 @@ export async function programIdFor(db: Db, kind: Kind, id: string): Promise<stri
   return lesson ? programIdFor(db, "chapter", lesson.moduleId) : null;
 }
 
-/** Program slug for a lesson, used to check a learner's access. */
-export async function programSlugForLesson(db: Db, lessonId: string): Promise<string | null> {
+/** The module (`courses` row) a lesson belongs to, used to check a learner's access. */
+export async function courseIdForLesson(db: Db, lessonId: string): Promise<string | null> {
   const rows = await db
-    .select({ slug: programs.slug })
+    .select({ id: courseModules.courseId })
     .from(lessons)
     .innerJoin(courseModules, eq(courseModules.id, lessons.moduleId))
-    .innerJoin(courses, eq(courses.id, courseModules.courseId))
-    .innerJoin(programs, eq(programs.id, courses.programId))
     .where(eq(lessons.id, lessonId))
     .limit(1);
-  return rows[0]?.slug ?? null;
+  return rows[0]?.id ?? null;
 }
 
 /** Lesson ids of a program in reading order (module → chapter → lesson). */

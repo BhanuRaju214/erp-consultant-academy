@@ -48,6 +48,7 @@ export async function updateModuleAction(_: BuilderState, formData: FormData): P
     title: String(formData.get("title") ?? ""),
     summary: String(formData.get("summary") ?? ""),
     published: formData.get("published") === "true",
+    level: (formData.get("level") || undefined) as "beginner" | undefined,
   });
   if (!res.ok) return { error: res.error };
   await refresh(await programIdFor(db, "module", moduleId));
