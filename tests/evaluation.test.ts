@@ -10,7 +10,7 @@ import { seedAll } from "@/lib/seed";
 import { certificates, courses, projectTasks, studentProjectTasks } from "@/lib/db/schema";
 import { registerUser } from "@/lib/services/users";
 import { CONSULTANT_TITLE, getCertificate } from "@/lib/services/certificates";
-import { LEARNING_QUESTION, QUESTION_COUNT, parseQuestions, parseReport } from "@/lib/evaluation/rubric";
+import { LEARNING_QUESTION, MIN_PRESENTATION_SECONDS, QUESTION_COUNT, formatDuration, parseQuestions, parseReport } from "@/lib/evaluation/rubric";
 import {
   attachMedia,
   decideEvaluation,
@@ -85,29 +85,29 @@ describe("final evaluation workflow", () => {
     expect(el.eligible).toBe(true);
   });
 
-  it("rejects a presentation shorter than 10 minutes, using the transcription length", async () => {
+  it("rejects a presentation shorter than the minimum, using the transcription length", async () => {
     const started = await startEvaluation(h.db, userId);
     expect(started.ok).toBe(true);
     if (!started.ok) return;
     let ev = started.evaluation;
-    expect((await processPresentation(h.db, ev, fakeAi(700), 700)).ok).toBe(false); // no slides yet
+    expect((await processPresentation(h.db, ev, fakeAi(MIN_PRESENTATION_SECONDS + 60), MIN_PRESENTATION_SECONDS + 60)).ok).toBe(false); // no slides yet
     await attachMedia(h.db, ev, "slides", "x/slides.pptx", "Northwind.pptx");
     await attachMedia(h.db, ev, "video", "x/video.webm");
     await attachMedia(h.db, ev, "audio", "x/audio.webm");
     ev = (await getLatestEvaluation(h.db, userId))!;
-    // The client claims 11 minutes, but the transcription service measured 7.
-    const short = await processPresentation(h.db, ev, fakeAi(420), 660);
+    // The client claims a long talk, but the transcription service measured a short one.
+    const short = await processPresentation(h.db, ev, fakeAi(MIN_PRESENTATION_SECONDS - 20), MIN_PRESENTATION_SECONDS + 60);
     expect(short.ok).toBe(false);
-    if (!short.ok) expect(short.error).toContain("7:00");
+    if (!short.ok) expect(short.error).toContain(formatDuration(MIN_PRESENTATION_SECONDS - 20));
   });
 
   it("asks questions, records answers, scores with AI and waits for the trainer", async () => {
     const ev = (await getLatestEvaluation(h.db, userId))!;
-    const res = await processPresentation(h.db, ev, fakeAi(645), 645);
+    const res = await processPresentation(h.db, ev, fakeAi(MIN_PRESENTATION_SECONDS + 45), MIN_PRESENTATION_SECONDS + 45);
     expect(res.ok).toBe(true);
     if (!res.ok) return;
     expect(res.evaluation.status).toBe("questions");
-    expect(res.evaluation.durationSec).toBe(645);
+    expect(res.evaluation.durationSec).toBe(MIN_PRESENTATION_SECONDS + 45);
     expect(res.evaluation.questions[0]!.question).toBe(LEARNING_QUESTION);
     expect(res.evaluation.questions).toHaveLength(QUESTION_COUNT);
 

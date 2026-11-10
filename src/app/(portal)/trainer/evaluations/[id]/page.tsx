@@ -31,7 +31,7 @@ export default async function ReviewEvaluationPage({ params }: { params: Promise
         description={`Length ${formatDuration(ev.durationSec ?? 0)} · submitted ${ev.submittedAt?.toLocaleString() ?? "not yet"}`}
         actions={<Link href="/trainer/evaluations" className="text-sm font-medium text-primary hover:underline">All evaluations</Link>}
       />
-      {short && ev.durationSec !== null && <Callout tone="warning">The recording is shorter than the 10-minute minimum.</Callout>}
+      {short && ev.durationSec !== null && <Callout tone="warning">The recording is shorter than the {formatDuration(MIN_PRESENTATION_SECONDS)} minimum.</Callout>}
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
         <div className="space-y-6">

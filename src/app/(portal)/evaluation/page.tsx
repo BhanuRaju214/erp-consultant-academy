@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Award, CheckCircle2, Circle } from "lucide-react";
 import { requireCourseUser } from "@/lib/auth/course-access";
 import { getDb } from "@/lib/db";
-import { MIN_PRESENTATION_SECONDS, QUESTION_COUNT, formatDuration } from "@/lib/evaluation/rubric";
+import { MAX_PRESENTATION_SECONDS, MIN_PRESENTATION_SECONDS, QUESTION_COUNT, formatDuration } from "@/lib/evaluation/rubric";
 import { getEligibility, getLatestEvaluation, getProgramCertificate } from "@/lib/services/evaluation";
 import { EvaluationStudio, StartEvaluationButton, type StudioEvaluation } from "@/components/evaluation-studio";
 import { EvaluationReportView } from "@/components/evaluation-report";
@@ -30,7 +30,7 @@ export default async function EvaluationPage() {
       <PageHeader
         eyebrow="Assessments & Certifications"
         title="Final evaluation"
-        description={`Present your real-time projects in a recorded talk of at least ${MIN_PRESENTATION_SECONDS / 60} minutes with your slides, answer ${QUESTION_COUNT} questions from the AI examiner, and a trainer confirms the result. Approval awards the ${CONSULTANT_TITLE} certificate.`}
+        description={`Present your real-time projects in a recorded talk of ${MIN_PRESENTATION_SECONDS / 60} to ${MAX_PRESENTATION_SECONDS / 60} minutes with your slides, answer ${QUESTION_COUNT} questions from the AI examiner, and a trainer confirms the result. Approval awards the ${CONSULTANT_TITLE} certificate.`}
       />
 
       {certificate && (
@@ -47,7 +47,7 @@ export default async function EvaluationPage() {
         <ol className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["Prepare", "Build a PowerPoint about your projects: client, requirements, Odoo solution, data migration, testing, go-live and lessons learnt."],
-            ["Present", "Share your slides and talk for at least 10 minutes. The portal records your screen, voice and webcam."],
+            ["Present", `Share your slides and talk for at least ${formatDuration(MIN_PRESENTATION_SECONDS)} (maximum ${formatDuration(MAX_PRESENTATION_SECONDS)}). The portal records your screen, voice and webcam.`],
             ["Answer", "The AI examiner listens and asks follow-up questions, starting with what you have learnt in the course. Answer each one aloud."],
             ["Certify", `The AI scores you against the rubric; a trainer reviews the recording and confirms. Approval makes you a ${CONSULTANT_TITLE}.`],
           ].map(([t, d], i) => (

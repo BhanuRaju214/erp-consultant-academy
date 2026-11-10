@@ -1,6 +1,6 @@
 import "server-only";
 import path from "node:path";
-import { readUpload } from "@/lib/storage";
+import { readStored } from "@/lib/storage";
 
 /**
  * Server-side calls to the AI provider for the final evaluation: speech-to-text for the
@@ -22,13 +22,13 @@ export async function transcribe(relPath: string): Promise<{ text: string; durat
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
   const model = process.env.OPENAI_TRANSCRIBE_MODEL ?? "whisper-1";
-  const form = new FormData();
-  form.append("file", new Blob([new Uint8Array(await readUpload(relPath))], { type: AUDIO_TYPES[path.extname(relPath)] ?? "audio/webm" }), path.basename(relPath));
-  form.append("model", model);
-  // verbose_json (whisper-1) includes the audio duration, which verifies the 10-minute minimum server-side.
-  form.append("response_format", model === "whisper-1" ? "verbose_json" : "json");
-  form.append("language", "en");
   try {
+    const form = new FormData();
+    form.append("file", new Blob([new Uint8Array(await readStored(relPath))], { type: AUDIO_TYPES[path.extname(relPath)] ?? "audio/webm" }), path.basename(relPath));
+    form.append("model", model);
+    // verbose_json (whisper-1) includes the audio duration, which verifies the minimum length server-side.
+    form.append("response_format", model === "whisper-1" ? "verbose_json" : "json");
+    form.append("language", "en");
     const res = await fetch(`${BASE_URL()}/audio/transcriptions`, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}` },

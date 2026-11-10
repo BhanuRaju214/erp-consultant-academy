@@ -6,8 +6,9 @@ import type { EvaluationReport } from "@/lib/db/schema";
  * Pure module (no I/O) so it can be unit-tested; the API calls live in ./ai.ts.
  */
 
-export const MIN_PRESENTATION_SECONDS = 600;
-export const MAX_PRESENTATION_SECONDS = 30 * 60;
+// Testing values: 1 to 6 minutes. The production rule is 10 to 30 minutes (600 and 30 * 60).
+export const MIN_PRESENTATION_SECONDS = 60;
+export const MAX_PRESENTATION_SECONDS = 6 * 60;
 export const MAX_ANSWER_SECONDS = 180;
 export const QUESTION_COUNT = 5;
 export const EVALUATION_PASS_MARK = 70;
@@ -19,7 +20,7 @@ export const RUBRIC = [
   { key: "business", label: "Business understanding", guide: "Explains the client's industry, problems, requirements and the business processes (O2C, P2P, inventory, accounting) correctly." },
   { key: "solution", label: "Solution design & Odoo configuration", guide: "Explains which Odoo apps and settings were used and why; separates standard, configuration and customization." },
   { key: "delivery", label: "Implementation & data", guide: "Covers phases, data migration, testing/UAT and go-live with concrete examples from the projects." },
-  { key: "communication", label: "Presentation & communication", guide: "Clear structure, slides support the talk, client-friendly language, stays within time, uses the full 10 minutes well." },
+  { key: "communication", label: "Presentation & communication", guide: "Clear structure, slides support the talk, client-friendly language, stays within time, uses the time well." },
   { key: "reflection", label: "Answers & learning reflection", guide: "Answers the follow-up questions accurately and specifically; reflects honestly on what was learnt." },
 ] as const;
 

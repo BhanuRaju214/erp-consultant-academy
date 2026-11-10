@@ -609,7 +609,7 @@ export interface EvaluationReport {
 }
 
 /**
- * One attempt at the final evaluation: a recorded presentation (≥ 10 minutes) of the
+ * One attempt at the final evaluation: a recorded presentation (≥ MIN_PRESENTATION_SECONDS) of the
  * real-time projects with slides, AI follow-up questions answered by voice, an AI
  * rubric report, and the trainer's decision. Files are paths into private storage.
  */

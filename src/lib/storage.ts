@@ -218,6 +218,11 @@ export async function saveStream(folder: string, ext: string, body: ReadableStre
   return { relPath, bytes };
 }
 
+/** Reads a whole stored recording (always on local disk, unlike submissions, which may be on R2). */
+export async function readStored(relPath: string): Promise<Buffer> {
+  return readFile(resolveStored(relPath));
+}
+
 /** Size of a stored file, or null when it is missing. */
 export async function statUpload(relPath: string): Promise<number | null> {
   try {

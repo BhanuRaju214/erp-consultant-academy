@@ -98,7 +98,7 @@ export async function attachMedia(db: Db, ev: Evaluation, kind: MediaKind, relPa
 }
 
 /**
- * Transcribes the presentation, verifies the 10-minute minimum and asks the follow-up questions.
+ * Transcribes the presentation, verifies the minimum length and asks the follow-up questions.
  * `clientDurationSec` is only trusted when the transcription service cannot report the length;
  * the trainer then verifies it from the recording.
  */

@@ -238,7 +238,7 @@ function PresentationStep({ evaluation }: { evaluation: StudioEvaluation }) {
         </h3>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
           <li>Open your slides in slideshow mode, click <strong>Start recording</strong> and share that window or your whole screen.</li>
-          <li>Talk us through every project for at least 10 minutes (maximum {MAX_PRESENTATION_SECONDS / 60}). Your microphone{withCamera ? " and webcam are" : " is"} recorded.</li>
+          <li>Talk us through every project for at least {formatDuration(MIN_PRESENTATION_SECONDS)} (maximum {formatDuration(MAX_PRESENTATION_SECONDS)}). Your microphone{withCamera ? " and webcam are" : " is"} recorded.</li>
           <li>Use a quiet room and fictional project data only. Stop sharing or click <strong>Stop</strong> when you finish.</li>
         </ul>
         <label className="mt-3 flex items-center gap-2 text-sm">
@@ -255,7 +255,7 @@ function PresentationStep({ evaluation }: { evaluation: StudioEvaluation }) {
             <span className="inline-flex items-center gap-2 rounded-full bg-danger-soft px-3 py-1 text-sm font-semibold text-danger">
               <span className="h-2 w-2 animate-pulse rounded-full bg-danger" /> REC {formatDuration(elapsed)}
             </span>
-            <span className="text-sm text-muted">{remaining > 0 ? `${formatDuration(remaining)} to go before the 10-minute minimum` : "Minimum reached. Finish when you are ready."}</span>
+            <span className="text-sm text-muted">{remaining > 0 ? `${formatDuration(remaining)} to go before the ${formatDuration(MIN_PRESENTATION_SECONDS)} minimum` : "Minimum reached. Finish when you are ready."}</span>
             <button className={buttonClass("secondary")} onClick={stopAll}>
               <Square className="h-4 w-4" /> Stop
             </button>
@@ -273,7 +273,7 @@ function PresentationStep({ evaluation }: { evaluation: StudioEvaluation }) {
               Length: <strong>{formatDuration(result.seconds)}</strong> · {(result.video.size / 1024 / 1024).toFixed(0)} MB
             </p>
             {tooShort ? (
-              <Callout tone="warning">This recording is shorter than {formatDuration(MIN_PRESENTATION_SECONDS)}. Record the presentation again; it must be at least 10 minutes.</Callout>
+              <Callout tone="warning">This recording is shorter than {formatDuration(MIN_PRESENTATION_SECONDS)}. Record the presentation again.</Callout>
             ) : (
               <button className={buttonClass("primary")} disabled={stage !== ""} onClick={submitRecording}>
                 <Upload className="h-4 w-4" />
